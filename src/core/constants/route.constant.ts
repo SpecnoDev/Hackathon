@@ -5,6 +5,7 @@ export const ROUTES = {
   offline: '/offline',
   login: '/login',
   signup: '/signup',
+  loginComplete: '/login/complete',
   /** Where a WhatsApp sign-in link lands, before it swaps itself for a session cookie. */
   hostLink: '/h',
   traveller: '/traveller',

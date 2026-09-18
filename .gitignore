@@ -12,3 +12,4 @@ next-env.d.ts
 supabase/.temp/
 supabase/.branches/
 .superdesign/
+.vercel
