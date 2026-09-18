@@ -1,0 +1,171 @@
+@import 'tailwindcss';
+
+/*
+ * Mirror of the DESIGN.md front matter. Change a token there first, then here.
+ * Sizes are in rem (16px base) rather than the px DESIGN.md quotes, so they follow
+ * a host's system font size.
+ */
+@theme {
+  --color-*: initial;
+  --color-primary: #009a4e;
+  --color-primary-active: #00703a;
+  --color-primary-tint: #e6f4ec;
+  --color-primary-disabled: #a6dcc0;
+  --color-primary-text: #00703a;
+  --color-accent: #f58a34;
+  --color-accent-active: #d9721f;
+  --color-accent-tint: #fdecdd;
+  --color-on-accent: #050505;
+  --color-brand-red: #ff2e2e;
+  --color-error: #c41e1e;
+  --color-error-tint: #fde4e4;
+  --color-ink: #050505;
+  --color-body: #2b2b2b;
+  --color-muted: #5c5c5c;
+  --color-muted-soft: #8a8a8a;
+  --color-hairline: #e0e0e0;
+  --color-hairline-soft: #efefef;
+  --color-border-strong: #bdbdbd;
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f6f6f6;
+  --color-surface-strong: #ededed;
+  --color-surface-dark: #121212;
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-star-rating: #f58a34;
+  --color-scrim: #000000;
+
+  --radius-*: initial;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-*: initial;
+  --shadow-lift: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --breakpoint-*: initial;
+  --breakpoint-tablet: 46.5rem;
+  --breakpoint-desktop: 70.5rem;
+
+  --container-host: 30rem;
+  --container-page: 75rem;
+
+  --text-*: initial;
+  --text-earnings-display: 3rem;
+  --text-earnings-display--line-height: 1.1;
+  --text-earnings-display--letter-spacing: -1px;
+  --text-earnings-display--font-weight: 600;
+  --text-display-xl: 2.25rem;
+  --text-display-xl--line-height: 1.15;
+  --text-display-xl--letter-spacing: -0.5px;
+  --text-display-xl--font-weight: 600;
+  --text-display-lg: 1.75rem;
+  --text-display-lg--line-height: 1.2;
+  --text-display-lg--letter-spacing: -0.3px;
+  --text-display-lg--font-weight: 600;
+  --text-display-md: 1.5rem;
+  --text-display-md--line-height: 1.25;
+  --text-display-md--letter-spacing: -0.2px;
+  --text-display-md--font-weight: 600;
+  --text-title-lg: 1.25rem;
+  --text-title-lg--line-height: 1.3;
+  --text-title-lg--font-weight: 600;
+  --text-title-md: 1.125rem;
+  --text-title-md--line-height: 1.3;
+  --text-title-md--font-weight: 600;
+  --text-title-sm: 1rem;
+  --text-title-sm--line-height: 1.3;
+  --text-title-sm--font-weight: 600;
+  --text-body-host: 1.125rem;
+  --text-body-host--line-height: 1.5;
+  --text-body-host--font-weight: 400;
+  --text-body-md: 1rem;
+  --text-body-md--line-height: 1.5;
+  --text-body-md--font-weight: 400;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.45;
+  --text-body-sm--font-weight: 400;
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.3;
+  --text-caption--font-weight: 500;
+  --text-badge: 0.75rem;
+  --text-badge--line-height: 1.2;
+  --text-badge--letter-spacing: 0.2px;
+  --text-badge--font-weight: 600;
+  --text-button-lg: 1.125rem;
+  --text-button-lg--line-height: 1.2;
+  --text-button-lg--font-weight: 600;
+  --text-button-md: 1rem;
+  --text-button-md--line-height: 1.25;
+  --text-button-md--font-weight: 600;
+  --text-button-sm: 0.875rem;
+  --text-button-sm--line-height: 1.3;
+  --text-button-sm--font-weight: 600;
+  --text-link: 1rem;
+  --text-link--line-height: 1.5;
+  --text-link--font-weight: 500;
+  --text-nav-label: 0.875rem;
+  --text-nav-label--line-height: 1.2;
+  --text-nav-label--font-weight: 600;
+
+  --animate-record-ring: record-ring 1.6s ease-out infinite;
+  --animate-toast-in: toast-in 150ms ease-out;
+
+  @keyframes record-ring {
+    from {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    to {
+      transform: scale(1.45);
+      opacity: 0;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-montserrat), -apple-system, system-ui, Roboto, sans-serif;
+}
+
+:root {
+  --font-display: var(--font-cal-sans), var(--font-montserrat), -apple-system, system-ui, Roboto, sans-serif;
+}
+
+/*
+ * Cal Sans ships one face, registered at weight 400, while the display tokens ask for 600.
+ * Without this the browser fakes a bold on top of it.
+ */
+@utility font-display {
+  font-family: var(--font-display);
+  font-synthesis: none;
+  /* Cal Sans sets tight, and the negative tracking tokens close its word gaps further. This opens them again. */
+  word-spacing: 0.1em;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+}
