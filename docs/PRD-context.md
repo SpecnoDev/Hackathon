@@ -1,8 +1,8 @@
 # PRD Context — Local Experience Marketplace
 
-Marlon · 18 Sep 2026 · companion to `PRD.md.pdf`
+Marlon · 18 Sep 2026 · written from PRD.md.pdf (Miles)
 
-This is the session-derived decision record: the why behind the build, the backlog reasoning, and the open questions that came out of the two 18 September team sessions (`docs/discussions/discussion1.md`, `discussion2.md`). `PRD.md.pdf` (Miles) is the authoritative spec — features, flows, MVP scope, demo script, build plan. Where the two disagree, the PRD position stands until the team settles it at hour 0; every such point is labelled inline below and listed in full in "Where this differs from the PRD."
+This doc is derived from `PRD.md.pdf`, which is the decision of record for the build. It adds the problem framing, who we serve, the reasoning behind what is in and out of the hackathon scope, and a compact record of what the two 18 September team sessions (`docs/discussions/discussion1.md`, `discussion2.md`) considered before the PRD settled these points.
 
 ## Problem
 
@@ -30,147 +30,114 @@ Two users, one marketplace. The supplier is the one we are building for; the tra
 | Money reality | Often unbanked or informally banked. Needs to receive payment without a bank account | Card, has money, wants to know it reaches the person running the experience |
 | What they need from us | A way to list, get booked and get paid without becoming a tech business | A way to find what locals actually recommend, book it, and bring their crew |
 
+The PRD carries fuller persona tables — six host personas (p.5) and four traveller personas (p.5–6) — and names the group organiser as the demand-side persona the demo should centre on, since the co-created, voted itinerary is the platform's most distinctive traveller feature (p.6).
+
 We are explicitly not serving the polished operator with a five-star website and virtual tour. If they can list on Airbnb Experiences, they are not our supplier.
 
 ## Core idea
 
-A two-sided marketplace where local businesses list with almost no friction, and travellers find them because locals vouched for them.
+The PRD's one-line statement (p.1): "A marketplace that removes the technological and financial barriers keeping local South Africans out of the tourism economy, so anyone with something authentic to offer can list it by voice, get booked by travellers co-planning their journey, and get paid — without a bank account, a website, or reliable data." Working name TBD.
 
-**Supply.** Onboarding assumes nothing: a conversational flow in a WhatsApp-style interface asks roughly ten questions, verifies identity, and composes the listing for the supplier *(session position — PRD differs, see below, #1)*. Bookings and confirmations arrive as messages. Payment works without a bank account.
+**Supply.** A host records a voice note describing what they offer, in their own language. Speech-to-text transcribes it, an LLM drafts a structured listing, and the host reviews and corrects it — one field per screen — before publishing. Verification is tiered, so a phone number and an ID are enough to start.
 
-**Demand.** A marketplace of these listings. The traveller browses, books, pays, sees it on their itinerary, invites their crew, and reviews afterwards.
+**Demand.** Travellers browse listings by place, category or route. A group co-creates a journey together: anyone drags listings onto a shared day timeline, the group votes on each block, and the itinerary locks when everyone agrees. One checkout pays for the whole trip; each host accepts their own booking.
 
-**Differentiator: local vouching.** A listing on Airbnb Experiences exists because the operator uploaded it. A listing here carries a visible count of locals who recommended it, sourced from community surveys and nominations. The badge is only worth something if its provenance is legible on the listing: "37 Woodstock residents recommended this" is the product; a generic "Locally verified" sticker is not.
-
-This moves community sourcing from a user-acquisition afterthought to the trust layer. It is also the safety story: identity verification plus community reputation, with security and insurance add-ons as later options. Treating vouching itself as a built MVP journey, rather than a Phase-2 flow, is a session position — see below, #5.
+**What is new here** versus incumbents like Airbnb Experiences (PRD p.7): voice-to-listing in South African languages, community endorsement as a trust tier, unbanked payouts as a first-class flow, and group co-creation with voting as the planning model.
 
 ```mermaid
 flowchart LR
-  A[Locals nominate<br/>survey / referral] --> B[Supplier onboards<br/>chat flow + ID check]
-  B --> C[Listing composed<br/>with vouch count]
-  C --> D[Traveller browses<br/>books, pays]
-  D --> E[Supplier notified<br/>paid without bank]
-  D --> F[Crew invited<br/>shared itinerary]
-  E --> G[Review closes loop]
+  A[Community surveyed<br/>WhatsApp / Facebook] --> B[Champion elected<br/>and inducted]
+  B --> C[Host records voice note<br/>in own language]
+  C --> D[AI drafts listing<br/>host reviews and publishes]
+  D --> E[Travellers browse<br/>and co-build itinerary]
+  E --> F[Group votes<br/>and pays once]
+  F --> G[Host accepts<br/>via app or WhatsApp]
+  G --> H[Experience happens]
+  H --> I[Payout to phone number<br/>no bank account needed]
 ```
 
-This is the session view of the flow; the PRD's solution-overview flow (p.6) differs at the onboarding step (voice note, not chat) and the checkout step (one group checkout with platform-held funds, not QR at the experience).
+Reading left to right: supply is built by communities and champions, converted into listings by voice, consumed by groups planning together, and closed by a payout the host can actually collect (PRD p.6).
 
 Money enters at the traveller and reaches the supplier directly, which is the trickle-down effect we are selling.
 
-## Decisions made
+## Decisions (per the PRD)
 
-Settled on 18 Sep across the two team sessions. Each one narrows what gets built. Rows marked below are session positions the PRD does not (yet) match — see "Where this differs from the PRD."
+| Decision | Consequence for the build | Why |
+| --- | --- | --- |
+| Supply side first | When host simplicity and traveller convenience conflict, the host wins; onboarding and payout get the most polish | PRD design principle (p.4); "the unique value is on the supply side" (p.3) |
+| Voice-to-listing, guided form as fallback | Host records a voice note in their own language; speech-to-text transcribes, an LLM drafts the listing, host reviews one field per screen, adds 3 client-compressed photos, sees a suggested price, previews in the traveller's language, then publishes or saves offline. A one-question-per-screen form is the fallback | PRD calls this "the single most important flow in the product and the demo's centrepiece" (p.8); USP pillar 1 (p.3) |
+| Tiered KYC, OTP mocked | Tier 0 (phone verified) drafts only, not live; Tier 1 (SA ID/passport/permit + selfie) lists and accepts bookings up to a value cap; Tier 2 (credential or Community Champion endorsement) removes the cap, adds a verified badge, same-day payout. OTP is mocked at the hackathon | PRD p.7, "verification that builds trust without re-excluding"; a payments partner carries FICA in production (Yoco, Peach, Ozow, Stitch, PayFast to validate) |
+| Escrow-style collection, payout channels, "you will receive Rx", 15% demo fee, payments mocked | Platform collects from the traveller at checkout and holds funds until completion, then pays the host — bank EFT, then cardless cash-send to phone (primary unbanked path), mobile wallet, cash pickup voucher, cash on the day as a bridge only. Host sees "You will receive Rx" before publishing; payout within 24h, same day for Tier 2. Demo runs at a 15% fee (R600 tour → "You will receive R510") | PRD p.9–10, "payouts that work without a bank account" (USP pillar 3); 15–20% is industry norm, 15% keeps the demo number clean (p.21) |
+| Co-created group itinerary, vote + lock, one checkout | Organiser starts a trip and invites the group; anyone drags (or taps to add) listings onto the day timeline; the group votes per block, conflicts are flagged, and the itinerary locks when the group agrees. One checkout pays for everything; each host accepts separately | PRD calls this "our distinctive demand feature" (p.10) and must-demo #5 (p.13) |
+| Community Champion endorsement as a Tier-2 badge; endorsement flow is Phase 2 | Champions appear in the trust story on stage (elected locally, human on-ramp for hosts); logging and revoking an endorsement is not built for the hackathon | PRD p.12: "an endorsement is logged, visible as a badge, and revocable"; the endorsement flow and Facebook forum aggregation are Phase 2 (p.13) |
+| PWA primary, WhatsApp/SMS as channels, WhatsApp mocked on screen | One PWA, reached by direct URL, no app store; WhatsApp and SMS carry notifications and simple actions, not the app itself; WhatsApp accept is shown as an on-screen mock message | PRD p.13, p.17–18; avoids Meta business verification and the coming per-message cost — a concern the sessions raised (discussion 2) that the PRD's own build plan follows too |
+| Offline designed for, sync in Phase 2 | Drafts, offerings and bookings are designed to work offline; the sync layer itself is not built for the hackathon | PRD p.18: "Phase 2 for the build; design for it now" |
+| Stack: Next.js + Supabase on Vercel, to be confirmed by Henry | One Next.js codebase, two shells (host: WhatsApp-like, text-first; traveller: visual timeline); Supabase for auth, Postgres, storage, RLS and edge functions | PRD p.17, headed "Team default, to be confirmed by the devs"; Henry owns the stack call (discussion 2) |
 
-| Decision | Consequence |
-| --- | --- |
-| Supply side is the core product; demand side is how it gets paid | Onboarding and supplier payment get built first and get the most polish |
-| Local vouching badges a listing; it does not gate it | Listings can exist from day one with no vouches. Vouch count is a ranking signal and a trust mark, so its provenance must be shown on the listing |
-| "Invite others" means your own crew, not strangers *(session position — PRD differs, see below, #2)* | One booker invites by link, group size sits on the booking, everyone sees a shared itinerary. No open slots, no stranger matching, no social graph |
-| PWA with WhatsApp look and feel, not a WhatsApp bot | Avoids Meta business verification and the coming per-message cost. WhatsApp is positioned as the next channel, not the MVP. Direct URL, no app store |
-| Conversational supplier onboarding, roughly ten questions *(session position — PRD differs, see below, #1)* | The chat composes the listing. Suppliers never fill in a form or write copy |
-| Identity verification is required, emulated for the demo | Stitch or Smile ID named as the production route. MVP collects ID details and verifies manually |
-| Payment via QR at the point of experience; Send Money for the unbanked *(session position — PRD differs, see below, #3)* | No payment portal to build. Supplier gets a QR code; unbanked suppliers receive via cash-send to a phone number and any ATM |
-| Offline-first data *(session position — PRD differs, see below, #4 — Henry owns the stack call)* | SQLite on device syncing to Postgres when connected. Itinerary and bookings work without signal |
-| Stack: Next.js, API routes in the same repo, PWA manifest and service worker *(session position — PRD differs, see below, #4 — Henry owns the stack call)* | One repo, one framework, no separate backend |
+## Hackathon MVP scope (24 hours, per the PRD)
 
-## MVP scope
+### Must demo
 
-Four journeys. If all four work end to end, the demo tells the whole story.
+1. Host onboarding with phone OTP (mocked) and language selection.
+2. Voice-to-listing in at least one language beyond English (isiXhosa or isiZulu preferred, Afrikaans fallback): record, transcribe, draft, host edits, publish. The centrepiece.
+3. Host earnings and payout screen showing a completed payout to a phone number (cash-send), with "you will receive Rx" shown before publishing.
+4. Traveller marketplace: browse by place and category across 3–4 SA regions; listing detail with the host's story and verification badge.
+5. Group itinerary: shared day timeline, drag-and-drop (or tap-to-add) blocks, simple vote, lock.
+6. Booking with a convincing payment mock (or gateway sandbox) and host accept from the app; WhatsApp accept shown as a mock message.
+7. Seed data: 10–20 realistic listings from realistic personas in real places (Observatory bike tour, Stellenbosch tram, Langa home-cooked meal, Soweto walk, Hogsback hike, Karoo farm visit).
 
-**Supply**
+### Phase 2 — in the PRD, not the build
 
-1. Start onboarding in the chat-style flow *(session position — PRD differs, see below, #1)*
-2. Identity check (details collected, verification emulated)
-3. Answer roughly ten questions: what, where, when, price, group size, what to bring, photos *(session position — PRD differs, see below, #1)*
-4. Listing composed and shown back for approval
-5. Manage listings: edit, pause, set availability
-6. Receive booking and confirmation as messages
-7. Get paid: QR at the experience, or Send Money to a phone number *(session position — PRD differs, see below, #3)*
+Tiered KYC with a real provider, real cash-send payouts, WhatsApp onboarding channel, offline sync, AI itinerary planning, reviews, category templates for transport and security with credential checks, community endorsement flow, insurance partnership, Facebook forum aggregation.
 
-**Demand**
+### Explicitly out of scope
 
-1. Browse listings, filter by area and interest
-2. Open a listing: description, photos, price, supplier, vouch count with provenance
-3. Book with a group size
-4. Pay
-5. See it on the itinerary
-6. Review afterwards
+Accommodation, flights, native app-store apps, USSD, multi-currency settlement, rich in-app chat, loyalty, real payments or bank linking.
 
-**Crew** *(session position — PRD differs, see below, #2)*
+### Fallbacks if time runs short (decide at hour 12)
 
-1. Booker invites by link
-2. Invitees see the shared itinerary
-3. Group size reflected on the booking
+Drop drag-and-drop for tap-to-add; drop voting for organiser-only lock; drop live speech-to-text for a pre-recorded voice note with cached transcription; keep the payout screen no matter what.
 
-**Vouches** *(session position — PRD differs, see below, #5)*
+## Backlog: deliberately demoted
 
-1. Each listing carries a vouch count and where it came from
-2. Vouches rank listings in browse
-
-For the prototype, vouch data is either seeded from a mock community survey or captured through a lightweight nominate-a-local flow the judges can try. Not yet decided.
-
-## Backlog and open items
-
-Discussed and deliberately demoted. Worth a mention in the pitch, not in the build.
+Discussed and deliberately demoted below the hackathon build. Worth a mention in the pitch, not in the code.
 
 | Feature | Why it is out of MVP |
 | --- | --- |
-| Drag-and-drop itinerary builder with crew voting *(session position — PRD differs, see below, #2: the PRD's must-demo #5 requires a shared, voted group itinerary)* | Demand-side feature on top of the core flow. Build only if the four journeys are done |
 | Stokvel-style travel fund with debit-order contributions | Escrow, payments regulation, and a six-month horizon. Pitch slide, not code |
 | Impact and green filters, sustainability-weighted ranking | Needs supplier data we will not have at demo time |
 | Global currency wallet | Commodity feature; the judges will not score it |
-| Security escort and insurance add-ons | Safety is addressed by ID verification plus community vouching. Add-ons are a later marketplace layer |
+| Security escort and insurance add-ons | PRD shows Transport and Security as listing categories gated behind Tier 2 credentials in the UI (p.12); insurance is a Phase 2 partnership to validate with a broker (p.12–13) |
 | Self-guided GPS audio tours, geofenced meetups | Exists elsewhere. Post-MVP "on the trip" mode |
-| WhatsApp as a live channel | Blocked by Meta business verification and per-message cost. Next evolution, PWA emulates the feel |
-| Facebook groups or Yazzie surveys as live sourcing | This is the vouch engine in production. For the demo it is seeded or a simple nominate flow |
+| WhatsApp as a live channel | PRD mocks the WhatsApp accept on screen at the hackathon (p.13); the Business API integration is Phase 2 (p.17) |
+| Facebook groups or Yazzie surveys as live sourcing | This is the community endorsement flow the PRD lists as Phase 2 (p.13); for the demo, community sourcing is seeded |
+| Accommodation | PRD: explicitly out of scope |
+| Flights | PRD: explicitly out of scope |
+| Native app-store apps | PRD: explicitly out of scope |
+| USSD | PRD: explicitly out of scope (channels note says USSD is "later", p.18) |
+| Rich in-app chat | PRD: explicitly out of scope |
+| Loyalty | PRD: explicitly out of scope |
+| Real payments or bank linking | PRD: explicitly out of scope; payments are mocked at the hackathon (p.13) |
 
-## Where this differs from the PRD
+## Open items (hour 0)
 
-Five points the two documents settle differently. None of these are silently resolved in favour of either document — the PRD holds until the team decides at hour 0.
-
-**1. Onboarding mechanism**
-- **PRD position:** Host records a voice note in their own language → speech-to-text → AI drafts the structured listing; a guided one-question-per-screen form is the fallback (p.3, USP pillar 1; p.8, "the single most important flow in the product and the demo's centrepiece").
-- **Session position:** A conversational chat-style flow, roughly ten questions, composes the listing (discussion 2, MoSCoW must-have).
-- **Status:** open — settle at hour 0.
-
-**2. Group itinerary / crew voting**
-- **PRD position:** The co-created, voted itinerary is the platform's most distinctive traveller feature (p.6); must-demo #5 is a shared day timeline with drag-and-drop (or tap-to-add) blocks, a simple vote, and lock (p.13). The PRD's own hour-0 list still leaves "drag-and-drop vs tap-to-add, and whether voting ships or organiser-lock only" open (p.21).
-- **Session position:** A drag-and-drop itinerary builder with crew voting is backlog — "build only if the four journeys are done." "Invite others" means your own crew sees a shared itinerary, nothing more (discussion 1's original pitch; discussion 2's MoSCoW put itinerary builder + crew voting under "Nice to have (post-core)").
-- **Status:** open — settle at hour 0.
-
-**3. Payment model**
-- **PRD position:** The platform collects from the traveller, holds the money, and pays the host after completion — escrow-style (p.9); funds held until completion, then released to the host (p.10). Real payments/bank linking are out of scope; payments are mocked at the hackathon (p.13).
-- **Session position:** Payment via QR at the point of experience, "no payment portal to build"; Send Money to a phone number for the unbanked.
-- **Status:** open — settle at hour 0. Both documents agree on cash-send to a phone number as the unbanked payout channel.
-
-**4. Stack and offline**
-- **PRD position:** Next.js PWA on Vercel; Supabase for auth, Postgres, storage, RLS and edge functions (p.17, headed "Team default, to be confirmed by the devs"). Offline sync is "Phase 2 for the build; design for it" (p.18).
-- **Session position:** Next.js with API routes in the same repo, PWA manifest and service worker; SQLite on device syncing to Postgres; offline-first is an MVP decision.
-- **Status:** open — settle at hour 0. Henry owns the stack call (discussion 2).
-
-**5. Vouching scope**
-- **PRD position:** Community Champions endorse hosts as a Tier-2 credential — "logged, visible as a badge, and revocable" (p.12); the community endorsement flow and Facebook forum aggregation are Phase 2 (p.13).
-- **Session position:** "Vouches" is one of four MVP journeys — each listing carries a vouch count with visible provenance ("37 Woodstock residents recommended this"), and vouches rank listings (discussion 1 and discussion 2).
-- **Status:** open — settle at hour 0. Both discussions agree that live sourcing (Yazzie/Facebook) is "not building for hackathon, but important to mention in pitch" — the open part is whether a vouch count ships as an MVP ranking signal or waits with the rest of community endorsement.
-
-**Softer differences** (one line each; not scope-blocking):
-
-- **WhatsApp:** PRD treats WhatsApp + SMS as first-class production channels (p.3, p.18) and mocks the WhatsApp accept on screen at the hackathon (p.13); Context positions WhatsApp as the *next* channel, PWA emulates the look and feel, Business API ruled out for Meta verification and per-message cost.
-- **Identity:** PRD has tiered KYC — Tier 0 phone-verified draft-only, Tier 1 SA ID/passport + selfie, Tier 2 credential or community endorsement (p.7); Context says verification is required, emulated for the demo, Stitch or Smile ID named for production.
-- **Security/Transport:** PRD shows them as listing categories gated behind Tier 2 in the UI (p.12, "Hackathon recommendation"); Context puts security escort and insurance add-ons out entirely.
-
-Where both agree (not a conflict): the problem statement and the three exclusions (technology, finance, marketing/trust); supply side is the core product; cash-send payout to a phone number; PWA via direct URL, no app store; stokvel/travel fund out; impact/green filters out; GPS audio tours out; product name still open.
-
-## Open items (hour 0 and beyond)
-
-Merges the PRD's hour-0 decision list (p.20–21) with the open items this document already carried.
+The PRD's hour-0 decisions (p.20–21), plus the one figure still needing a source (p.2).
 
 - [ ] Working name and one-line tagline — candidates: *Khaya Trails*, *Ubuntu Journeys*, *Local Ledger*, *Hlala*. Pick something a host can say and a judge can spell (PRD p.20)
 - [ ] Demo language for voice-to-listing: isiXhosa, isiZulu or Afrikaans, based on an hour-0 speech-to-text test (PRD p.20)
 - [ ] Demo persona and region set — PRD recommends Langa meal, Observatory bike tour, Stellenbosch tram, Soweto walk, Hogsback hike, Karoo farm (PRD p.21)
-- [ ] Drag-and-drop vs tap-to-add for the itinerary, and whether voting ships or organiser-lock only (PRD p.21; this is also conflict #2 above)
+- [ ] Drag-and-drop vs tap-to-add for the itinerary, and whether voting ships or organiser-lock only (PRD p.21)
 - [ ] Fee shown in the demo — PRD recommends 15% so the host-receives number is clean (PRD p.21)
-- [ ] Vouch data source for the prototype: seeded survey or nominate-a-local flow
-- [ ] Sourced stat on tourism spend retained by large operators versus local entrepreneurs (the PRD asks for the same figure, p.2)
-- [ ] Whether the demo runs a real Send Money or QR flow, or shows it as a mock
+- [ ] Sourced stat on tourism spend retained by large operators versus local entrepreneurs — a sourced figure or "approximately," never invented on stage (PRD p.2)
+
+## Superseded session positions
+
+The 18 September sessions leaned differently on five points before the PRD settled them; recorded here so the reasoning behind these superseded session positions is not lost (see PRD p.6–13 for the sections they touch).
+
+| Topic | Sessions leaned toward | PRD decided |
+| --- | --- | --- |
+| Onboarding | Conversational chat, ~10 questions composes the listing | Voice-to-listing, guided form as fallback |
+| Group itinerary | Drag-and-drop + crew voting is backlog; "invite" = shared itinerary only | Co-created, voted itinerary is must-demo #5 |
+| Payments | QR at the point of experience, no payment portal | Platform collects at checkout, holds funds, pays out after completion (mocked at hackathon). Both: cash-send to phone for the unbanked |
+| Stack / offline | Next.js API routes + SQLite-on-device syncing to Postgres, offline-first at MVP | Next.js on Vercel + Supabase, offline is Phase 2, devs to confirm |
+| Vouching | Per-listing vouch count with provenance as an MVP journey | Community Champion endorsement as a Tier-2 badge; endorsement flow is Phase 2 |
