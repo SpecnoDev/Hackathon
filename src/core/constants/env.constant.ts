@@ -6,9 +6,16 @@ export const ENV_KEYS = {
   graphVersion: 'WHATSAPP_GRAPH_VERSION',
   profileApiUrl: 'PROFILE_API_URL',
   profileApiToken: 'PROFILE_API_TOKEN',
+  sessionSecret: 'SESSION_SECRET',
+  internalApiToken: 'INTERNAL_API_TOKEN',
+  idHashSalt: 'ID_HASH_SALT',
+  supabaseUrl: 'NEXT_PUBLIC_SUPABASE_URL',
+  supabasePublishableKey: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
 } as const;
 
 export const DEFAULT_GRAPH_VERSION = 'v21.0';
+
+export const isProduction = (): boolean => process.env.NODE_ENV === 'production';
 
 /** Read lazily at call time — a missing value must fail the request, not the build. */
 export const requireEnv = (key: string): string => {
