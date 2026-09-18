@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Cal_Sans, Montserrat } from 'next/font/google';
 import { APP_ICONS, PWA_NAME, PWA_SHORT_NAME, PWA_THEME_COLOR } from '@/core/constants';
-import { OfflineBanner } from '@/core/layout';
+import { SyncStatus } from '@/core/layout';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${montserrat.variable} ${calSans.variable}`}>
       <body>
-        <OfflineBanner />
+        <SyncStatus />
         {children}
       </body>
     </html>

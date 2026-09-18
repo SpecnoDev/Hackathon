@@ -1,4 +1,4 @@
 export * from './BottomNav';
-export * from './OfflineBanner';
+export * from './SyncStatus';
 export * from './HostPlaceholder';
 export * from './HostShell';
