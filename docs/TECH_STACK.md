@@ -23,7 +23,7 @@ North star for the build. Product context lives in `docs/PRD.md`; code conventio
 | Messaging | Meta WhatsApp Cloud API | Already working in `src/features/onboarding` |
 | Payments | Mocked | Out of scope for the build; the payout screen is the demo moment |
 
-**Add:** `npm i @prisma/client @supabase/supabase-js @supabase/ssr` and `npm i -D prisma tsx tailwindcss @tailwindcss/postcss`. Nothing else without asking.
+**Add:** `npm i @prisma/client @prisma/adapter-pg pg @supabase/supabase-js @supabase/ssr` and `npm i -D prisma@7 tsx @types/pg tailwindcss @tailwindcss/postcss`. Nothing else without asking. Pin `prisma`/`@prisma/client` to the same `7.x` — npm's `latest` tag currently resolves to an `8.0.0-rc` release candidate; stay on 7 until 8 is stable.
 
 ## Architecture
 
@@ -84,13 +84,34 @@ prisma/  schema.prisma  seed.ts    10–20 listings across 3–4 regions
 
 Henry owns migrations. Everyone else: pull, then `npx prisma generate`.
 
+Prisma 7 (installed version) removed `url`/`directUrl` from the `datasource` block in `schema.prisma` — the CLI now reads the connection from `prisma.config.ts` at the repo root, and `PrismaClient` takes a driver adapter instead of reading `DATABASE_URL` implicitly. Both pieces already exist:
+
+```ts
+// prisma.config.ts — CLI only (generate, migrate, db pull). Points at DIRECT_URL.
+import { defineConfig, env } from 'prisma/config';
+
+export default defineConfig({
+  schema: 'prisma/schema.prisma',
+  datasource: { url: env('DIRECT_URL') },
+});
+```
+
+```ts
+// core/services/prisma.service.ts — runtime queries, pooled via DATABASE_URL.
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+export const prisma = new PrismaClient({ adapter });
+```
+
+`npm i @prisma/adapter-pg pg` and `npm i -D @types/pg` on top of the packages listed above — needed by the driver adapter.
+
 ```prisma
 generator client { provider = "prisma-client-js" }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")   // pooler :6543 ?pgbouncer=true&connection_limit=1
-  directUrl = env("DIRECT_URL")     // :5432, migrations only
+  provider = "postgresql"
 }
 
 enum Language         { EN AF XH ZU }
