@@ -9,11 +9,12 @@ type Stage = 'email' | 'code';
 
 const COPY = {
   emailLabel: 'Email address',
-  emailHelper: 'We send you a code. No password to remember.',
+  emailHelper: 'We email you a code. No password to remember.',
   send: 'Send my code',
   sending: 'Sending…',
   codeLabel: 'Your code',
   codeHelper: (email: string) => `We sent ${OTP_CODE_LENGTH} numbers to ${email}.`,
+  linkFallback: 'If your email has a button instead of numbers, tap that and you are signed in.',
   verify: 'Sign in',
   verifying: 'Checking…',
   change: 'Use a different email',
@@ -43,7 +44,10 @@ export function EmailSignIn() {
 
   return stage === 'email' ? (
     <form
-      onSubmit={(event) => run(event, () => createSupabaseBrowserClient().auth.signInWithOtp({ email }))}
+      onSubmit={(event) => run(event, () => createSupabaseBrowserClient().auth.signInWithOtp({
+            email,
+            options: { emailRedirectTo: `${window.location.origin}${ROUTES.loginComplete}` },
+          }))}
       className="mt-8"
     >
       <label htmlFor="email" className="block text-caption text-ink">
@@ -89,6 +93,7 @@ export function EmailSignIn() {
         className="mt-2 h-14 w-full rounded-md border border-hairline bg-canvas px-4 text-display-md tracking-[0.3em] text-ink focus:border-2 focus:border-ink focus:outline-none"
       />
       <p className="mt-2 text-caption text-muted">{COPY.codeHelper(email)}</p>
+      <p className="mt-1 text-caption text-muted">{COPY.linkFallback}</p>
       {error && <p className="mt-2 text-caption text-error">{error}</p>}
       <button
         type="submit"
