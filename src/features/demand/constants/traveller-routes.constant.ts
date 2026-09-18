@@ -1,0 +1,41 @@
+import type { BottomNavItem } from '@/shared/components';
+import { ROUTES } from '@/core/constants';
+
+/** Every traveller URL beyond the four nav roots already in `core/constants/route.constant.ts`. */
+export const TRAVELLER_ROUTES = {
+  home: ROUTES.explore,
+  search: `${ROUTES.explore}/search`,
+  results: `${ROUTES.explore}/results`,
+  place: (slug: string): string => `${ROUTES.explore}/places/${slug}`,
+  host: (id: string): string => `${ROUTES.explore}/hosts/${id}`,
+  listing: (id: string): string => `${ROUTES.explore}/listings/${id}`,
+  listingReviews: (id: string): string => `${ROUTES.explore}/listings/${id}/reviews`,
+  book: {
+    date: (id: string, block?: { id: string; day: string }): string =>
+      block ? `${ROUTES.explore}/listings/${id}/book/date?block=${block.id}&day=${block.day}` : `${ROUTES.explore}/listings/${id}/book/date`,
+    guests: (id: string): string => `${ROUTES.explore}/listings/${id}/book/guests`,
+    review: (id: string): string => `${ROUTES.explore}/listings/${id}/book/review`,
+    pay: (id: string): string => `${ROUTES.explore}/listings/${id}/book/pay`,
+    confirmed: (bookingId: string): string => `${ROUTES.trips}/bookings/${bookingId}/confirmed`,
+    requested: (bookingId: string): string => `${ROUTES.trips}/bookings/${bookingId}/requested`,
+  },
+  trips: {
+    list: ROUTES.trips,
+    detail: (id: string): string => `${ROUTES.trips}/${id}`,
+  },
+  bookings: {
+    detail: (id: string): string => `${ROUTES.trips}/bookings/${id}`,
+    cancel: (id: string): string => `${ROUTES.trips}/bookings/${id}/cancel`,
+  },
+  saved: '/traveller/saved',
+  profile: ROUTES.profile,
+  login: ROUTES.login,
+} as const;
+
+/** Bookings has no tab of its own — it lives inside Trips. */
+export const TRAVELLER_NAV: BottomNavItem[] = [
+  { href: TRAVELLER_ROUTES.home, label: 'Explore', icon: 'search' },
+  { href: TRAVELLER_ROUTES.trips.list, label: 'Trips', icon: 'route' },
+  { href: TRAVELLER_ROUTES.saved, label: 'Saved', icon: 'heart' },
+  { href: TRAVELLER_ROUTES.profile, label: 'Profile', icon: 'user' },
+];

@@ -5,10 +5,10 @@ import { OFFERING_ID_MAX_LENGTH, OFFERING_LIST_DEFAULT_TAKE, OFFERING_LIST_MAX_T
 export const OFFERING_CATEGORIES = [
   'TOUR',
   'FOOD',
+  'GUIDE',
   'TRANSPORT',
   'ACCOMMODATION',
   'CONCIERGE',
-  'GUIDE',
   'SECURITY',
 ] as const;
 
@@ -28,10 +28,18 @@ export type Exhaustive<All extends string, Listed extends All> = [All] extends [
 
 export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<OfferingCategory, (typeof OFFERING_CATEGORIES)[number]> = true;
 
-export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
+export const PRICE_UNITS = ['PER_PERSON', 'PER_TRIP'] as const;
+/** Instant book where the host allows it; otherwise the host answers a request within a deadline. */
+export const BOOKING_MODES = ['INSTANT', 'ON_REQUEST'] as const;
+export type BookingMode = (typeof BOOKING_MODES)[number];
+
+export const OFFERING_SORTS = ['recommended', 'top_rated', 'newest', 'price_asc', 'price_desc'] as const;
+export type OfferingSort = (typeof OFFERING_SORTS)[number];
 
 /** Mirrors the Prisma `Language` enum without importing the client — this file may be pulled into a client form. */
 export const LANGUAGE_CODES = ['EN', 'AF', 'XH', 'ZU'] as const;
+
+export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
 
 /** What the bot's extraction produces: a trade in its own words, and a rate only when one was stated. */
 export const offeringDraftSchema = z.object({
@@ -52,12 +60,20 @@ export const offeringQuerySchema = z.object({
 export type OfferingDraftDto = z.infer<typeof offeringDraftSchema>;
 export type OfferingQueryDto = z.infer<typeof offeringQuerySchema>;
 
+/** Every key doubles as a URL search param on the traveller's results page, so all of them coerce from strings. */
 export const offeringListQuerySchema = z.object({
   region: z.string().trim().min(1).optional(),
   category: z.enum(OFFERING_CATEGORIES).optional(),
   q: z.string().trim().min(1).optional(),
-  lang: z.string().trim().min(1).optional(),
+  lang: z.enum(LANGUAGE_CODES).optional(),
   groupSize: z.coerce.number().int().min(1).optional(),
+  maxPriceCents: z.coerce.number().int().positive().optional(),
+  maxDurationMin: z.coerce.number().int().positive().optional(),
+  verifiedOnly: z.stringbool().optional(),
+  sort: z.enum(OFFERING_SORTS).optional(),
+  take: z.coerce.number().int().positive().max(OFFERING_LIST_MAX_TAKE).optional(),
+  /** Comma-separated offering ids — the saved-listing feed's way of turning ids back into cards. */
+  ids: z.string().trim().min(1).optional(),
 });
 
 export type OfferingListQuery = z.infer<typeof offeringListQuerySchema>;
@@ -69,7 +85,12 @@ export const offeringSummarySchema = z.object({
   town: z.string(),
   region: z.string(),
   priceCents: z.int(),
+  priceUnit: z.enum(PRICE_UNITS),
+  bookingMode: z.enum(BOOKING_MODES),
   durationMin: z.int().nullable(),
+  groupMin: z.int(),
+  groupMax: z.int().nullable(),
+  inclusions: z.array(z.string()),
   photos: z.array(z.string()),
   avgRating: z.number().nullable(),
   reviewCount: z.int(),
@@ -99,7 +120,17 @@ export const offeringDetailSchema = z.object({
   description: z.string(),
   category: z.enum(OFFERING_CATEGORIES),
   priceCents: z.int(),
+  priceUnit: z.enum(PRICE_UNITS),
+  bookingMode: z.enum(BOOKING_MODES),
   durationMin: z.int().nullable(),
+  groupMin: z.int(),
+  groupMax: z.int().nullable(),
+  inclusions: z.array(z.string()),
+  steps: z.array(z.string()),
+  whatToBring: z.array(z.string()),
+  safetyNotes: z.array(z.string()),
+  languages: z.array(z.string()),
+  availability: z.record(z.string(), z.unknown()),
   meetingPoint: z.string(),
   town: z.string(),
   region: z.string(),
@@ -111,6 +142,7 @@ export const offeringDetailSchema = z.object({
   vouchCount: z.int(),
   sustainabilityTag: z.enum(SUSTAINABILITY_TAGS).nullable(),
   host: z.object({
+    id: z.string(),
     fullName: z.string(),
     story: z.string().nullable(),
     serviceArea: z.string(),

@@ -5,7 +5,7 @@ export const getOfferingDetail = async (id: string): Promise<OfferingDetail | nu
   const offering = await prisma.offering.findUnique({
     where: { id },
     include: {
-      host: { select: { fullName: true, story: true, serviceArea: true, photoUrl: true, tier: true } },
+      host: { select: { id: true, fullName: true, story: true, serviceArea: true, photoUrl: true, tier: true } },
       reviews: {
         orderBy: { createdAt: 'desc' },
         include: { traveller: { select: { name: true } } },
@@ -21,7 +21,17 @@ export const getOfferingDetail = async (id: string): Promise<OfferingDetail | nu
     description: offering.description,
     category: offering.category,
     priceCents: offering.priceCents,
+    priceUnit: offering.priceUnit,
+    bookingMode: offering.bookingMode,
     durationMin: offering.durationMin,
+    groupMin: offering.groupMin,
+    groupMax: offering.groupMax,
+    inclusions: offering.inclusions,
+    steps: offering.steps,
+    whatToBring: offering.whatToBring,
+    safetyNotes: offering.safetyNotes,
+    languages: offering.languages,
+    availability: offering.availability as Record<string, unknown>,
     meetingPoint: offering.meetingPoint,
     town: offering.town,
     region: offering.region,
@@ -33,6 +43,7 @@ export const getOfferingDetail = async (id: string): Promise<OfferingDetail | nu
     vouchCount: offering.vouchCount,
     sustainabilityTag: offering.sustainabilityTag,
     host: {
+      id: offering.host.id,
       fullName: offering.host.fullName,
       story: offering.host.story,
       serviceArea: offering.host.serviceArea,

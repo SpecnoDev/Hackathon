@@ -37,14 +37,34 @@ enum AccountStatus {
 
 // TOUR was EXPERIENCE - renamed to stop colliding with "Experience", the glossary's
 // word for the whole Offering model. See docs/user-flows/demand-side-schema-requirements.md.
+// GUIDE added to match the demand-designs prototype's category set.
 enum OfferingCategory {
   TOUR
   FOOD
+  GUIDE
   TRANSPORT
   ACCOMMODATION
   CONCIERGE
   SECURITY
-  GUIDE
+}
+
+enum PriceUnit {
+  PER_PERSON
+  PER_TRIP
+}
+
+/** PRD: instant book where the host allows it; otherwise a request the host answers within a deadline. */
+enum BookingMode {
+  INSTANT
+  ON_REQUEST
+}
+
+/** How the traveller chose to pay. The payment itself is a mock reference; no card data is stored anywhere. */
+enum PaymentMethod {
+  CARD
+  INSTANT_EFT
+  QR
+  WALLET
 }
 
 enum OfferingStatus {
@@ -121,10 +141,16 @@ model Offering {
   sourceLanguage    Language
   translations      Json?
   priceCents        Int
+  priceUnit         PriceUnit          @default(PER_TRIP)
+  bookingMode       BookingMode        @default(ON_REQUEST)
   durationMin       Int?
   groupMin          Int                @default(1)
   groupMax          Int?
   inclusions        String[]
+  steps             String[]
+  whatToBring       String[]
+  safetyNotes       String[]
+  languages         Language[]
   meetingPoint      String
   town              String
   region            String
@@ -144,6 +170,7 @@ model Offering {
   bookings          Booking[]
   vouches           Vouch[]
   reviews           Review[]
+  savedBy           SavedListing[]
 
   @@index([status, region])
   @@index([hostId])
@@ -176,20 +203,33 @@ model Review {
 }
 
 model Traveller {
-  id              String        @id @default(uuid())
-  authUserId      String        @unique
-  email           String        @unique
+  id              String         @id @default(uuid())
+  authUserId      String         @unique
+  email           String         @unique
   name            String
   phone           String?
-  language        Language      @default(EN)
-  status          AccountStatus @default(ACTIVE)
+  language        Language       @default(EN)
+  status          AccountStatus  @default(ACTIVE)
   statusReason    String?
   statusChangedAt DateTime?
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime       @default(now())
   trips           TripMember[]
   bookings        Booking[]
   votes           Vote[]
   reviews         Review[]
+  savedListings   SavedListing[]
+}
+
+model SavedListing {
+  id          String    @id @default(uuid())
+  travellerId String
+  offeringId  String
+  traveller   Traveller @relation(fields: [travellerId], references: [id])
+  offering    Offering  @relation(fields: [offeringId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@unique([travellerId, offeringId])
+  @@index([travellerId])
 }
 
 model Trip {
@@ -248,12 +288,18 @@ model Booking {
   blockId           String?       @unique
   status            BookingStatus @default(REQUESTED)
   date              DateTime
+  startTime         String?
   groupSize         Int
   totalCents        Int
   feeCents          Int
   hostReceivesCents Int
+  paymentMethod     PaymentMethod?
+  whatsAppOptIn     Boolean       @default(false)
   paymentRef        String?
   respondBy         DateTime
+  cancelReason      String?
+  cancelledAt       DateTime?
+  refundCents       Int?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   offering          Offering      @relation(fields: [offeringId], references: [id])
@@ -262,6 +308,8 @@ model Booking {
   block             TripBlock?    @relation(fields: [blockId], references: [id])
   payout            Payout?
   review            Review?
+
+  @@index([travellerId])
 }
 
 model Payout {
@@ -301,4 +349,16 @@ model ConversationSession {
 model ProcessedWebhookMessage {
   id         String   @id
   receivedAt DateTime @default(now())
+}
+
+// Recreated after an untracked table with this name/shape was dropped by `prisma db push`
+// during the demand-designs consolidation — it existed on the shared dev DB but wasn't in any
+// branch's schema.prisma. Columns reconstructed from the live table before the drop; Henry
+// (auth owner) should confirm this matches what he intended and add any missing relations/indexes.
+model PhoneOtp {
+  phone     String   @id
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
 }
