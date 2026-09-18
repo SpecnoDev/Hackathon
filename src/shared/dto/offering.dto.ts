@@ -7,6 +7,7 @@ export const OFFERING_CATEGORIES = [
   'TRANSPORT',
   'ACCOMMODATION',
   'CONCIERGE',
+  'GUIDE',
   'SECURITY',
 ] as const;
 

@@ -34,6 +34,7 @@ enum OfferingCategory {
   ACCOMMODATION
   CONCIERGE
   SECURITY
+  GUIDE
 }
 
 enum OfferingStatus {

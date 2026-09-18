@@ -4,11 +4,12 @@ export const DEFAULT_OFFERING_CATEGORY = 'CONCIERGE' satisfies OfferingCategory;
 
 /** The bot's extraction returns a free-text trade, so it is matched to a category by keyword. */
 export const OFFERING_CATEGORY_KEYWORDS = {
-  TOUR: ['tour', 'guide', 'hike', 'walk', 'safari', 'township', 'experience', 'surf', 'craft'],
+  TOUR: ['tour', 'hike', 'walk', 'safari', 'township', 'experience', 'surf', 'craft'],
   FOOD: ['food', 'cook', 'chef', 'meal', 'braai', 'cater', 'bake', 'restaurant', 'kitchen'],
   TRANSPORT: ['transport', 'driver', 'drive', 'shuttle', 'taxi', 'transfer', 'lift'],
   ACCOMMODATION: ['accommodation', 'stay', 'room', 'lodge', 'bnb', 'camp', 'homestay'],
   CONCIERGE: ['concierge', 'errand', 'arrange', 'plan', 'translate', 'booking'],
+  GUIDE: ['guide', 'show you around', 'show people around', 'local knowledge'],
   SECURITY: ['security', 'guard', 'escort', 'safety'],
 } as const satisfies Record<OfferingCategory, readonly string[]>;
 
