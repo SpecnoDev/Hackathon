@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { AddToTrip } from '@/features/demand/components';
 import { getOfferingDetail } from '@/features/demand/services';
 import { MeetingPointMap } from '@/shared/components';
 import { formatRands } from '@/shared/utils';
@@ -118,9 +119,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           <p className="text-title-md text-ink">
             {formatRands(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
           </p>
-          <button className="mt-4 h-12 w-full rounded-full bg-primary text-button-md text-on-primary">
-            Book
-          </button>
+          <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sidebar" />
         </div>
       </div>
 
@@ -129,7 +128,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           {formatRands(offering.priceCents)}
           <span className="block text-caption text-muted">per person</span>
         </p>
-        <button className="h-12 rounded-full bg-primary px-6 text-button-md text-on-primary">Book</button>
+        <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sticky-bar" />
       </div>
     </div>
   );
