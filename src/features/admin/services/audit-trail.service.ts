@@ -1,7 +1,7 @@
 import type { AdminAction } from '@prisma/client';
-import { ADMIN_SUBJECT_TYPES, type AdminSubjectType } from '@/core/constants';
+import { ADMIN_SUBJECT_TYPES, type AdminActionType, type AdminSubjectType } from '@/core/constants';
 import { prisma } from '@/core/services';
-import type { AdminActionQueryDto } from '@/shared/dto';
+import type { PageRange, Paged } from '@/shared/dto';
 import {
   ADMIN_SUBJECT_LABELS,
   AUDIT_COPY,
@@ -9,7 +9,7 @@ import {
   AUDIT_SENTENCES,
   AUDIT_SUBJECT_TOKEN,
 } from '../constants';
-import { listAdminActions } from './admin-actions.service';
+import { countAdminActions, listAdminActions } from './admin-actions.service';
 
 export interface AuditEntry {
   id: string;
@@ -64,24 +64,30 @@ const subjectNames = async (rows: readonly AdminAction[]): Promise<Map<string, s
   ]);
 };
 
-export const loadAuditTrail = async (query: AdminActionQueryDto): Promise<AuditEntry[]> => {
-  const rows = await listAdminActions(query);
+export const loadAuditTrail = async (
+  action: AdminActionType | undefined,
+  range: PageRange,
+): Promise<Paged<AuditEntry>> => {
+  const [rows, total] = await Promise.all([listAdminActions(action, range), countAdminActions(action)]);
   const names = await subjectNames(rows);
 
-  return rows.map(({ id, createdAt, actorEmail, action, subjectType, subjectId, reason }) => {
-    const subjectLabel = ADMIN_SUBJECT_LABELS[subjectType as AdminSubjectType] ?? subjectType;
-    const name = names.get(subjectKey(subjectType, subjectId)) ?? AUDIT_COPY.missingSubject(subjectLabel);
-    const phrase = (AUDIT_SENTENCES[action] ?? AUDIT_FALLBACK_SENTENCE).replace(AUDIT_SUBJECT_TOKEN, name);
+  return {
+    total,
+    rows: rows.map(({ id, createdAt, actorEmail, action: name, subjectType, subjectId, reason }) => {
+      const subjectLabel = ADMIN_SUBJECT_LABELS[subjectType as AdminSubjectType] ?? subjectType;
+      const subject = names.get(subjectKey(subjectType, subjectId)) ?? AUDIT_COPY.missingSubject(subjectLabel);
+      const phrase = (AUDIT_SENTENCES[name] ?? AUDIT_FALLBACK_SENTENCE).replace(AUDIT_SUBJECT_TOKEN, subject);
 
-    return {
-      id,
-      at: createdAt,
-      actorEmail,
-      sentence: `${actorName(actorEmail)} ${phrase}`,
-      reason,
-      action,
-      subjectLabel,
-      subjectId,
-    };
-  });
+      return {
+        id,
+        at: createdAt,
+        actorEmail,
+        sentence: `${actorName(actorEmail)} ${phrase}`,
+        reason,
+        action: name,
+        subjectLabel,
+        subjectId,
+      };
+    }),
+  };
 };

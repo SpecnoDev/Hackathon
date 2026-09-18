@@ -12,3 +12,4 @@ export * from './time.constant';
 export * from './money.constant';
 export * from './app.constant';
 export * from './admin.constant';
+export * from './pagination.constant';

@@ -7,10 +7,11 @@ import {
   RESTRICTED_ACCOUNT_STATUSES,
   adminActionName,
   adminActionPrefix,
+  type AdminActionType,
 } from '@/core/constants';
 import { prisma } from '@/core/services';
 import { ApiError } from '@/core/utils';
-import type { AdminActionQueryDto } from '@/shared/dto';
+import type { PageRange } from '@/shared/dto';
 
 /**
  * Every write here is a transaction that closes over its own AdminAction row: the trail and the
@@ -137,9 +138,11 @@ export const setOfferingStatus = (
     return { id: offeringId, status };
   });
 
-export const listAdminActions = ({ limit, action }: AdminActionQueryDto): Promise<AdminAction[]> =>
-  prisma.adminAction.findMany({
-    where: action ? { action: { startsWith: adminActionPrefix(action) } } : undefined,
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-  });
+const actionWhere = (action?: AdminActionType) =>
+  action ? { action: { startsWith: adminActionPrefix(action) } } : undefined;
+
+export const listAdminActions = (action: AdminActionType | undefined, { skip, take }: PageRange): Promise<AdminAction[]> =>
+  prisma.adminAction.findMany({ where: actionWhere(action), orderBy: { createdAt: 'desc' }, skip, take });
+
+export const countAdminActions = (action?: AdminActionType): Promise<number> =>
+  prisma.adminAction.count({ where: actionWhere(action) });

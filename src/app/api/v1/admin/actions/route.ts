@@ -11,7 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     await requireAdmin();
     const query = adminActionQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
-    return ok(await listAdminActions(query));
+    return ok(await listAdminActions(query.action, { skip: 0, take: query.limit }));
   } catch (error) {
     return fail(error);
   }
