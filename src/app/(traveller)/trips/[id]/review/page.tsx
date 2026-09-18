@@ -1,0 +1,5 @@
+import { RateTripPage } from '@/features/demand/pages/review';
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  return <RateTripPage tripId={(await params).id} />;
+}
