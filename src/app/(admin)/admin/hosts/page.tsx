@@ -1,36 +1,64 @@
-import { listHostsForAdmin } from '@/features/admin/services';
+import Link from 'next/link';
+import { ROUTES } from '@/core/constants';
+import { AccountStatusPill, AdminCell, AdminRow, AdminTable, StatusFilter } from '@/features/admin/components';
+import {
+  ACCOUNT_STATUS_LABEL,
+  ADMIN_COPY,
+  ALL_STATUSES_FILTER,
+  STATUS_FILTER_PARAM,
+  VERIFICATION_TIER_LABEL,
+  adminHostPath,
+} from '@/features/admin/constants';
+import { listAdminHosts } from '@/features/admin/services';
+import { statusFilterOptions, statusFromQuery } from '@/features/admin/utils';
+import { EmptyState } from '@/shared/components';
+import { ACCOUNT_STATUSES } from '@/shared/dto';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminHostsPage() {
-  const hosts = await listHostsForAdmin();
+const COPY = ADMIN_COPY.hosts;
+const COLUMNS = Object.values(COPY.columns);
+const FILTERS = statusFilterOptions(ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL);
+
+export default async function AdminHostsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const status = statusFromQuery((await searchParams)[STATUS_FILTER_PARAM], ACCOUNT_STATUSES);
+  const hosts = await listAdminHosts(status);
 
   return (
-    <>
-      <h1 className="font-display text-display-md text-ink">Hosts</h1>
-      <table className="mt-6 w-full border-collapse overflow-hidden rounded-md border border-hairline bg-canvas text-left">
-        <thead className="border-b border-hairline">
-          <tr className="text-caption text-muted">
-            <th className="p-3">Name</th>
-            <th className="p-3">Phone</th>
-            <th className="p-3">Area</th>
-            <th className="p-3">Tier</th>
-            <th className="p-3">Offerings</th>
-          </tr>
-        </thead>
-        <tbody className="text-body-sm text-ink">
-          {hosts.map(({ id, fullName, phone, serviceArea, tier, _count }) => (
-            <tr key={id} className="border-b border-hairline-soft last:border-0">
-              <td className="p-3">{fullName}</td>
-              <td className="p-3">{phone}</td>
-              <td className="p-3">{serviceArea}</td>
-              <td className="p-3">{tier.toLowerCase()}</td>
-              <td className="p-3">{_count.offerings}</td>
-            </tr>
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-1">
+        <h1 className="font-display text-display-md text-ink">{COPY.title}</h1>
+        <p className="text-body-md text-muted">{COPY.subtitle}</p>
+      </header>
+
+      <StatusFilter basePath={ROUTES.adminHosts} options={FILTERS} active={status ?? ALL_STATUSES_FILTER} />
+
+      {hosts.length === 0 ? (
+        <EmptyState illustration="missing" title={COPY.empty.title} message={COPY.empty.message} />
+      ) : (
+        <AdminTable columns={COLUMNS}>
+          {hosts.map(({ id, fullName, phone, serviceArea, tier, status: hostStatus, _count }) => (
+            <AdminRow key={id}>
+              <AdminCell>
+                <Link href={adminHostPath(id)} className="text-link text-primary-text underline">
+                  {fullName}
+                </Link>
+              </AdminCell>
+              <AdminCell muted>{phone}</AdminCell>
+              <AdminCell muted>{serviceArea}</AdminCell>
+              <AdminCell muted>{VERIFICATION_TIER_LABEL[tier]}</AdminCell>
+              <AdminCell>
+                <AccountStatusPill status={hostStatus} />
+              </AdminCell>
+              <AdminCell muted>{_count.offerings}</AdminCell>
+            </AdminRow>
           ))}
-        </tbody>
-      </table>
-      {hosts.length === 0 && <p className="mt-4 text-body-sm text-muted">No hosts yet.</p>}
-    </>
+        </AdminTable>
+      )}
+    </div>
   );
 }

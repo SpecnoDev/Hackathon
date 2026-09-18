@@ -8,7 +8,9 @@ export const metadata = { title: 'Backoffice' };
 const NAV = [
   { href: ROUTES.admin, label: 'Overview' },
   { href: ROUTES.adminHosts, label: 'Hosts' },
+  { href: ROUTES.adminTravellers, label: 'Travellers' },
   { href: ROUTES.adminOfferings, label: 'Offerings' },
+  { href: ROUTES.adminAudit, label: 'Audit trail' },
 ] as const;
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

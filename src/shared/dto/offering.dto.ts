@@ -22,11 +22,11 @@ export const OFFERING_CATEGORIES = [
  * A category added straight to the database without a schema change is a different failure and is
  * caught by `npm run db:check`, not by the compiler.
  */
-type Exhaustive<Listed extends OfferingCategory> = [OfferingCategory] extends [Listed]
+export type Exhaustive<All extends string, Listed extends All> = [All] extends [Listed]
   ? true
-  : ['missing from OFFERING_CATEGORIES:', Exclude<OfferingCategory, Listed>];
+  : ['missing from the restated list:', Exclude<All, Listed>];
 
-export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<(typeof OFFERING_CATEGORIES)[number]> = true;
+export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<OfferingCategory, (typeof OFFERING_CATEGORIES)[number]> = true;
 
 export const PRICE_UNITS = ['PER_PERSON', 'PER_TRIP'] as const;
 
