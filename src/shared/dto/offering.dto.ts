@@ -41,3 +41,42 @@ export const offeringSummarySchema = z.object({
 export type OfferingSummary = z.infer<typeof offeringSummarySchema>;
 
 export const offeringListResponseSchema = z.array(offeringSummarySchema);
+
+export const offeringReviewSchema = z.object({
+  id: z.string(),
+  rating: z.int(),
+  comment: z.string().nullable(),
+  createdAt: z.iso.datetime(),
+  travellerName: z.string(),
+});
+
+export type OfferingReview = z.infer<typeof offeringReviewSchema>;
+
+export const offeringDetailSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  category: z.enum(OFFERING_CATEGORIES),
+  priceCents: z.int(),
+  durationMin: z.int().nullable(),
+  meetingPoint: z.string(),
+  town: z.string(),
+  region: z.string(),
+  lat: z.number().nullable(),
+  lng: z.number().nullable(),
+  photos: z.array(z.string()),
+  avgRating: z.number().nullable(),
+  reviewCount: z.int(),
+  vouchCount: z.int(),
+  sustainabilityTag: z.enum(SUSTAINABILITY_TAGS).nullable(),
+  host: z.object({
+    fullName: z.string(),
+    story: z.string().nullable(),
+    serviceArea: z.string(),
+    photoUrl: z.string().nullable(),
+    tier: z.enum(['REGISTERED', 'IDENTITY', 'COMMUNITY']),
+  }),
+  reviews: z.array(offeringReviewSchema),
+});
+
+export type OfferingDetail = z.infer<typeof offeringDetailSchema>;

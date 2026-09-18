@@ -75,6 +75,8 @@ type OfferingSeed = {
   groupMax: number | null;
   town: string;
   region: string;
+  lat: number;
+  lng: number;
   photos: string[];
   sustainabilityTag: 'LOW_IMPACT_TRAVEL' | 'SUPPORTS_LOCAL_LIVELIHOODS' | null;
   vouchCount: number;
@@ -93,6 +95,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 4,
     town: 'Langa',
     region: 'Cape Town',
+    lat: -33.9469,
+    lng: 18.5225,
     photos: ['https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200&q=80'],
     sustainabilityTag: 'SUPPORTS_LOCAL_LIVELIHOODS',
     vouchCount: 37,
@@ -112,6 +116,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 8,
     town: 'Bo-Kaap',
     region: 'Cape Town',
+    lat: -33.9214,
+    lng: 18.4133,
     photos: ['https://images.unsplash.com/photo-1509644851169-2acc08aa25b5?w=1200&q=80'],
     sustainabilityTag: 'SUPPORTS_LOCAL_LIVELIHOODS',
     vouchCount: 21,
@@ -130,6 +136,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 10,
     town: 'Khayelitsha',
     region: 'Cape Town',
+    lat: -34.0403,
+    lng: 18.6733,
     photos: ['https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&q=80'],
     sustainabilityTag: 'SUPPORTS_LOCAL_LIVELIHOODS',
     vouchCount: 9,
@@ -148,6 +156,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 12,
     town: 'Stellenbosch',
     region: 'Winelands',
+    lat: -33.9366,
+    lng: 18.8608,
     photos: ['https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1200&q=80'],
     sustainabilityTag: 'LOW_IMPACT_TRAVEL',
     vouchCount: 14,
@@ -167,6 +177,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 16,
     town: 'Stellenbosch',
     region: 'Winelands',
+    lat: -33.9321,
+    lng: 18.8602,
     photos: ['https://images.unsplash.com/photo-1528825871115-3581a5387919?w=1200&q=80'],
     sustainabilityTag: 'LOW_IMPACT_TRAVEL',
     vouchCount: 6,
@@ -183,6 +195,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 10,
     town: 'Soweto',
     region: 'Johannesburg',
+    lat: -26.2485,
+    lng: 27.9042,
     photos: ['https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=1200&q=80'],
     sustainabilityTag: 'SUPPORTS_LOCAL_LIVELIHOODS',
     vouchCount: 18,
@@ -201,6 +215,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 4,
     town: 'Johannesburg',
     region: 'Johannesburg',
+    lat: -26.1367,
+    lng: 28.2411,
     photos: ['https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200&q=80'],
     sustainabilityTag: null,
     vouchCount: 4,
@@ -219,6 +235,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 8,
     town: 'Hermanus',
     region: 'Overberg',
+    lat: -34.4187,
+    lng: 19.2345,
     photos: ['https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&q=80'],
     sustainabilityTag: 'LOW_IMPACT_TRAVEL',
     vouchCount: 3,
@@ -235,6 +253,8 @@ const OFFERINGS: OfferingSeed[] = [
     groupMax: 6,
     town: 'Hermanus',
     region: 'Overberg',
+    lat: -34.4205,
+    lng: 19.2401,
     photos: ['https://images.unsplash.com/photo-1509233725247-49e657c54213?w=1200&q=80'],
     sustainabilityTag: 'LOW_IMPACT_TRAVEL',
     vouchCount: 1,

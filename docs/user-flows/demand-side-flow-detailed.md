@@ -79,9 +79,43 @@ Prototyped 3 layout variants (see [prototype capture note](#prototype-capture-br
 
 ---
 
-## 2. View a listing ⬜
+## 2. View a listing 🟩
 
-Not yet researched. Source flow doc: click into card → detail view showing description, price, photos, meeting point, supplier info. Filtering/search on this view is a stretch goal.
+**Source flow doc (unchanged):**
+- Click into an experience card → detail view.
+- Shows: description, price, photos, meeting point, supplier info.
+- Filtering/search on this view is a stretch goal, not core.
+
+**Comparable apps researched:** Airbnb Experiences, Viator (iOS) — same comparables as step 1.
+
+**Common pattern observed (Mobbin: [Airbnb — Experience detail](https://mobbin.com/flows/c0e1d7e3-d5d7-430f-b76d-41c98a77b79e), [Viator — Activity detail](https://mobbin.com/flows/8f0aa99b-1758-4e76-a9a2-1727ca39d9a6), [Airbnb — Meet your host](https://mobbin.com/screens/d71700a0-2e5e-4274-9d02-75b399408802)):**
+- Hero photo, then a **sticky bottom price bar** with the primary CTA ("Reserve" / "Show dates" / "Check availability") — pinned through the whole scroll, on every breakpoint observed.
+- Title + duration/location directly under the hero.
+- A **standalone trust-signal row** right below the title, before the long description — Airbnb shows this as icon + one-liner items ("Excellent value", "Top-rated Host", "Cancellation flexibility"), not folded into the star rating line.
+- Long-form description ("What you'll do" / Overview), truncated with "Read more".
+- **Meeting point as its own section with an embedded map pin + address** — not inline text.
+- **Host/operator as its own card** — photo, name, verified/badge, rating, review count, years hosting or similar, then a short personal blurb ("Meet your host").
+- **Reviews as its own section** — aggregate rating + count header, individual review cards, "See all" when long. Viator explicitly calls out review vetting ("We perform checks on reviews").
+
+**What this means for our build — reconciling against the existing `listings/[id]/page.tsx` draft:**
+
+A detail page already exists (built ahead of this research pass, same as browse-listings step 1's first draft). It already has the right overall shape — hero, title/location, description, host card with story, reviews list, price/Book CTA — but three gaps against the researched pattern, all confirmed as fixes:
+
+1. **Meeting point gets a map.** `Offering.lat`/`lng` already exist and are optional in the schema — no migration needed. Confirmed by [DESIGN.md](../../DESIGN.md)'s Known Gaps section: a traveller-side map is already intended ("green markers on a desaturated tile"), it's host routes that explicitly ban map libraries (`CLAUDE.md`, DESIGN.md §Accessibility and Low Data — "No map tiles on the host side"). No conflict: this is `app/(traveller)`, not `app/(host)`.
+2. **Trust signals get standalone treatment**, not folded into the rating line. Maps directly onto components DESIGN.md already specifies — `rating-row` (star + rating + review count) stays as its own line, and vouch count gets its own line/row rather than sharing the rating line, consistent with the two-badge decision already made for the browse card in step 1.
+3. **The book CTA becomes a true sticky bottom bar on mobile.** DESIGN.md already specifies this exact component — `sticky-book-bar`: "80px white bar pinned to the bottom of listing detail with the lift shadow. Price and 'per person' left, a `button-primary-compact` 'Book' right." The Responsive Behaviour table confirms this is phone-width behavior specifically ("booking card becomes the sticky bar"); desktop keeps the two-column layout with the booking card in the right-hand sticky sidebar (already built). No new decision needed — this is implementing a component that was already specced but not yet used.
+
+**Decisions (confirmed by Francois):**
+- Add the map to the meeting-point section (accept the map-library cost — no library chosen yet, pick the lightest option that renders a single pin).
+- Vouch count and verification badge get standalone visual weight, separate from the star-rating line, on the detail view — not just on the browse card.
+- Implement `sticky-book-bar` per DESIGN.md's existing spec for phone width; keep the existing sticky sidebar card for desktop/tablet.
+
+**Gap identified and now closed — DTO/API layer:**
+- `listings/[id]/page.tsx` currently calls `getOfferingDetail` (a feature service) directly from a Server Component, bypassing `shared/dto`'s "one zod schema per DTO" convention and the `/api/v1` route pattern the rest of the app follows. No `OfferingDetail` schema exists in `shared/dto/offering.dto.ts` — only `offeringSummarySchema` for the list view. Fixing this now: add an `offeringDetailSchema` to `shared/dto/offering.dto.ts` and a `GET /api/v1/offerings/[id]` route, following the same `{ data }` / `{ error }` response shape as the existing offerings list route. This is a `shared/dto` + `api/v1` change — Henry's ownership area per `CLAUDE.md`'s table — flagging before making it.
+
+**Not yet integrated into the prototype (follow-up work, not new decisions):**
+- Review vetting language (Viator's "We perform checks on reviews") — no equivalent claim we can make yet since our `Review` model has no moderation step; parking as a copy decision for later, not blocking.
+- Filtering/search on this view remains a stretch goal per the source flow doc — untouched by this research pass.
 
 ---
 
@@ -116,8 +150,9 @@ Not yet researched (UX/flow still open). Data model resolved: see [demand-side-s
 | 1 | Browse card needs a trust/impact signal with no direct comparable in Airbnb/Viator — must be designed intentionally | Resolved — vouch count + provenance (`Vouch` model), see schema requirements doc |
 | 2 | Verification + community-impact badge data provenance (what generates each badge) | Resolved — split into vouching (`Vouch`) vs. reviews (`Review`), see schema requirements doc |
 | 3 | Cost/impact/sustainability filtering, and how it relates to Airbnb-style dates/guests/sort | Resolved — sustainability kept as a display-only optional field, not a filter (see schema requirements doc); dates/guests/sort remain UI-only, no filter pipeline change |
-| 4 | Clicking into a card (step 2, "View a listing") | Not yet researched |
+| 4 | Clicking into a card (step 2, "View a listing") | Resolved — sticky book bar, standalone trust row, meeting-point map; see step 2 above |
 | 5 | `Offering.category` enum too narrow for the sectioned feed (missing FOOD, ACCOMMODATION) | Resolved — see schema requirements doc |
+| 6 | Listing detail page built ahead of research, reaches `shared/dto`/`api/v1` directly from a Server Component with no zod schema or route | Resolved — adding `offeringDetailSchema` + `GET /api/v1/offerings/[id]`, see step 2 above |
 
 ---
 
