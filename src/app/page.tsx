@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 const ROLE_CHOICES = [
   {
-    href: '/explore',
+    href: '/traveller/explore',
     title: 'I want to explore',
     description: 'Find experiences run by local people, and book them.',
   },

@@ -4,9 +4,10 @@ export const ROUTES = {
   home: '/',
   login: '/login',
   signup: '/signup',
-  explore: '/explore',
-  listings: '/listings',
-  trips: '/trips',
+  traveller: '/traveller',
+  explore: '/traveller/explore',
+  listings: '/traveller/listings',
+  trips: '/traveller/trips',
   host: '/host',
   hostOnboarding: '/host/onboarding',
 } as const;
