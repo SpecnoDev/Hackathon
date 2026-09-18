@@ -40,13 +40,20 @@ export const getCurrentUser = async (): Promise<CurrentUser> => {
   return traveller && isAccountActive(traveller.status) ? { role: USER_ROLES.traveller, traveller } : null;
 };
 
-/** A Supabase sign-up only creates an auth user, so the first visit is what makes them a traveller. */
+/**
+ * A Supabase sign-up only creates an auth user, so the first visit is what makes them a traveller.
+ * A traveller who already exists under this email (seeded, or created before they ever signed in) is
+ * claimed rather than duplicated, since email is unique and the auth id is what the guards look up.
+ */
 const ensureTravellerForAuthUser = async (
   authUserId: string,
   email: string | undefined,
 ): Promise<Traveller | null> => {
   const existing = await prisma.traveller.findUnique({ where: { authUserId } });
   if (existing || !email) return existing;
+
+  const byEmail = await prisma.traveller.findUnique({ where: { email } });
+  if (byEmail) return prisma.traveller.update({ where: { id: byEmail.id }, data: { authUserId } });
 
   return prisma.traveller.create({
     data: { authUserId, email, name: email.split('@')[0] },
