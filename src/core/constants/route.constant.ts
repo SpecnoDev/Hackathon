@@ -8,6 +8,8 @@ export const ROUTES = {
   explore: '/traveller/explore',
   listings: '/traveller/listings',
   trips: '/traveller/trips',
+  bookings: '/traveller/bookings',
+  profile: '/traveller/profile',
   host: '/host',
   hostOnboarding: '/host/onboarding',
 } as const;
@@ -15,7 +17,13 @@ export const ROUTES = {
 /** Reachable without a session. `home` is deliberately absent — it is public, but a signed-in user is sent to their own home. */
 export const PUBLIC_ROUTES = [ROUTES.login, ROUTES.signup] as const;
 
-export const TRAVELLER_ROUTES = [ROUTES.explore, ROUTES.listings, ROUTES.trips] as const;
+export const TRAVELLER_ROUTES = [
+  ROUTES.explore,
+  ROUTES.listings,
+  ROUTES.trips,
+  ROUTES.bookings,
+  ROUTES.profile,
+] as const;
 export const HOST_ROUTES = [ROUTES.host] as const;
 
 export const ROLE_HOME_ROUTE = {

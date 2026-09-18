@@ -20,7 +20,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const badgeLabel = TIER_LABEL[offering.host.tier];
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-6 pb-24 desktop:flex desktop:gap-8 desktop:pb-6">
+    <div className="mx-auto max-w-[1200px] px-4 py-6 pb-40 desktop:flex desktop:gap-8 desktop:pb-6">
       <div className="desktop:w-[64%]">
         <div className="relative aspect-4/3 overflow-hidden rounded-md bg-surface-soft desktop:aspect-video">
           {offering.photos[0] && (
@@ -123,7 +123,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 flex h-20 items-center justify-between border-t border-hairline bg-canvas px-4 shadow-lift desktop:hidden">
+      <div className="fixed inset-x-0 bottom-16 z-10 flex h-20 items-center justify-between border-t border-hairline bg-canvas px-4 shadow-lift desktop:hidden">
         <p className="text-title-md text-ink">
           {formatRands(offering.priceCents)}
           <span className="block text-caption text-muted">per person</span>
