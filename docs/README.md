@@ -4,7 +4,8 @@ Shared context for the team's Local Experience Marketplace build. This is also w
 
 | File | What it is | Owner | Authoritative for |
 | --- | --- | --- | --- |
-| `PRD.md.pdf` | The spec: features, flows, MVP scope, demo script, build plan | Miles | Anything it covers — it wins where documents disagree |
+| `PRD.md` | The spec: features, flows, MVP scope, demo script, build plan — the markdown export of Miles's living copy | Miles | Anything it covers — it wins where documents disagree |
+| `PRD.md.pdf` | Earlier export of the PRD (before stokvel-style group payment entered the MVP) | Miles | Nothing — superseded by `PRD.md`; kept for history |
 | `PRD-context.md` | Derived from the PRD: problem framing, who we serve, the reasoning behind what is in and out, the hour-0 open items, and the session positions the PRD superseded | Marlon | The *why*; not a second source of decisions — the PRD decides |
 | `TECH_STACK.md` | Stack, architecture, database schema, API contract, ownership split | Henry | How we build it — the schema and endpoints every stream codes against |
 | `glossary.md` | Shared terminology, short and specific to how we use each term | Francois | What words mean here — add to it as terms come up |
@@ -13,7 +14,7 @@ Shared context for the team's Local Experience Marketplace build. This is also w
 
 ## Reading order
 
-1. `PRD.md.pdf` — the spec.
+1. `PRD.md` — the spec.
 2. `PRD-context.md`, "Open items (hour 0)" — what still needs deciding.
 3. `PRD-context.md`, "Superseded session positions" — so you know which earlier ideas are closed.
 4. `TECH_STACK.md` — stack, schema and API contract; then `CLAUDE.md` in the repo root for the code conventions.

@@ -2,7 +2,7 @@
 
 Name candidates are in `docs/PRD-context.md`, under "Open items (hour 0)".
 
-"A marketplace that removes the technological and financial barriers keeping local South Africans out of the tourism economy, so anyone with something authentic to offer can list it by voice, get booked by travellers co-planning their journey, and get paid — without a bank account, a website, or reliable data."
+"A marketplace that removes the technological and financial barriers on both sides of local South African tourism: hosts list by voice and get paid without a bank account, and groups of friends and family co-create their journey and pay for it together, stokvel-style, so nobody has to front the bill."
 
 ## Demo
 
@@ -14,7 +14,7 @@ TBD
 
 ## The problem
 
-Tourism is one of South Africa's largest job-creating sectors, but its benefits concentrate in hotels, franchises and established operators. The local guide, taxi driver, home cook and crafter are excluded on three fronts: technology (entry-level Android, prepaid data, more comfort speaking than typing), finance (unbanked, paid in cash), and trust (no way to be found or trusted by a stranger). Travellers get a sanitised, operator-led version of the country instead.
+Tourism is one of South Africa's largest job-creating sectors, but its benefits concentrate in hotels, franchises and established operators. The local guide, taxi driver, home cook and crafter are excluded on three fronts: technology (entry-level Android, prepaid data, more comfort speaking than typing), finance (unbanked, paid in cash), and trust (no way to be found or trusted by a stranger). Travellers get a sanitised, operator-led version of the country instead. Groups of friends and family have no good way to plan a journey together, agree on it, and pay for it without one person carrying the cost.
 
 ## What we built
 
@@ -23,14 +23,14 @@ Tourism is one of South Africa's largest job-creating sectors, but its benefits 
 - Next.js 15 scaffold with the `src/core` / `src/features` / `src/shared` structure from `CLAUDE.md`.
 - WhatsApp onboarding bot — a Meta Cloud API webhook walks a host through KYC steps (name, SA ID with checksum validation, email, service area, ID photo), Claude structures the host's own words into offerings with categories and rates, and the profile posts to a mock registry. See `SETUP.md`.
 
-**Targets for submission** (the PRD's must-demo list, p.12–13 — targets, not claims)
+**Targets for submission** (the PRD's must-demo list — targets, not claims)
 
 - [ ] Host onboarding with phone OTP (mocked) and language selection
 - [ ] Voice-to-listing in at least one language beyond English
 - [ ] Host earnings and payout screen with "you will receive Rx" before publishing and a completed payout to a phone number
 - [ ] Traveller marketplace across 3–4 SA regions with listing detail, host story and verification badge
 - [ ] Group itinerary — shared day timeline, drag-and-drop or tap-to-add, vote, lock
-- [ ] Booking with a payment mock and host accept (WhatsApp accept as a mock message)
+- [ ] Stokvel-style group payment — a pot opens for the locked itinerary, split per person; each traveller pays their share from their own phone (mock); progress visible; bookings confirm when full. Host accept from the app; WhatsApp accept as a mock message
 - [ ] Seed data — 10–20 realistic listings in real places
 
 ## How it works
@@ -39,7 +39,7 @@ Tourism is one of South Africa's largest job-creating sectors, but its benefits 
 - Voice note → Google Speech → Claude drafts the listing → host reviews one field per screen → publish.
 - Supabase Postgres via Prisma, Supabase Auth and Storage, `/api/v1` route handlers over `core/services`.
 - IndexedDB outbox so drafts and bookings survive no signal.
-- Payments mocked — money is integers in cents and the payout screen is the demo moment.
+- Payments mocked. The locked itinerary opens a stokvel-style group pot — each traveller pays their share, bookings confirm when it fills. Money is integers in cents; the pot filling and the payout landing are the two demo moments.
 
 Full detail: `docs/TECH_STACK.md`.
 
@@ -69,7 +69,8 @@ The WhatsApp bot needs the Meta test-number setup in `SETUP.md` (~20 min, no bus
 
 `docs/README.md` is the index.
 
-- `docs/PRD.md.pdf` — the spec, decision of record (Miles)
+- `docs/PRD.md` — the spec, decision of record (Miles)
+- `docs/PRD.md.pdf` — earlier export, superseded by PRD.md
 - `docs/PRD-context.md` — why, backlog reasoning, hour-0 open items, superseded session positions (Marlon)
 - `docs/TECH_STACK.md` — stack, schema, API contract, repo layout (Henry)
 - `docs/glossary.md` — shared terminology (Francois)
@@ -82,8 +83,8 @@ The WhatsApp bot needs the Meta test-number setup in `SETUP.md` (~20 min, no bus
 
 ## What's next
 
-- Tiered KYC with a real provider and real cash-send payouts.
-- WhatsApp as an onboarding channel, offline sync, and the community endorsement flow.
+- Tiered KYC with a real provider, real cash-send payouts, and escrow for pooled group funds.
+- A recurring travel stokvel; WhatsApp as an onboarding channel; offline sync; the community endorsement flow.
 
 ## Event details
 
