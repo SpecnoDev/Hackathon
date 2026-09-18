@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <div className="min-h-dvh bg-surface-soft">
       <header className="border-b border-hairline bg-canvas">
-        <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-6 px-4">
+        <div className="mx-auto flex h-14 max-w-page items-center gap-6 px-4">
           <span className="text-title-sm text-ink">Backoffice</span>
           <nav className="flex flex-1 gap-4">
             {NAV.map(({ href, label }) => (
@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <span className="text-body-sm text-muted">{email}</span>
         </div>
       </header>
-      <main className="mx-auto max-w-[1200px] px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-page px-4 py-8">{children}</main>
     </div>
   );
 }
