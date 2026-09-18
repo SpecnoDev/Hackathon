@@ -6,7 +6,7 @@ export default function Home() {
   const profiles = providerRegistryStore.list();
 
   return (
-    <main>
+    <main className="p-8">
       <h1>Providers onboarded via WhatsApp</h1>
       {profiles.length === 0 ? (
         <p>None yet — message the bot to register one.</p>
