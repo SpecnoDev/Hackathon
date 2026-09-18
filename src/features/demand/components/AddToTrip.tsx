@@ -1,10 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { SYNC_COPY } from '@/core/constants';
+import { HTTP_STATUS, ROUTES, SYNC_COPY } from '@/core/constants';
 import { submitWrite } from '@/core/offline';
-import { TRIPS_PATH, tripBlocksPath } from '@/features/demand/constants';
+import { Button } from '@/shared/components';
 import type { TripSummary } from '@/shared/dto';
+import { COPY_LISTING, TRAVELLER_ROUTES, TRIPS_PATH, tripBlocksPath } from '../constants';
 
 type Mode = 'existing' | 'new';
 
@@ -20,6 +22,7 @@ function TripSheet({
   onAdded: (trip: TripSummary, queued: boolean) => void;
 }) {
   const [trips, setTrips] = useState<TripSummary[] | null>(null);
+  const [signedOut, setSignedOut] = useState(false);
   const [mode, setMode] = useState<Mode>('existing');
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -36,13 +39,15 @@ function TripSheet({
     };
 
     fetch(TRIPS_PATH)
-      .then((res) => res.json())
-      .then((body) => load(body.data ?? []))
+      .then(async (res) => {
+        if (res.status === HTTP_STATUS.unauthorized) return setSignedOut(true);
+        load((await res.json()).data ?? []);
+      })
       .catch(() => load([]));
   }, []);
 
   const selectedTrip = mode === 'existing' ? trips?.find((t) => t.id === selectedTripId) : undefined;
-  const canConfirm = mode === 'existing' ? !!selectedTrip : name.trim() && startDate && endDate;
+  const canConfirm = !signedOut && (mode === 'existing' ? !!selectedTrip : name.trim() && startDate && endDate);
 
   /**
    * Both writes go through the outbox, so the phone keeps them before the network sees them. A new
@@ -91,7 +96,14 @@ function TripSheet({
         <p className="px-5 pt-4 text-body-sm text-muted">{offeringTitle}</p>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {trips === null ? (
+          {signedOut ? (
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-body-sm text-muted">Sign in to add this to a trip.</p>
+              <Link href={ROUTES.login} className="text-body-sm text-primary-text underline">
+                Sign in
+              </Link>
+            </div>
+          ) : trips === null ? (
             <p className="text-body-sm text-muted">Loading your trips…</p>
           ) : (
             <>
@@ -212,42 +224,26 @@ export function AddToTrip({
   if (added) {
     return (
       <div
-        className={`flex items-center justify-between rounded-lg bg-primary-tint px-4 py-3 ${trigger === 'sidebar' ? 'mt-4' : ''}`}
+        className="flex items-center justify-between gap-3 rounded-lg bg-primary-tint px-4 py-3"
       >
         <span className="text-body-sm text-primary-text">
           ✓ Added to <strong>{added.trip.name}</strong>
           {added.queued && <span className="block text-caption">{SYNC_COPY.queued}</span>}
         </span>
-        <button
-          type="button"
-          onClick={() => setAdded(null)}
-          className="text-caption text-primary-text underline"
-        >
-          Change
-        </button>
+        <Link href={TRAVELLER_ROUTES.trips.detail(added.trip.id)} className="text-caption text-primary-text underline">
+          View trip
+        </Link>
       </div>
     );
   }
 
   return (
     <>
-      {trigger === 'sidebar' ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="mt-4 h-12 w-full rounded-full bg-primary text-button-md text-on-primary"
-        >
-          Book
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="h-12 rounded-full bg-primary px-6 text-button-md text-on-primary"
-        >
-          Book
-        </button>
-      )}
+      <span className={trigger === 'sidebar' ? '' : 'shrink-0 whitespace-nowrap'}>
+        <Button size="md" fullWidth={trigger === 'sidebar'} onClick={() => setOpen(true)}>
+          {COPY_LISTING.book}
+        </Button>
+      </span>
 
       {open && (
         <TripSheet

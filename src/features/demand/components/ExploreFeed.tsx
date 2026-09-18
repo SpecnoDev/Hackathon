@@ -1,29 +1,37 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ListingCard } from '@/shared/components';
 import type { OfferingListQuery, OfferingSummary } from '@/shared/dto';
+import { useSavedListings } from '../hooks';
+import type { RegionWithSample } from '../services';
 import { CategoryChips } from './CategoryChips';
 import { FilterBar, type Filters } from './FilterBar';
+import { ListingCardLink } from './ListingCardLink';
+import { PlacesSection } from './PlacesSection';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function ExploreFeed({
   initialOfferings,
   regions,
+  places,
+  initialRegion,
 }: {
   initialOfferings: OfferingSummary[];
   regions: string[];
+  places: RegionWithSample[];
+  initialRegion?: string;
 }) {
   const [category, setCategory] = useState<OfferingListQuery['category']>(undefined);
   const [filters, setFilters] = useState<Filters>({
-    region: undefined,
+    region: initialRegion,
     q: undefined,
     groupSize: 1,
     sort: 'Recommended',
   });
   const [offerings, setOfferings] = useState(initialOfferings);
   const [isLoading, setIsLoading] = useState(false);
+  const { savedIds, toggleSaved } = useSavedListings();
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -51,8 +59,8 @@ export function ExploreFeed({
   }, [offerings, filters.sort]);
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-4">
-      <div className="sticky top-0 z-10 flex flex-col gap-3 bg-canvas pb-3">
+    <div>
+      <div className="sticky top-0 z-10 -mx-4 flex flex-col gap-3 bg-canvas px-4 pb-3 tablet:-mx-6 tablet:px-6">
         <FilterBar
           regions={regions}
           filters={filters}
@@ -69,9 +77,21 @@ export function ExploreFeed({
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 pt-4 tablet:grid-cols-2 desktop:grid-cols-3">
-          {sorted.map((offering) => (
-            <ListingCard key={offering.id} offering={offering} />
+          {sorted.map((offering, index) => (
+            <ListingCardLink
+              key={offering.id}
+              offering={offering}
+              saved={savedIds.has(offering.id)}
+              onToggleSave={toggleSaved}
+              priority={index === 0}
+            />
           ))}
+        </div>
+      )}
+
+      {filters.region ? null : (
+        <div className="pt-10">
+          <PlacesSection regions={places} />
         </div>
       )}
     </div>

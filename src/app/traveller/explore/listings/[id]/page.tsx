@@ -1,15 +1,35 @@
-import Image from 'next/image';
+import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
-import { AddToTrip } from '@/features/demand/components';
+import type { Language } from '@prisma/client';
+import { AVAILABILITY_ON_REQUEST, FREE_CANCELLATION_WINDOW_HOURS, LANGUAGE_LABELS } from '@/core/constants';
+import { AddToTrip, ListingLead, ReviewCard, TravellerScreen } from '@/features/demand/components';
+import { CATEGORY_ICON, CATEGORY_LABEL, COPY_COMMON, COPY_LISTING, REVIEWS_SHOWN_ON_LISTING, TRAVELLER_ROUTES } from '@/features/demand/constants';
 import { getOfferingDetail } from '@/features/demand/services';
-import { MeetingPointMap } from '@/shared/components';
+import { formatDuration } from '@/features/demand/utils';
+import { Button, DetailFact, HostStoryBlock, Icon, MeetingPointMap, RatingRow, VerifiedBadge } from '@/shared/components';
+import type { OfferingDetail } from '@/shared/dto';
 import { formatRand } from '@/shared/utils';
 
-const TIER_LABEL: Partial<Record<string, string>> = {
-  IDENTITY: 'Verified',
-  COMMUNITY: 'Community verified',
-};
+const Section = ({ title, children }: { title: string; children: ReactNode }) => (
+  <section className="flex flex-col gap-4 border-t border-hairline-soft pt-8">
+    <h2 className="text-title-lg text-ink">{title}</h2>
+    {children}
+  </section>
+);
 
+const Price = ({ offering }: { offering: OfferingDetail }) => (
+  <p className="flex flex-col">
+    <span className="text-title-md text-ink">{formatRand(offering.priceCents)}</span>
+    <span className="text-caption text-muted">{COPY_COMMON.priceUnit[offering.priceUnit]}</span>
+  </p>
+);
+
+const badgeFor = (tier: OfferingDetail['host']['tier']): string | undefined => (tier === 'REGISTERED' ? undefined : COPY_COMMON.badge[tier]);
+
+/**
+ * DESIGN.md listing-detail, with the host story moved up: a traveller is choosing someone to trust before
+ * they are choosing something to do. The map shows only when the host pinned a spot; otherwise the placeholder tile.
+ */
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const offering = await getOfferingDetail(id);
@@ -17,119 +37,163 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   if (!offering) notFound();
 
   const hostFirstName = offering.host.fullName.split(' ')[0];
-  const badgeLabel = TIER_LABEL[offering.host.tier];
+  const badge = badgeFor(offering.host.tier);
+  const onRequest = offering.availability.type === AVAILABILITY_ON_REQUEST.type;
+  const ratingLabel = offering.avgRating === null ? undefined : COPY_COMMON.ratingLabel(offering.avgRating.toFixed(1), offering.reviewCount);
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-6 pb-40 desktop:flex desktop:gap-8 desktop:pb-6">
-      <div className="desktop:w-[64%]">
-        <div className="relative aspect-4/3 overflow-hidden rounded-md bg-surface-soft desktop:aspect-video">
-          {offering.photos[0] && (
-            <Image
-              src={offering.photos[0]}
-              alt={offering.title}
-              fill
-              className="object-cover"
-              sizes="(min-width: 1128px) 64vw, 100vw"
-              priority
-            />
-          )}
-        </div>
+    <TravellerScreen lead={offering.photos.length > 0 ? <ListingLead offeringId={offering.id} title={offering.title} photos={offering.photos} /> : undefined}>
+      <div className="pb-24 desktop:grid desktop:grid-cols-[minmax(0,1fr)_22rem] desktop:gap-16 desktop:pb-0">
+        <article className="flex flex-col gap-8">
+          <header className="flex flex-col gap-3">
+            <p className="flex items-center gap-2 text-caption text-muted">
+              <Icon name={CATEGORY_ICON[offering.category]} size={16} />
+              {[CATEGORY_LABEL[offering.category], formatDuration(offering.durationMin), offering.town].filter(Boolean).join(' · ')}
+            </p>
+            <h1 className="font-display text-display-lg text-ink">{offering.title}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <RatingRow rating={offering.avgRating} count={offering.reviewCount} newLabel={COPY_COMMON.isNew} label={ratingLabel} />
+              {badge ? <VerifiedBadge label={badge} density="traveller" /> : null}
+              {offering.vouchCount > 0 ? <span className="text-caption text-muted">{COPY_LISTING.vouched(offering.vouchCount)}</span> : null}
+            </div>
+          </header>
 
-        <h1 className="mt-4 text-display-md text-ink">{offering.title}</h1>
-        <p className="mt-1 text-body-sm text-muted">
-          {offering.town} · {offering.meetingPoint}
-        </p>
+          <HostStoryBlock
+            firstName={hostFirstName}
+            town={offering.host.serviceArea}
+            portrait={offering.host.photoUrl ?? undefined}
+            story={offering.host.story ?? ''}
+            badge={badge ? <VerifiedBadge label={badge} density="traveller" /> : <p className="text-caption text-muted">{COPY_COMMON.tierName[offering.host.tier]}</p>}
+          />
 
-        <div className="mt-2 text-caption text-ink">
-          {offering.avgRating !== null ? (
-            <span className="flex items-center gap-1">
-              <span className="text-star-rating">★</span>
-              <span>{offering.avgRating.toFixed(1)}</span>
-              <span className="text-muted">({offering.reviewCount} reviews)</span>
-            </span>
-          ) : (
-            <span className="text-muted">New listing</span>
-          )}
-        </div>
+          <Section title={COPY_LISTING.about}>
+            <p className="text-body-md text-body">{offering.description}</p>
+          </Section>
 
-        {(badgeLabel || offering.vouchCount > 0) && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {badgeLabel && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary-tint px-2.5 py-1 text-badge text-primary-text">
-                ✓ {badgeLabel}
+          {offering.steps.length > 0 ? (
+            <Section title={COPY_LISTING.whatYouDo}>
+              <ol className="flex flex-col">
+                {offering.steps.map((step, index) => (
+                  <li key={step} className="relative flex gap-4 pb-6 last:pb-0">
+                    {index < offering.steps.length - 1 ? <span aria-hidden className="absolute bottom-0 left-5 top-10 w-px bg-hairline" /> : null}
+                    <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-soft text-title-sm text-ink">
+                      {index + 1}
+                    </span>
+                    <p className="pt-2 text-body-md text-body">{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </Section>
+          ) : null}
+
+          {offering.inclusions.length > 0 ? (
+            <Section title={COPY_LISTING.included}>
+              <ul className="flex flex-col gap-3">
+                {offering.inclusions.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-body-md text-body">
+                    <Icon name="check" size={20} className="mt-0.5 shrink-0 text-primary-text" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
+
+          <Section title={COPY_LISTING.meet}>
+            <div className="flex items-center gap-4">
+              <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-md bg-surface-soft text-ink">
+                <Icon name="map-pin" />
               </span>
-            )}
-            {offering.vouchCount > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary-tint px-2.5 py-1 text-badge text-primary-text">
-                ✓ {offering.vouchCount} local{offering.vouchCount === 1 ? '' : 's'} recommend this
-              </span>
-            )}
-          </div>
-        )}
-
-        <p className="mt-4 text-body-md text-body">{offering.description}</p>
-
-        <div className="mt-6 rounded-lg bg-surface-soft p-6">
-          <div className="flex items-center gap-3">
-            {offering.host.photoUrl && (
-              <div className="relative size-14 shrink-0 overflow-hidden rounded-full bg-surface-strong">
-                <Image src={offering.host.photoUrl} alt={hostFirstName} fill className="object-cover" />
+              <div className="flex min-w-0 flex-col gap-1">
+                <p className="text-title-sm text-ink">{offering.meetingPoint}</p>
+                <p className="text-body-sm text-muted">{offering.town}</p>
+              </div>
+            </div>
+            {offering.lat !== null && offering.lng !== null ? (
+              <div className="aspect-video overflow-hidden rounded-lg">
+                <MeetingPointMap lat={offering.lat} lng={offering.lng} />
+              </div>
+            ) : (
+              <div role="img" aria-label={COPY_LISTING.mapPlaceholder} className="flex aspect-video flex-col items-center justify-center gap-3 rounded-lg bg-surface-soft p-6 text-center">
+                <Icon name="map" size={40} className="text-muted-soft" />
+                <p className="max-w-xs text-body-sm text-muted">{COPY_LISTING.mapPlaceholder}</p>
               </div>
             )}
-            <div>
-              <p className="text-title-md text-ink">
-                {hostFirstName} · {offering.host.serviceArea}
-              </p>
-              {badgeLabel && (
-                <span className="mt-1 inline-block rounded-full bg-primary-tint px-2.5 py-1 text-badge text-primary-text">
-                  ✓ {badgeLabel}
-                </span>
-              )}
-            </div>
-          </div>
-          {offering.host.story && <p className="mt-3 text-body-md text-ink">{offering.host.story}</p>}
-        </div>
+          </Section>
 
-        {offering.lat !== null && offering.lng !== null && (
-          <div className="mt-6">
-            <h2 className="text-title-md text-ink">Where you&apos;ll meet</h2>
-            <p className="mt-1 text-body-sm text-muted">{offering.meetingPoint}</p>
-            <div className="mt-3 h-48 overflow-hidden rounded-md">
-              <MeetingPointMap lat={offering.lat} lng={offering.lng} />
-            </div>
-          </div>
-        )}
+          <Section title={COPY_LISTING.thingsToKnow}>
+            <ul className="flex flex-col gap-6">
+              {offering.languages.length > 0 ? (
+                <DetailFact icon="globe" title={COPY_LISTING.languages}>
+                  {offering.languages.map((code) => LANGUAGE_LABELS[code as Language] ?? code).join(', ')}
+                </DetailFact>
+              ) : null}
+              <DetailFact icon="users" title={COPY_LISTING.groupSize}>
+                {COPY_COMMON.group(offering.groupMin, offering.groupMax)}
+              </DetailFact>
+              {offering.whatToBring.length > 0 ? (
+                <DetailFact icon="backpack" title={COPY_LISTING.whatToBring}>
+                  {offering.whatToBring.join(', ')}
+                </DetailFact>
+              ) : null}
+              {onRequest ? (
+                <DetailFact icon="calendar" title={COPY_LISTING.availability}>
+                  {COPY_LISTING.onRequest}
+                </DetailFact>
+              ) : null}
+              <DetailFact icon="calendar-x" title={COPY_LISTING.cancelling}>
+                {COPY_LISTING.cancelTerms(FREE_CANCELLATION_WINDOW_HOURS)}
+              </DetailFact>
+              {offering.safetyNotes.length > 0 ? (
+                <DetailFact icon="shield-check" title={COPY_LISTING.safety}>
+                  <ul className="flex list-disc flex-col gap-1 pl-5">
+                    {offering.safetyNotes.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                </DetailFact>
+              ) : null}
+            </ul>
+          </Section>
 
-        {offering.reviews.length > 0 && (
-          <div className="mt-6 flex flex-col gap-3">
-            <h2 className="text-title-md text-ink">Reviews</h2>
-            {offering.reviews.map((review) => (
-              <div key={review.id} className="rounded-md border border-hairline p-4">
-                <p className="text-caption text-ink">{review.travellerName}</p>
-                <p className="mt-1 text-caption text-star-rating">{'★'.repeat(review.rating)}</p>
-                {review.comment && <p className="mt-2 text-body-md text-body">{review.comment}</p>}
+          <Section title={offering.reviewCount > 0 ? `${COPY_LISTING.reviews} · ${COPY_COMMON.reviewCount(offering.reviewCount)}` : COPY_LISTING.reviews}>
+            {offering.reviews.length === 0 ? (
+              <div className="flex flex-col gap-1 rounded-lg bg-surface-soft p-5">
+                <p className="text-title-sm text-ink">{COPY_LISTING.noReviewsTitle}</p>
+                <p className="text-body-md text-muted">{COPY_LISTING.noReviews}</p>
               </div>
-            ))}
+            ) : (
+              <>
+                <ul className="flex flex-col gap-3">
+                  {offering.reviews.slice(0, REVIEWS_SHOWN_ON_LISTING).map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </ul>
+                {offering.reviews.length > REVIEWS_SHOWN_ON_LISTING ? (
+                  <Button size="md" variant="secondary" href={TRAVELLER_ROUTES.listingReviews(offering.id)}>
+                    {COPY_LISTING.showAll(offering.reviews.length)}
+                  </Button>
+                ) : null}
+              </>
+            )}
+          </Section>
+        </article>
+
+        <aside className="hidden desktop:block">
+          <div className="sticky top-8 flex flex-col gap-4 rounded-lg border border-hairline p-6 shadow-lift">
+            <Price offering={offering} />
+            <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sidebar" />
           </div>
-        )}
+        </aside>
       </div>
 
-      <div className="hidden desktop:mt-0 desktop:block desktop:w-[32%]">
-        <div className="sticky top-4 rounded-lg border border-hairline p-5 shadow-lift">
-          <p className="text-title-md text-ink">
-            {formatRand(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
-          </p>
-          <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sidebar" />
+      {/* DESIGN.md sticky-book-bar. Fixed rather than in the shell's footer so it can step aside for the booking card on a desktop. */}
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-hairline bg-canvas shadow-lift desktop:hidden">
+        <div className="mx-auto flex min-h-20 max-w-page items-center justify-between gap-4 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] tablet:px-6">
+          <Price offering={offering} />
+          <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sticky-bar" />
         </div>
       </div>
-
-      <div className="fixed inset-x-0 bottom-16 z-10 flex h-20 items-center justify-between border-t border-hairline bg-canvas px-4 shadow-lift desktop:hidden">
-        <p className="text-title-md text-ink">
-          {formatRand(offering.priceCents)}
-          <span className="block text-caption text-muted">per person</span>
-        </p>
-        <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sticky-bar" />
-      </div>
-    </div>
+    </TravellerScreen>
   );
 }
