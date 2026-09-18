@@ -11,12 +11,15 @@ export const ROUTES = {
   explore: '/traveller/explore',
   listings: '/traveller/listings',
   trips: '/traveller/trips',
+  bookings: '/traveller/bookings',
+  profile: '/traveller/profile',
   host: '/host',
   hostOnboarding: '/host/onboarding',
   hostListings: '/host/listings',
   hostBookings: '/host/bookings',
   hostEarnings: '/host/earnings',
   hostProfile: '/host/profile',
+  flows: '/flows',
   admin: '/admin',
   adminHosts: '/admin/hosts',
   adminOfferings: '/admin/offerings',
@@ -35,6 +38,13 @@ export const PUBLIC_ROUTES = [
   ROUTES.explore,
   ROUTES.listings,
 ] as const;
+
+/**
+ * A visitor picks their role on `home`, so both role homes must be reachable before any sign-in.
+ * The whole `host` tree is guest-reachable while the host app runs on IndexedDB with no server session;
+ * narrow this to `hostOnboarding` once host pages read from the API.
+ */
+export const GUEST_ROUTES = [ROUTES.home, ROUTES.host, ROUTES.explore, ROUTES.listings, ROUTES.flows] as const;
 
 /** The whole subtree, so a route added under /traveller is covered without touching this file. */
 export const TRAVELLER_ROUTES = [ROUTES.traveller] as const;

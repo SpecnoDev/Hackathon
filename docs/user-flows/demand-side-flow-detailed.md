@@ -22,6 +22,18 @@ Status key: 🟩 researched · 🟨 partially researched (scope/decisions resolv
 - **Top filter bar** as a persistent pill/bar: location + dates + guest count (Airbnb), or search bar + chips for Dates/Duration/Languages/Sort (Viator)
 - **Bottom tab bar**: Explore/Search is home, alongside Wishlist/Saved, Bookings/Trips, Profile — browse is the tab you land on, not buried
 
+### Decision: bottom tab bar (built)
+
+Gap identified late — the tab bar itself hadn't been added to the build even though DESIGN.md already fully specs it (`bottom-nav`, line 647: 64px white bar, top hairline, traveller tabs Explore/Trips/Bookings/Profile, icon above a 14px label, active state in `primary-text` with a filled icon glyph). No new research needed; this was a spec that existed but wasn't wired up.
+
+**Built:**
+- `src/core/layout/BottomNav.tsx` — client component (`usePathname` for active-tab state), four tabs: Explore → `/traveller/explore`, Trips → `/traveller/trips`, Bookings → `/traveller/bookings`, Profile → `/traveller/profile`.
+- `src/app/traveller/layout.tsx` — wraps every route under `/traveller` so the bar is present on all of them, not just Explore.
+- Route constants (`ROUTES.bookings`, `ROUTES.profile`) added to `core/constants/route.constant.ts`; both are now in `TRAVELLER_ROUTES` so the auth-role redirect matrix in `middleware.ts` covers them.
+- Trips, Bookings and Profile are stub pages ("Coming soon") for now — their real builds are separate, tracked work (Trips is step 3/5's day-timeline gap below; Bookings and Profile have no flow-doc step yet). This change is scoped to making the tab bar itself real, not building out each destination.
+
+**Fixed as part of the same change:** the listing detail page's `sticky-book-bar` was `fixed bottom-0`, which the new nav bar (also fixed, `bottom-0`) would have sat on top of. Moved the book bar to `bottom-16` (clearing the 64px nav) and increased the page's bottom padding accordingly.
+
 **What this means for our build:**
 - Copy the card vocabulary directly — photo, rating, duration, price/person is a solved pattern travelers already read fluently. Not a place to differentiate.
 - No-login browsing is consistent with both comparables — they gate personalization (saved dates/guests) behind login/search, not the browse view itself. Confirms our non-negotiable is aligned with existing user expectation, not a novel ask.
@@ -181,11 +193,15 @@ Not yet researched. Source flow doc: QR-code based payment (SnapScan-style) or e
 
 Not yet researched. Source flow doc: simple list/timeline of booked experiences — the "did it work" moment, not the drag-and-drop builder.
 
+**Tab mapping (resolved):** this lives on the **Bookings** tab, not a new tab and not the Trips tab. `Trips` (`/trips/[id]`) is the pre-booking, co-creating surface — add/vote/lock `TripBlock`s on an unlocked trip (step 3). `Bookings` (`/traveller/bookings`) is the post-checkout surface — actual `Booking` rows, created one-per-locked-block at checkout (step 4), fetched via the existing `GET /bookings?role=traveller` contract (TECH_STACK.md's API table). The bottom-nav's four tabs (Explore, Trips, Bookings, Profile — see the tab-bar decision under step 1) already account for this split; step 5's build target is filling in the `/traveller/bookings` page (currently a stub, see step 1's tab-bar decision) with this list/timeline.
+
 ---
 
 ## 6. Review the experience ⬜
 
 Not yet researched (UX/flow still open). Data model resolved: see [demand-side-schema-requirements.md](demand-side-schema-requirements.md) — a `Review` model tied to a completed `Booking`, with `Offering.avgRating`/`reviewCount` denormalized for card display. Source flow doc: post-experience rating/review — explicitly a trust/verification signal, not just feedback.
+
+**Tab mapping (resolved):** same Bookings tab as step 5, not a separate surface — the review action hangs off a completed `Booking` row in that same list (e.g. a "Leave a review" affordance on bookings whose status is `COMPLETED`). Steps 5 and 6 are two states of one Bookings-tab build, not two separate destinations.
 
 ---
 
@@ -201,6 +217,8 @@ Not yet researched (UX/flow still open). Data model resolved: see [demand-side-s
 | 6 | Listing detail page built ahead of research, reaches `shared/dto`/`api/v1` directly from a Server Component with no zod schema or route | Resolved — adding `offeringDetailSchema` + `GET /api/v1/offerings/[id]`, see step 2 above |
 | 7 | Source flow doc's step 3 ("traveler selects the experience and confirms a booking") implies single-listing checkout, but the schema/API only create a `Booking` via trip checkout on a locked block | Resolved — step 3 targets add-to-trip (`TripBlock`), not direct booking; see step 3 above |
 | 8 | DESIGN.md's day-timeline/trip-block/vote/lock components are unspecified (line 814) | Partially resolved — add-to-trip is a bottom sheet (researched, see step 3), day-timeline sized to Wanderlog's day-tab pattern but not detailed screen-by-screen; vote/lock still fully open, deferred to a later step |
+| 9 | Bottom tab bar (Explore/Trips/Bookings/Profile) was specced in DESIGN.md but never wired into the build | Resolved — built, see "Decision: bottom tab bar (built)" under step 1. Trips/Bookings/Profile are stub destinations pending their own builds |
+| 10 | Whether steps 5 (view booked experiences) and 6 (review) need their own tab, beyond the four already built | Resolved — no new tab. Both are states of the existing **Bookings** tab (`/traveller/bookings`, currently a stub); Trips stays the pre-booking co-create surface. See tab-mapping notes under steps 5 and 6 |
 
 ---
 

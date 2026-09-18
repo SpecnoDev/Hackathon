@@ -1,8 +1,5 @@
-import { HostPlaceholder } from '@/core/layout';
+import { BookingsPage } from '@/features/supply/pages/bookings';
 
-// TODO(Marlon): booking requests with accept and decline, from GET /api/v1/bookings?role=host.
-export default function HostBookingsPage() {
-  return (
-    <HostPlaceholder title="Bookings" note="Requests from travellers, with accept and decline, land here." />
-  );
+export default function Page() {
+  return <BookingsPage />;
 }
