@@ -4,6 +4,10 @@ import { ROUTES } from '@/core/constants';
 /** Every traveller URL beyond the four nav roots already in `core/constants/route.constant.ts`. */
 export const TRAVELLER_ROUTES = {
   home: ROUTES.explore,
+  search: `${ROUTES.explore}/search`,
+  results: `${ROUTES.explore}/results`,
+  place: (slug: string): string => `${ROUTES.explore}/places/${slug}`,
+  host: (id: string): string => `${ROUTES.explore}/hosts/${id}`,
   listing: (id: string): string => `${ROUTES.explore}/listings/${id}`,
   listingReviews: (id: string): string => `${ROUTES.explore}/listings/${id}/reviews`,
   book: {

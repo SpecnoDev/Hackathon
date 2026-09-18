@@ -8,11 +8,17 @@ const flip = (ids: Set<string>, offeringId: string): Set<string> => {
   return next;
 };
 
+export interface SavedListingsState {
+  savedIds: Set<string>;
+  /** Resolves to the saved state the server settled on; undefined when it refused (signed out). */
+  toggleSaved: (offeringId: string) => Promise<boolean | undefined>;
+}
+
 /**
  * Fetches this traveller's saved offering ids once, then toggles optimistically against the real `/api/v1/saved` route.
- * A refused toggle (signed out) is put back and reported, so the heart never lies.
+ * A refused toggle (signed out) is put back, so the heart never lies. Held once per app in SavedListingsProvider.
  */
-export const useSavedListings = (onRejected?: () => void) => {
+export const useSavedListingsState = (): SavedListingsState => {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -22,27 +28,23 @@ export const useSavedListings = (onRejected?: () => void) => {
       .catch(() => undefined);
   }, []);
 
-  const toggleSaved = useCallback(
-    (offeringId: string) => {
+  const toggleSaved = useCallback(async (offeringId: string): Promise<boolean | undefined> => {
+    setSavedIds((current) => flip(current, offeringId));
+    try {
+      const body = (await (await fetch(`/api/v1/saved/${offeringId}`, { method: 'POST' })).json()) as { data?: { saved: boolean } };
+      if (body.data === undefined) throw new Error();
+      const saved = body.data.saved;
+      setSavedIds((current) => {
+        const next = new Set(current);
+        saved ? next.add(offeringId) : next.delete(offeringId);
+        return next;
+      });
+      return saved;
+    } catch {
       setSavedIds((current) => flip(current, offeringId));
-
-      fetch(`/api/v1/saved/${offeringId}`, { method: 'POST' })
-        .then((res) => res.json())
-        .then((body: { data?: { saved: boolean } }) => {
-          if (body.data === undefined) throw new Error();
-          setSavedIds((current) => {
-            const next = new Set(current);
-            body.data!.saved ? next.add(offeringId) : next.delete(offeringId);
-            return next;
-          });
-        })
-        .catch(() => {
-          setSavedIds((current) => flip(current, offeringId));
-          onRejected?.();
-        });
-    },
-    [onRejected],
-  );
+      return undefined;
+    }
+  }, []);
 
   return { savedIds, toggleSaved };
 };

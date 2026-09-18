@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { forbidHostOnTravellerRoutes } from '@/core/guards';
+import { SavedListingsProvider } from '@/features/demand/components';
 import { ToastProvider } from '@/shared/components';
 
 export const metadata = { title: 'Explore' };
@@ -8,5 +9,9 @@ export const metadata = { title: 'Explore' };
 export default async function TravellerLayout({ children }: { children: ReactNode }) {
   await forbidHostOnTravellerRoutes();
 
-  return <ToastProvider>{children}</ToastProvider>;
+  return (
+    <ToastProvider>
+      <SavedListingsProvider>{children}</SavedListingsProvider>
+    </ToastProvider>
+  );
 }

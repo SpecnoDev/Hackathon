@@ -25,6 +25,70 @@ export const COPY_COMMON = {
     max === null || min === max ? `${max ?? min} people` : `${min} to ${max} people`,
   minutes: (minutes: number): string => `${minutes} minutes`,
   hours: (hours: number): string => (hours === 1 ? '1 hour' : `${hours} hours`),
+  guests: (count: number): string => (count === 1 ? '1 guest' : `${count} guests`),
+  hosts: (count: number): string => (count === 1 ? '1 host' : `${count} hosts`),
+  weekdays: { MON: 'Monday', TUE: 'Tuesday', WED: 'Wednesday', THU: 'Thursday', FRI: 'Friday', SAT: 'Saturday', SUN: 'Sunday' } as const,
+  anyTime: 'Your host confirms a time with you',
+  languageName: { EN: 'English', AF: 'Afrikaans', XH: 'isiXhosa', ZU: 'isiZulu' } as const,
+  on: 'On',
+  off: 'Off',
+} as const;
+
+export const COPY_EXPLORE = {
+  wordmark: 'Hosted',
+  headline: 'Real places, real people',
+  sub: 'Meals, walks, lifts and guides from the people who live there.',
+  searchPill: 'Where are you going?',
+  allCategories: 'Everything',
+  emptyTitle: 'Nothing here yet',
+  empty: 'No host offers this kind of thing yet. Try another kind, or see everything.',
+  seeEverything: 'See everything',
+  rails: {
+    nearYou: 'Near you',
+    loved: 'Loved by travellers',
+    justAdded: 'Just added',
+    hostsIn: (place: string): string => `Hosts in ${place}`,
+    places: 'Browse by place',
+    seeAll: 'See all',
+  },
+  search: {
+    title: 'Search',
+    ask: 'Tell us what you are looking for',
+    askExamples: ['Somewhere to eat real food in Soweto', 'A slow morning near Knysna for four of us', 'What is there to do in Montagu'],
+    recent: 'Recent searches',
+    popular: 'Popular places',
+    who: 'Who',
+    fewer: 'One fewer guest',
+    more: 'One more guest',
+    submit: 'Search',
+    clear: 'Clear',
+  },
+  results: {
+    title: 'Results',
+    anywhere: 'Anywhere',
+    count: (count: number): string => (count === 1 ? '1 place to go' : `${count} places to go`),
+    filters: 'Filters',
+    filtersOn: (count: number): string => `Filters (${count})`,
+    emptyTitle: 'Nothing matches yet',
+    empty: 'Try another place, or take away a filter.',
+    clear: 'Clear filters',
+    sort: { recommended: 'Recommended', top_rated: 'Top rated', newest: 'Newest', price_asc: 'Price: low to high', price_desc: 'Price: high to low' } as const,
+    filter: {
+      title: 'Filters',
+      price: 'Price, up to',
+      duration: 'How long, up to',
+      language: 'Language spoken',
+      sort: 'Sort by',
+      verifiedOnly: 'Verified hosts only',
+      apply: (count: number | undefined): string => (count === undefined ? 'Show places' : count === 1 ? 'Show 1 place' : `Show ${count} places`),
+    },
+  },
+  place: {
+    hosts: (place: string): string => `Hosts in ${place}`,
+    emptyTitle: 'No hosts here yet',
+    empty: 'We are still meeting people in this town. Try a place nearby.',
+    explore: 'Explore everywhere',
+  },
 } as const;
 
 export const COPY_LISTING = {
@@ -43,7 +107,9 @@ export const COPY_LISTING = {
   groupSize: 'Group size',
   whatToBring: 'What to bring',
   availability: 'When you can come',
-  onRequest: 'Any day, by arrangement',
+  everyDay: 'Any day, by arrangement',
+  onDays: (days: string): string => `Every ${days}`,
+  atTimes: (times: string): string => `Starts at ${times}`,
   cancelling: 'Cancelling',
   cancelTerms: (hours: number): string => `Cancel up to ${hours} hours before and you get all your money back. After that you get half.`,
   safety: 'Staying safe',
@@ -53,4 +119,24 @@ export const COPY_LISTING = {
   noReviewsTitle: 'No reviews yet',
   noReviews: 'Be the first to go, then tell the next traveller how it was.',
   book: 'Book',
+  seeProfile: (firstName: string): string => `More about ${firstName}`,
+} as const;
+
+export const COPY_HOST = {
+  barTitle: 'Host',
+  memberSince: (date: string): string => `Hosting since ${date}`,
+  speaks: 'Speaks',
+  story: (firstName: string): string => `${firstName}’s story`,
+  offerings: (firstName: string): string => `What ${firstName} offers`,
+  noOfferings: (firstName: string): string => `${firstName} has nothing live right now.`,
+} as const;
+
+export const COPY_ACCOUNT = {
+  saved: {
+    title: 'Saved',
+    loading: 'Loading…',
+    emptyTitle: 'Nothing saved yet',
+    empty: 'Tap the heart on a listing to keep it here for later.',
+    explore: 'Explore listings',
+  },
 } as const;

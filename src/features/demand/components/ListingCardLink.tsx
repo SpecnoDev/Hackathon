@@ -3,20 +3,16 @@
 import { ListingCard } from '@/shared/components';
 import type { OfferingSummary } from '@/shared/dto';
 import { toListingCardProps } from '../utils';
+import { useSavedListings } from './SavedListingsProvider';
 
 interface ListingCardLinkProps {
   offering: OfferingSummary;
-  saved: boolean;
-  onToggleSave: (offeringId: string) => void;
   priority?: boolean;
   sizes?: string;
 }
 
-/** The real, database-backed listing card: same plain-props `ListingCard`, wired to this traveller's saved state. */
-export const ListingCardLink = ({ offering, saved, onToggleSave, priority, sizes }: ListingCardLinkProps) => (
-  <ListingCard
-    {...toListingCardProps(offering, saved, () => onToggleSave(offering.id))}
-    priority={priority}
-    sizes={sizes}
-  />
-);
+/** The real, database-backed listing card: the shared plain-props `ListingCard`, wired to this traveller's saved state. */
+export const ListingCardLink = ({ offering, priority, sizes }: ListingCardLinkProps) => {
+  const { savedIds, toggleSaved } = useSavedListings();
+  return <ListingCard {...toListingCardProps(offering, savedIds.has(offering.id), () => toggleSaved(offering.id))} priority={priority} sizes={sizes} />;
+};

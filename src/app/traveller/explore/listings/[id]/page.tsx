@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Language } from '@prisma/client';
-import { AVAILABILITY_ON_REQUEST, FREE_CANCELLATION_WINDOW_HOURS, LANGUAGE_LABELS } from '@/core/constants';
+import { FREE_CANCELLATION_WINDOW_HOURS, LANGUAGE_LABELS } from '@/core/constants';
 import { AddToTrip, ListingLead, ReviewCard, TravellerScreen } from '@/features/demand/components';
 import { CATEGORY_ICON, CATEGORY_LABEL, COPY_COMMON, COPY_LISTING, REVIEWS_SHOWN_ON_LISTING, TRAVELLER_ROUTES } from '@/features/demand/constants';
 import { getOfferingDetail } from '@/features/demand/services';
@@ -26,6 +27,19 @@ const Price = ({ offering }: { offering: OfferingDetail }) => (
 
 const badgeFor = (tier: OfferingDetail['host']['tier']): string | undefined => (tier === 'REGISTERED' ? undefined : COPY_COMMON.badge[tier]);
 
+type Weekday = keyof typeof COPY_COMMON.weekdays;
+const isWeekday = (value: unknown): value is Weekday => typeof value === 'string' && value in COPY_COMMON.weekdays;
+
+/** The seed writes `{ weekdays, times }`; an empty list means any day, or a time the host confirms. Anything else reads as on request. */
+const availabilityLines = (availability: OfferingDetail['availability']): string[] => {
+  const weekdays = Array.isArray(availability.weekdays) ? availability.weekdays.filter(isWeekday) : [];
+  const times = Array.isArray(availability.times) ? availability.times.filter((time): time is string => typeof time === 'string') : [];
+  return [
+    weekdays.length === 0 ? COPY_LISTING.everyDay : COPY_LISTING.onDays(weekdays.map((day) => COPY_COMMON.weekdays[day]).join(', ')),
+    times.length === 0 ? COPY_COMMON.anyTime : COPY_LISTING.atTimes(times.join(', ')),
+  ];
+};
+
 /**
  * DESIGN.md listing-detail, with the host story moved up: a traveller is choosing someone to trust before
  * they are choosing something to do. The map shows only when the host pinned a spot; otherwise the placeholder tile.
@@ -38,7 +52,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   const hostFirstName = offering.host.fullName.split(' ')[0];
   const badge = badgeFor(offering.host.tier);
-  const onRequest = offering.availability.type === AVAILABILITY_ON_REQUEST.type;
   const ratingLabel = offering.avgRating === null ? undefined : COPY_COMMON.ratingLabel(offering.avgRating.toFixed(1), offering.reviewCount);
 
   return (
@@ -64,6 +77,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             portrait={offering.host.photoUrl ?? undefined}
             story={offering.host.story ?? ''}
             badge={badge ? <VerifiedBadge label={badge} density="traveller" /> : <p className="text-caption text-muted">{COPY_COMMON.tierName[offering.host.tier]}</p>}
+            action={
+              <Link href={TRAVELLER_ROUTES.host(offering.host.id)} className="flex min-h-12 items-center text-link text-primary-text underline">
+                {COPY_LISTING.seeProfile(hostFirstName)}
+              </Link>
+            }
           />
 
           <Section title={COPY_LISTING.about}>
@@ -136,11 +154,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   {offering.whatToBring.join(', ')}
                 </DetailFact>
               ) : null}
-              {onRequest ? (
-                <DetailFact icon="calendar" title={COPY_LISTING.availability}>
-                  {COPY_LISTING.onRequest}
-                </DetailFact>
-              ) : null}
+              <DetailFact icon="calendar" title={COPY_LISTING.availability}>
+                {availabilityLines(offering.availability).map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </DetailFact>
               <DetailFact icon="calendar-x" title={COPY_LISTING.cancelling}>
                 {COPY_LISTING.cancelTerms(FREE_CANCELLATION_WINDOW_HOURS)}
               </DetailFact>

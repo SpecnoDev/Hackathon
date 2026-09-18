@@ -30,10 +30,13 @@ export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<(typeof OFFERING_CATEG
 
 export const PRICE_UNITS = ['PER_PERSON', 'PER_TRIP'] as const;
 
-export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
+export const OFFERING_SORTS = ['recommended', 'top_rated', 'newest', 'price_asc', 'price_desc'] as const;
+export type OfferingSort = (typeof OFFERING_SORTS)[number];
 
 /** Mirrors the Prisma `Language` enum without importing the client — this file may be pulled into a client form. */
 export const LANGUAGE_CODES = ['EN', 'AF', 'XH', 'ZU'] as const;
+
+export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
 
 /** What the bot's extraction produces: a trade in its own words, and a rate only when one was stated. */
 export const offeringDraftSchema = z.object({
@@ -54,12 +57,18 @@ export const offeringQuerySchema = z.object({
 export type OfferingDraftDto = z.infer<typeof offeringDraftSchema>;
 export type OfferingQueryDto = z.infer<typeof offeringQuerySchema>;
 
+/** Every key doubles as a URL search param on the traveller's results page, so all of them coerce from strings. */
 export const offeringListQuerySchema = z.object({
   region: z.string().trim().min(1).optional(),
   category: z.enum(OFFERING_CATEGORIES).optional(),
   q: z.string().trim().min(1).optional(),
-  lang: z.string().trim().min(1).optional(),
+  lang: z.enum(LANGUAGE_CODES).optional(),
   groupSize: z.coerce.number().int().min(1).optional(),
+  maxPriceCents: z.coerce.number().int().positive().optional(),
+  maxDurationMin: z.coerce.number().int().positive().optional(),
+  verifiedOnly: z.stringbool().optional(),
+  sort: z.enum(OFFERING_SORTS).optional(),
+  take: z.coerce.number().int().positive().max(OFFERING_LIST_MAX_TAKE).optional(),
   /** Comma-separated offering ids — the saved-listing feed's way of turning ids back into cards. */
   ids: z.string().trim().min(1).optional(),
 });
@@ -128,6 +137,7 @@ export const offeringDetailSchema = z.object({
   vouchCount: z.int(),
   sustainabilityTag: z.enum(SUSTAINABILITY_TAGS).nullable(),
   host: z.object({
+    id: z.string(),
     fullName: z.string(),
     story: z.string().nullable(),
     serviceArea: z.string(),

@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react';
 import type { OfferingSummary } from '@/shared/dto';
 import { Button, EmptyState } from '@/shared/components';
-import { TRAVELLER_ROUTES } from '../constants';
-import { ListingCardLink } from './ListingCardLink';
+import { COPY_ACCOUNT, TRAVELLER_ROUTES } from '../constants';
+import { ListingGrid } from './ListingGrid';
+import { useSavedListings } from './SavedListingsProvider';
 
-/** Saved ids come back fast from `/api/v1/saved`, but the offerings behind them need their own fetch since that route only returns ids. */
+/** The provider holds the ids; the offerings behind them need their own fetch since `/api/v1/saved` only returns ids. */
 export const SavedFeed = () => {
+  const { savedIds } = useSavedListings();
   const [offerings, setOfferings] = useState<OfferingSummary[] | null>(null);
 
   useEffect(() => {
@@ -23,23 +25,20 @@ export const SavedFeed = () => {
       .catch(() => setOfferings([]));
   }, []);
 
-  const removeSaved = (offeringId: string): void => {
-    setOfferings((current) => current?.filter((offering) => offering.id !== offeringId) ?? current);
-    fetch(`/api/v1/saved/${offeringId}`, { method: 'POST' }).catch(() => undefined);
-  };
+  if (offerings === null) return <p className="py-8 text-center text-body-md text-muted">{COPY_ACCOUNT.saved.loading}</p>;
 
-  if (offerings === null) return <p className="py-8 text-center text-body-md text-muted">Loading…</p>;
+  const shown = offerings.filter((offering) => savedIds.has(offering.id));
 
-  if (offerings.length === 0) {
+  if (shown.length === 0) {
     return (
       <div className="mx-auto w-full max-w-host">
         <EmptyState
           illustration="offerings"
-          title="Nothing saved yet"
-          message="Tap the heart on a listing to keep it here for later."
+          title={COPY_ACCOUNT.saved.emptyTitle}
+          message={COPY_ACCOUNT.saved.empty}
           action={
             <Button size="md" variant="secondary" href={TRAVELLER_ROUTES.home}>
-              Explore listings
+              {COPY_ACCOUNT.saved.explore}
             </Button>
           }
         />
@@ -47,13 +46,5 @@ export const SavedFeed = () => {
     );
   }
 
-  return (
-    <ul className="grid grid-cols-1 gap-x-6 gap-y-10 tablet:grid-cols-2 desktop:grid-cols-3">
-      {offerings.map((offering, index) => (
-        <li key={offering.id}>
-          <ListingCardLink offering={offering} saved onToggleSave={removeSaved} priority={index === 0} />
-        </li>
-      ))}
-    </ul>
-  );
+  return <ListingGrid offerings={shown} />;
 };
