@@ -41,10 +41,11 @@ export function EmailSignIn() {
     router.replace(ROUTES.loginComplete);
   };
 
-  const supabase = createSupabaseBrowserClient();
-
   return stage === 'email' ? (
-    <form onSubmit={(event) => run(event, () => supabase.auth.signInWithOtp({ email }))} className="mt-8">
+    <form
+      onSubmit={(event) => run(event, () => createSupabaseBrowserClient().auth.signInWithOtp({ email }))}
+      className="mt-8"
+    >
       <label htmlFor="email" className="block text-caption text-ink">
         {COPY.emailLabel}
       </label>
@@ -69,7 +70,9 @@ export function EmailSignIn() {
     </form>
   ) : (
     <form
-      onSubmit={(event) => run(event, () => supabase.auth.verifyOtp({ email, token: code, type: 'email' }))}
+      onSubmit={(event) =>
+        run(event, () => createSupabaseBrowserClient().auth.verifyOtp({ email, token: code, type: 'email' }))
+      }
       className="mt-8"
     >
       <label htmlFor="code" className="block text-caption text-ink">
