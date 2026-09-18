@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { SYNC_COPY } from '@/core/constants';
+import { submitWrite } from '@/core/offline';
+import { TRIPS_PATH, tripBlocksPath } from '@/features/demand/constants';
 import type { TripSummary } from '@/shared/dto';
 
 type Mode = 'existing' | 'new';
@@ -14,7 +17,7 @@ function TripSheet({
   offeringId: string;
   offeringTitle: string;
   onClose: () => void;
-  onAdded: (trip: TripSummary) => void;
+  onAdded: (trip: TripSummary, queued: boolean) => void;
 }) {
   const [trips, setTrips] = useState<TripSummary[] | null>(null);
   const [mode, setMode] = useState<Mode>('existing');
@@ -25,45 +28,45 @@ function TripSheet({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch('/api/v1/trips')
+    // Offline the service worker answers from its cache, or with an OFFLINE envelope carrying no
+    // data — either way the sheet has to open, so a traveller can still start a trip with no signal.
+    const load = (data: TripSummary[]) => {
+      setTrips(data);
+      if (data.length === 0) setMode('new');
+    };
+
+    fetch(TRIPS_PATH)
       .then((res) => res.json())
-      .then((body) => {
-        setTrips(body.data);
-        if (body.data.length === 0) setMode('new');
-      });
+      .then((body) => load(body.data ?? []))
+      .catch(() => load([]));
   }, []);
 
-  const selectedTrip = trips?.find((t) => t.id === selectedTripId);
+  const selectedTrip = mode === 'existing' ? trips?.find((t) => t.id === selectedTripId) : undefined;
   const canConfirm = mode === 'existing' ? !!selectedTrip : name.trim() && startDate && endDate;
 
-  const addBlockToTrip = async (trip: TripSummary) => {
-    await fetch(`/api/v1/trips/${trip.id}/blocks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: crypto.randomUUID(),
-        offeringId,
-        day: trip.startDate,
-      }),
-    });
-    onAdded(trip);
-  };
-
+  /**
+   * Both writes go through the outbox, so the phone keeps them before the network sees them. A new
+   * trip is built here rather than read back from the response: offline there is no response, and
+   * both routes upsert by this id, so the replay that follows is a no-op rather than a duplicate.
+   */
   const handleConfirm = async () => {
     setIsSubmitting(true);
     try {
-      if (mode === 'existing' && selectedTrip) {
-        await addBlockToTrip(selectedTrip);
-        return;
-      }
+      const trip: TripSummary = selectedTrip ?? {
+        id: crypto.randomUUID(),
+        name: name.trim(),
+        startDate,
+        endDate,
+      };
 
-      const createRes = await fetch('/api/v1/trips', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: crypto.randomUUID(), name: name.trim(), startDate, endDate }),
+      const tripSent = selectedTrip ? true : await submitWrite(TRIPS_PATH, 'POST', trip);
+      const blockSent = await submitWrite(tripBlocksPath(trip.id), 'POST', {
+        id: crypto.randomUUID(),
+        offeringId,
+        day: trip.startDate,
       });
-      const { data: newTrip } = await createRes.json();
-      await addBlockToTrip(newTrip);
+
+      onAdded(trip, !tripSent || !blockSent);
     } finally {
       setIsSubmitting(false);
     }
@@ -204,19 +207,20 @@ export function AddToTrip({
   trigger: 'sidebar' | 'sticky-bar';
 }) {
   const [open, setOpen] = useState(false);
-  const [addedTrip, setAddedTrip] = useState<TripSummary | null>(null);
+  const [added, setAdded] = useState<{ trip: TripSummary; queued: boolean } | null>(null);
 
-  if (addedTrip) {
+  if (added) {
     return (
       <div
         className={`flex items-center justify-between rounded-lg bg-primary-tint px-4 py-3 ${trigger === 'sidebar' ? 'mt-4' : ''}`}
       >
         <span className="text-body-sm text-primary-text">
-          ✓ Added to <strong>{addedTrip.name}</strong>
+          ✓ Added to <strong>{added.trip.name}</strong>
+          {added.queued && <span className="block text-caption">{SYNC_COPY.queued}</span>}
         </span>
         <button
           type="button"
-          onClick={() => setAddedTrip(null)}
+          onClick={() => setAdded(null)}
           className="text-caption text-primary-text underline"
         >
           Change
@@ -250,7 +254,7 @@ export function AddToTrip({
           offeringId={offeringId}
           offeringTitle={offeringTitle}
           onClose={() => setOpen(false)}
-          onAdded={setAddedTrip}
+          onAdded={(trip, queued) => setAdded({ trip, queued })}
         />
       )}
     </>
