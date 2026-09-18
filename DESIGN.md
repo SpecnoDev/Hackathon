@@ -1,6 +1,6 @@
 ---
 version: alpha
-name: "Hackathon marketplace (working name TBD)"
+name: "Hosted"
 website: ""
 description: "A warm, photography-led two-sided marketplace for local South African tourism services, built on a white canvas with a national green (#009A4E) as the single product voltage and a sunset orange (#F58A34) reserved for money and warmth. Type pairs Cal Sans (display, one weight) with Montserrat (everything else) at generous sizes, because the primary user is a host on an entry-level Android in sunlight. Soft 12px base radius, pill buttons, one shadow tier. Two densities share one token set: a large, calm host app (18px body, 56px buttons, one question per screen) and a denser, more photographic traveller app (16px body, 48px buttons, card grids). Red exists in the brand triad but inside the product it belongs to errors only."
 
@@ -570,7 +570,7 @@ Stack: `'Cal Sans', 'Montserrat', -apple-system, system-ui, Roboto, sans-serif` 
 ### Principles
 Sizes are larger than Airbnb's across the board because the host is reading on a small, low-resolution screen, often outdoors. Nothing on the host side goes below 14px except the 12px badge, which is always paired with a tint fill and never carries information on its own.
 
-Cal Sans gives the system its personality but is used sparingly: one title per screen, the earnings number, the hero. If two Cal Sans elements appear on one screen, demote one to `{typography.title-lg}`.
+Cal Sans gives the system its personality but is used sparingly: one title per screen, the earnings number, the hero. If two Cal Sans elements appear on one screen, demote one to `{typography.title-lg}`. Cal Sans sets its word spaces very tight, and at display sizes with negative tracking the words run together, so every display style adds `word-spacing: 0.1em` (the `font-display` utility carries it).
 
 The loud moment is money. Airbnb's is the 64px rating; ours is the 48px earnings number on a dark card, because "how much did I make" is the peak trust signal for a host and the impact signal for the pitch.
 
@@ -642,7 +642,9 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 **`tier-card`**: A white card with `{rounded.lg}` explaining one verification tier: tier name in `{typography.title-md}`, what it unlocks in `{typography.body-host}`, and a `{component.verified-badge}` preview. Current tier gets the primary-tint fill.
 
 ### Navigation
-**`top-bar`**: 56px white bar, back chevron left, screen title centred in `{typography.title-md}`, optional text action right in `{typography.link}`. 1px hairline beneath.
+**`top-bar`**: 56px white bar, back chevron left, screen title centred in `{typography.title-md}`, optional text action right in `{typography.link}`. 1px hairline beneath. Inner screens only.
+
+**`page-title`**: The four host tab roots (Offerings, Bookings, Earnings, Profile) have no top bar. The tab's name sits top-left in `{typography.display-xl}` ink with 16px above and 32px below, the way Airbnb titles its tabs. It is the screen's one Cal Sans element, so section headings beneath it use `{typography.title-lg}`. A top bar never repeats the heading under it: when a screen has both, the bar names the flow ("New offering", "Offering") and the heading asks the question.
 
 **`bottom-nav`**: 64px white bar with a top hairline. Host tabs: Offerings, Bookings, Earnings, Profile. Traveller tabs: Explore, Trips, Bookings, Profile, matching the traveller routes in `docs/TECH_STACK.md`. A Saved tab returns when favourites exist. Icon above a 14px label; muted at rest.
 
@@ -670,7 +672,18 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 
 **`sticky-book-bar`**: 80px white bar pinned to the bottom of listing detail with the lift shadow. Price and "per person" left in `{typography.title-md}` and `{typography.caption}`; a `{component.button-primary-compact}` "Book" right.
 
-**`booking-request-card`**: Host side. White card, `{rounded.lg}`, 20px padding. Traveller first name and group size in `{typography.title-md}`, date and time in `{typography.body-host}`, "You will receive R510" in `{typography.title-md}` with a small orange dot, then two buttons side by side: `{component.button-primary}` Accept and `{component.button-secondary}` Decline. The most important host card after earnings.
+**`booking-request-card`**: Host side. White card, `{rounded.lg}`, 20px padding. Traveller first name and group size in `{typography.title-md}`, date and time in `{typography.body-host}`, "You will receive R510" in `{typography.title-md}` with a small orange dot, then two buttons side by side: `{component.button-primary}` Accept and `{component.button-secondary}` Decline. The most important host card after earnings. As built: the traveller's initial in a 48px `{colors.surface-strong}` circle leads the card, the offering title sits under the name in `{typography.caption}` muted, the date row carries a calendar glyph, and the group-payment line and "Answer by" deadline sit above the buttons.
+
+### Host lists and listings
+**`offering-card`**: Host "My offerings". Photo-first and borderless: the `listing-card-photo` plate, the status pill floating top-left with the lift shadow, then title in `{typography.title-md}` and price and duration in `{typography.body-host}` muted. With no photo the plate becomes the nudge: a camera glyph and "Add photos". 32px between cards; whitespace separates them, not borders.
+
+**`next-steps-card`**: First-run guidance, inline, never a tutorial. White card, hairline border, `{rounded.lg}`, 20px padding. "Your next steps" in `{typography.title-lg}` with "1 of 3 done" in `{typography.caption}` muted, a three-segment progress bar that fills from the left in `{colors.primary}`, then one row per step: a 40px numbered circle (ink outline; green tint with a check when done), title in `{typography.title-md}`, one line in `{typography.caption}` muted, chevron. Done rows go muted and stop being links. The card removes itself when every step is done. On an empty Offerings tab it sits below the `empty-state`; once there is an offering it moves to the top.
+
+**`detail-row`**: The row for anything a host reviews or a traveller reads as a fact. 24px outline icon in ink, top-aligned with the label; label in `{typography.title-md}` ink; the answer beneath in `{typography.body-host}` `{colors.body}`, clamped to three lines; a muted chevron when the row opens an editor. 20px vertical padding, soft hairline between rows. Visuals break up the text: a host finds "Price" by the banknote before reading a word. Each field owns one icon everywhere it appears (`DRAFT_ROW_ICONS` in code), host side and traveller side. An empty optional row shows a green plus and "Add this"; an empty required row, after the host tries to continue, shows the alert glyph and the same words in `{colors.error}`. The "You will receive" note under Price carries the small orange dot. On the traveller's listing the same row drops the chevron and steps down to `{typography.title-sm}` over `{typography.body-md}` ("Things to know").
+
+**`steps-timeline`**: "What you will do". 40px `{colors.surface-soft}` circles numbered in `{typography.title-sm}`, joined by a 1px `{colors.hairline}` line, each step one sentence in `{typography.body-md}`. Airbnb gives every step a photo; we do not, because a host goes live on three photos and the traveller is on mobile data.
+
+**`listing-detail`**: The order of a listing, borrowed from Airbnb's experience page and used by the host's preview and the traveller's detail alike. Photos (one plate; a lead plate over two for three photos; a two-by-two grid from four). A centred header: town and kind in `{typography.caption}` muted, the title in `{typography.display-lg}`, duration and group size muted, then the `rating-row` or a "New" pill. Two rows: "Hosted by" with the host's initial or portrait and their badge, and the meeting place on a `{colors.surface-soft}` map-pin tile. The description. Then sections, each opened by a soft hairline and a `{typography.title-lg}` heading: What you will do (`steps-timeline`), What is included (green checks), When you can come, Meet your host (`host-story-block` with the voice note), Things to know (`detail-row`: who can come, how active it is, what to bring, category extras, languages, cancelling). The `sticky-book-bar` closes it. Left out on purpose: the review carousel until reviews exist, and the map, which belongs to the traveller side only.
 
 ### Status
 **`verified-badge`**: Green-tint pill, green-text label with a check glyph: "Verified" or "Community verified". On photos it gets the lift shadow.
@@ -693,9 +706,9 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 
 **`error-banner`**: Red-tint block, error-red copy, an icon, and the fix in the same sentence ("We could not read your ID photo. Try again in better light.").
 
-**`toast`**: Ink pill with white text, bottom of screen, 3 seconds. For quiet confirmations only ("Saved").
+**`toast`**: Ink pill with white text, 3 seconds. For quiet confirmations only ("Saved"). On the host side it drops in just under the top bar, not at the bottom: the bottom of a host screen holds the pinned primary button and the nav, and a toast must never cover the next action. It says what really happened, so offline it reads "Saved on your phone", never "We told the traveller".
 
-**`empty-state`**: Centred, `{typography.body-host}` muted, a simple line illustration in `{colors.hairline}` with one green stroke, and a primary button. Copy says what to do next, never just "Nothing here".
+**`empty-state`**: Centred stack: a line illustration, a title in `{typography.title-lg}` ink, one sentence in `{typography.body-host}` muted, and one button. The illustration is 120 by 96, 2px strokes, drawn in `{colors.border-strong}` with exactly one `{colors.primary}` stroke marking the thing the host will add (`{colors.hairline}` was tried first and vanished on a cheap screen). It shows the object the tab will hold: a listing card for Offerings, a calendar for Bookings, a phone receiving money for Earnings, a magnifier for a missing record. The title is a promise, not an absence ("Your money shows here", never "No earnings"). The button is primary only when it is the screen's main task ("Create my first offering"); otherwise secondary, pointing at the step that fills the tab ("See my offerings", "See how you get paid"). One empty state per tab, never one per empty section, and no `earnings-display-card` while it would only say R0.
 
 **`skeleton`**: `{colors.surface-strong}` blocks at the component's radius, no shimmer on the host side (animation costs battery and attention), a slow shimmer on the traveller side.
 
@@ -787,6 +800,8 @@ Spacing uses Tailwind's built-in 4px scale rather than named utilities: xxs is `
 | `Input` | `text-input`, `otp-input` |
 | `ListingCard` | `listing-card`, `listing-card-photo`, `rating-row` |
 | `TierBadge` | `verified-badge`, with `tier-card` for the explainer |
+| `EmptyState`, `EmptyIllustration` | `empty-state` and its four illustrations |
+| `OfferingDraftStack`, `ListingPreview`, `NextStepsCard`, `OfferingCard` (in `src/features/supply/components`) | `detail-row`, `listing-detail` with `steps-timeline`, `next-steps-card`, `offering-card` |
 | `HostShell` | `top-bar`, `step-indicator`, `offline-banner`, host `bottom-nav`, the primary button pinned to the bottom, and the centred 480px column from tablet up |
 | `TravellerShell` | `top-bar` or `search-bar-pill`, traveller `bottom-nav`, content capped at 1200px |
 | `ChatBubble` | Not specified here. See Known Gaps |
@@ -804,7 +819,7 @@ Load both families with `next/font` so they are self-hosted and the app makes no
 
 - Dark mode: the host app is light-only by decision. A traveller dark theme is possible on the same tokens but not specified here.
 - Map styling on the traveller side (marker colour, tile tint) is not specified; the intent is green markers on a desaturated tile.
-- Illustration style for empty states is described in principle only; the first three illustrations should set the rule.
+- Illustration style for empty states: set by the first four (offerings, bookings, earnings, missing record); see `empty-state`. They are plain objects, not yet the chevron-derived motif described under Imagery, which still waits on the logomark.
 - Category icons for the chip strip are not chosen; keep them from the same 24px outline set.
 - The logomark and wordmark are not yet designed. The brand triad (green, orange, red on black or white) is the palette for that work.
 - Right-to-left and non-latin scripts are out of scope for now; the four launch languages are all latin-script.
@@ -812,10 +827,12 @@ Load both families with `next/font` so they are self-hosted and the app makes no
 Gaps against the PRD and the tech stack:
 
 - Group itinerary: the PRD's must-demo list includes a shared day timeline with blocks, a simple vote and a lock (PRD p.13). None of those components are specified here yet: day timeline, trip block, vote control, locked state.
-- Chat-style host screens: `docs/TECH_STACK.md` names a `ChatBubble` component and a chat-style host shell. This file specifies one question per screen with tiles and a voice button, not a chat transcript. Either a chat bubble spec is added here or `ChatBubble` comes off the shared list.
+- Chat-style host screens: decided against. A chat onboarding was built and tried on 18 September; it only suited half of the onboarding, so host screens stay one question per screen with a step indicator. `docs/TECH_STACK.md` still names a `ChatBubble` component and a chat-style host shell; both should come off its lists.
 - Earnings preview before publishing: the PRD demo shows "You will receive R510" on the publish step. No component covers it yet. The `payout-confirmation` treatment (orange tint, ink text) is the obvious candidate.
 - Booking status pills: offerings have five status pills, bookings have none. Requested, confirmed, declined, completed and cancelled need the same glyph-plus-tint treatment.
 - Gated categories: Transport and Security appear in the chip strip but are credential-gated in the hackathon build. Their gated look is not specified.
+- Listing facts the schema does not hold yet: the PRD asks every listing for "what to bring" and "what to expect", and experiences for "physical difficulty" and "age suitability". The host app now captures all four (steps, what to bring, how active it is, who can come) and `listing-detail` shows them, but the `Offering` model in `docs/TECH_STACK.md` has no columns for them, nor for the price unit.
+- Cancelling: `listing-detail` shows a cancellation line because the PRD requires cancellation terms on every listing, but the PRD sets no window. The 24 hours shown is a placeholder for the product owner to replace. Accessibility notes ("can a wheelchair user join"), which Airbnb lists under Things to know, are not captured at all.
 - Badge wording by tier: the schema has three tiers (registered, identity, community). Which tiers show "Verified" and which show "Community verified" needs confirming with the product owner.
 
 Open accessibility decisions:

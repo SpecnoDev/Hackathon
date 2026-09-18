@@ -1,5 +1,5 @@
 import { loadAdminOverview } from '@/features/admin/services';
-import { formatRands } from '@/shared/utils';
+import { formatRand } from '@/shared/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +29,7 @@ export default async function AdminOverviewPage() {
       <h1 className="font-display text-display-md text-ink">Overview</h1>
       <div className="mt-4 rounded-md border border-hairline bg-canvas p-4">
         <p className="text-body-sm text-muted">Paid out to hosts</p>
-        <p className="mt-1 font-display text-display-md text-ink">{formatRands(paidOutCents)}</p>
+        <p className="mt-1 font-display text-display-md text-ink">{formatRand(paidOutCents)}</p>
       </div>
       <Group title="Hosts by verification tier" counts={hostsByTier} />
       <Group title="Offerings by status" counts={offeringsByStatus} />

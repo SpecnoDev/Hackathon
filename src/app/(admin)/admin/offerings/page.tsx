@@ -1,5 +1,5 @@
 import { listOfferingsForAdmin } from '@/features/admin/services';
-import { formatRands } from '@/shared/utils';
+import { formatRand } from '@/shared/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,7 @@ export default async function AdminOfferingsPage() {
               <td className="p-3">{town}</td>
               <td className="p-3">{category.toLowerCase()}</td>
               <td className="p-3">{status.toLowerCase().replace(/_/g, ' ')}</td>
-              <td className="p-3">{formatRands(priceCents)}</td>
+              <td className="p-3">{formatRand(priceCents)}</td>
             </tr>
           ))}
         </tbody>

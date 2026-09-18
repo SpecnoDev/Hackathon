@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { AddToTrip } from '@/features/demand/components';
 import { getOfferingDetail } from '@/features/demand/services';
 import { MeetingPointMap } from '@/shared/components';
-import { formatRands } from '@/shared/utils';
+import { formatRand } from '@/shared/utils';
 
 const TIER_LABEL: Partial<Record<string, string>> = {
   IDENTITY: 'Verified',
@@ -117,7 +117,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       <div className="hidden desktop:mt-0 desktop:block desktop:w-[32%]">
         <div className="sticky top-4 rounded-lg border border-hairline p-5 shadow-lift">
           <p className="text-title-md text-ink">
-            {formatRands(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
+            {formatRand(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
           </p>
           <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sidebar" />
         </div>
@@ -125,7 +125,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
       <div className="fixed inset-x-0 bottom-0 z-10 flex h-20 items-center justify-between border-t border-hairline bg-canvas px-4 shadow-lift desktop:hidden">
         <p className="text-title-md text-ink">
-          {formatRands(offering.priceCents)}
+          {formatRand(offering.priceCents)}
           <span className="block text-caption text-muted">per person</span>
         </p>
         <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sticky-bar" />

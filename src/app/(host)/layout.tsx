@@ -1,12 +1,9 @@
 import type { ReactNode } from 'react';
-import { requireHostPage } from '@/core/guards';
-import { HostShell } from '@/core/layout';
-import { firstName } from '@/shared/utils';
+import { APP_NAME } from '@/core/constants';
+import { HostAppProvider } from '@/features/supply/components';
 
-export const metadata = { title: 'Host' };
+export const metadata = { title: APP_NAME };
 
-export default async function HostLayout({ children }: { children: ReactNode }) {
-  const host = await requireHostPage();
-
-  return <HostShell hostName={firstName(host.fullName) || 'Your account'}>{children}</HostShell>;
+export default function HostLayout({ children }: { children: ReactNode }) {
+  return <HostAppProvider>{children}</HostAppProvider>;
 }

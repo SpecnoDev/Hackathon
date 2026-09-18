@@ -1,8 +1,5 @@
-import { HostPlaceholder } from '@/core/layout';
+import { EarningsPage } from '@/features/supply/pages/earnings';
 
-// TODO(Marlon): the earnings card and payout flow, from GET /api/v1/hosts/me/earnings.
-export default function HostEarningsPage() {
-  return (
-    <HostPlaceholder title="Earnings" note="What you have earned, what is still pending, and how you get paid." />
-  );
+export default function Page() {
+  return <EarningsPage />;
 }
