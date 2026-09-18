@@ -1,4 +1,5 @@
 export const ENV_KEYS = {
+  databaseUrl: 'DATABASE_URL',
   phoneNumberId: 'WHATSAPP_PHONE_NUMBER_ID',
   accessToken: 'WHATSAPP_ACCESS_TOKEN',
   appSecret: 'WHATSAPP_APP_SECRET',
@@ -12,6 +13,7 @@ export const ENV_KEYS = {
   supabaseUrl: 'NEXT_PUBLIC_SUPABASE_URL',
   supabasePublishableKey: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
   adminEmails: 'ADMIN_EMAILS',
+  appUrl: 'NEXT_PUBLIC_APP_URL',
 } as const;
 
 export const DEFAULT_GRAPH_VERSION = 'v21.0';

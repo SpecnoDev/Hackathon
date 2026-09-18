@@ -2,8 +2,11 @@ import { USER_ROLES, UserRole } from './auth.constant';
 
 export const ROUTES = {
   home: '/',
+  offline: '/offline',
   login: '/login',
   signup: '/signup',
+  /** Where a WhatsApp sign-in link lands, before it swaps itself for a session cookie. */
+  hostLink: '/h',
   traveller: '/traveller',
   explore: '/traveller/explore',
   listings: '/traveller/listings',
@@ -24,7 +27,14 @@ export const ROUTES = {
  * landing page links straight into it. A signed-in host is still redirected away by the role
  * matrix below, so public does not mean role-blind.
  */
-export const PUBLIC_ROUTES = [ROUTES.login, ROUTES.signup, ROUTES.explore, ROUTES.listings] as const;
+export const PUBLIC_ROUTES = [
+  ROUTES.offline,
+  ROUTES.login,
+  ROUTES.signup,
+  ROUTES.hostLink,
+  ROUTES.explore,
+  ROUTES.listings,
+] as const;
 
 /** The whole subtree, so a route added under /traveller is covered without touching this file. */
 export const TRAVELLER_ROUTES = [ROUTES.traveller] as const;

@@ -3,9 +3,11 @@ import {
   ACTION_CONFIRM,
   ACTION_REDO,
   DEMO_DATA_NOTICE,
+  MAGIC_LINK_TTL_MINUTES,
   MIN_OFFERING_DESCRIPTION_LENGTH,
   RESTART_KEYWORDS,
 } from '@/core/constants';
+import { issueHostLink } from '@/features/auth/services';
 import { ConversationSession, Offering, WhatsAppInboundMessage } from '@/core/interfaces';
 import { ConversationStore, WhatsAppService } from '@/core/services';
 import { KYC_STEPS, SKIP_KEYWORD } from '../constants';
@@ -165,11 +167,11 @@ export class OnboardingFlowService {
     await this.store.save({ ...session, stage: 'submitting' });
 
     try {
-      const reference = await this.submission.submit(session);
+      const hostId = await this.submission.submit(session);
       await this.store.save({ ...session, stage: 'done' });
       await this.whatsapp.sendText(
         session.waId,
-        `You're listed. 🎉\n\nYour reference is *${reference}*. We'll be in touch when a customer requests one of your services.\n\nSend *restart* to register another provider.`,
+        `You're listed. 🎉\n\nManage your listing here:\n${issueHostLink(hostId)}\n\nThe link signs you in for ${MAGIC_LINK_TTL_MINUTES} minutes. Send *restart* to register another provider.`,
       );
     } catch (error) {
       console.error(`[onboarding] Submission failed for ${session.waId}`, error);

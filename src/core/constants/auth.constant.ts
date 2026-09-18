@@ -19,6 +19,13 @@ export const SESSION_TOKEN_SEPARATOR = '.';
 /** Carried inside the signed host cookie so the edge can gate onboarding without a database read. */
 export const HOST_ONBOARDED_CLAIM = { complete: '1', pending: '0' } as const;
 
+/**
+ * WhatsApp has already proven the host owns their number by the time the bot finishes, so the
+ * sign-in link stands in for an OTP. Kept short because the link itself is the credential.
+ */
+export const MAGIC_LINK_TTL_MINUTES = 30;
+export const MAGIC_LINK_TTL_MS = MAGIC_LINK_TTL_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
+
 export const OTP_CODE_LENGTH = 6;
 export const OTP_MAX_ATTEMPTS = 5;
 export const OTP_TTL_MINUTES = 10;
