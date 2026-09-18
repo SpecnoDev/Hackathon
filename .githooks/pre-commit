@@ -1,0 +1,28 @@
+#!/bin/sh
+# The service worker's caches are keyed by VERSION and old keys are dropped on activate, so a
+# changed sw.js that kept its old VERSION serves yesterday's shell to every phone that installed it.
+# This bumps it for you. Opt out of a single commit with --no-verify.
+
+SW=public/sw.js
+
+git diff --cached --name-only | grep -qx "$SW" || exit 0
+
+# Already bumped in this commit, by hand or by an earlier run.
+git diff --cached -U0 -- "$SW" | grep -q '^+const VERSION' && exit 0
+
+# A partially staged sw.js would have its unstaged edits swept in by the git add below.
+if ! git diff --quiet -- "$SW"; then
+  echo "pre-commit: $SW has unstaged changes. Stage the whole file, or bump VERSION yourself." >&2
+  exit 1
+fi
+
+CURRENT=$(sed -n "s/^const VERSION = 'v\([0-9]\{1,\}\)';$/\1/p" "$SW")
+if [ -z "$CURRENT" ]; then
+  echo "pre-commit: no \"const VERSION = 'vN';\" line in $SW. Bump it yourself." >&2
+  exit 1
+fi
+
+NEXT=$((CURRENT + 1))
+perl -pi -e "s/^const VERSION = 'v$CURRENT';\$/const VERSION = 'v$NEXT';/" "$SW"
+git add "$SW"
+echo "pre-commit: service worker cache version bumped to v$NEXT"

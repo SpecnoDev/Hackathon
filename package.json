@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "postinstall": "node --env-file-if-exists=.env ./node_modules/.bin/prisma generate",
     "tunnel": "cloudflared tunnel --url http://localhost:3000",
-    "seed": "node --env-file=.env -r tsx/cjs prisma/seed.ts"
+    "seed": "node --env-file=.env -r tsx/cjs prisma/seed.ts",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "postinstall": "node --env-file-if-exists=.env ./node_modules/.bin/prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",
