@@ -1,5 +1,5 @@
 import { KycDraft } from '@/core/interfaces';
-import { dateOfBirthFromSaId, isValidEmail, isValidSaId, normalise } from '@/shared/utils';
+import { dateOfBirthFromSaId, isValidSaId, normalise } from '@/shared/utils';
 
 export type ParseResult = { ok: true; value: string } | { ok: false; error: string };
 
@@ -18,51 +18,47 @@ const required = (error: string) => (raw: string): ParseResult => {
   return value.length > 1 ? { ok: true, value } : { ok: false, error };
 };
 
+/**
+ * The web onboarding asks these same questions (see host-onboarding.constant.ts), so the
+ * wording lives here once. A host is identified by the phone they message from, which is why
+ * nothing here asks for a number or an email.
+ */
 export const KYC_STEPS: readonly KycStep[] = [
   {
     field: 'fullName',
-    label: 'Full name',
-    prompt: 'What is your full name, as it appears on your ID?',
+    label: 'Name',
+    prompt: 'What is your full name? Use the name on your ID, so we can check it later.',
     parse: (raw) => {
       const value = normalise(raw);
       return value.split(' ').length >= 2
         ? { ok: true, value }
-        : { ok: false, error: 'Please send both your first name and surname.' };
-    },
-  },
-  {
-    field: 'idNumber',
-    label: 'ID number',
-    prompt: 'Thanks. Now your 13-digit South African ID number (test data only).',
-    parse: (raw) => {
-      const value = normalise(raw).replace(/\s/g, '');
-      return isValidSaId(value)
-        ? { ok: true, value }
-        : { ok: false, error: "That does not look like a valid SA ID number — it must be 13 digits with a valid date and checksum. Try again." };
-    },
-    derive: (value) => ({ dateOfBirth: dateOfBirthFromSaId(value) ?? undefined }),
-  },
-  {
-    field: 'email',
-    label: 'Email',
-    prompt: 'Got it. What email address should we use for your account?',
-    parse: (raw) => {
-      const value = normalise(raw).toLowerCase();
-      return isValidEmail(value)
-        ? { ok: true, value }
-        : { ok: false, error: 'That email does not look right. Please send it again.' };
+        : { ok: false, error: 'We need your first name and your surname. Send both to carry on.' };
     },
   },
   {
     field: 'serviceArea',
-    label: 'Service area',
-    prompt: 'Which area do you work in? (e.g. Woodstock, Cape Town)',
-    parse: required('Please tell me the area you work in.'),
+    label: 'Where you host',
+    prompt: 'Which area do you host in? Travellers use this to find you.',
+    parse: required('Tell us the area you host in, like Langa or Knysna.'),
+  },
+  {
+    field: 'idNumber',
+    label: 'ID number',
+    prompt:
+      'What is your ID number? We check it so travellers know you are a real person.\n\nUse a test number for now, not your real one.',
+    parse: (raw) => {
+      const value = normalise(raw).replace(/\s/g, '');
+      return isValidSaId(value)
+        ? { ok: true, value }
+        : { ok: false, error: 'That does not look like an ID number. It is 13 digits. Check it and send it again.' };
+    },
+    derive: (value) => ({ dateOfBirth: dateOfBirthFromSaId(value) ?? undefined }),
   },
   {
     field: 'idDocumentMediaId',
-    label: 'ID document',
-    prompt: 'Last one — send a photo of your ID document, or reply SKIP. Do not send a real ID: any test image is fine.',
+    label: 'ID photo',
+    prompt:
+      'Last one. Send a photo of your ID, or reply SKIP.\n\nDo not send a real ID. Any picture is fine for now.',
     expectsImage: true,
     skippable: true,
   },

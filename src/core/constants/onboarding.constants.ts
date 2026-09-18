@@ -12,4 +12,4 @@ export const ACTION_REDO = 'redo';
 export const ACTION_BEGIN = 'begin';
 
 export const DEMO_DATA_NOTICE =
-  'Heads up: this is a hackathon prototype. Please use test details only — do not send a real ID number or a photo of a real ID document.';
+  'This is a prototype. Please use test details only. Do not send a real ID number or a photo of a real ID.';

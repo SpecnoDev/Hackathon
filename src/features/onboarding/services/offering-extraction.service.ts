@@ -5,9 +5,11 @@ import { CLAUDE_MODEL, EXTRACTION_MAX_TOKENS } from '@/core/constants';
 import { ExtractedOfferings } from '@/core/interfaces';
 
 const OfferingSchema = z.object({
-  title: z.string().describe('Short name for the service, e.g. "Geyser installation"'),
-  category: z.string().describe('A single broad trade category, e.g. "Plumbing"'),
-  description: z.string().describe("One sentence describing the service in the provider's own terms"),
+  title: z.string().describe('Short name a traveller would recognise, e.g. "Home-cooked lunch in Langa"'),
+  category: z
+    .enum(['TOUR', 'FOOD', 'TRANSPORT', 'ACCOMMODATION', 'CONCIERGE', 'SECURITY'])
+    .describe('TOUR for walks, workshops, visits and stories. CONCIERGE when the host arranges access rather than hosting it.'),
+  description: z.string().describe("One or two sentences a traveller would read, in the host's own voice"),
   pricingModel: z.enum(['hourly', 'fixed', 'quote_on_request']),
   rateAmount: z.number().nullable().describe('Numeric rate if stated, otherwise null'),
   currency: z.string().describe('ISO currency code, default ZAR when unstated'),
@@ -22,11 +24,13 @@ const ExtractionSchema = z.object({
 });
 
 const SYSTEM_PROMPT = [
-  'You structure informal service descriptions from South African service providers into catalogue entries.',
-  'Split genuinely distinct services into separate offerings; do not invent services that were not mentioned.',
+  'You turn what a South African host says about themselves into travel experiences a visitor can book.',
+  'Hosts are local guides, drivers, home cooks, crafters and people who know who to call.',
+  'Split genuinely different experiences into separate offerings; never invent one that was not mentioned.',
   'Never invent a price. If no rate is given, set rateAmount to null and pricingModel to quote_on_request.',
-  "Default currency to ZAR. Keep descriptions in the provider's own register, lightly cleaned up.",
-  'Raise a clarification only when a stated service is missing pricing or its scope is genuinely ambiguous.',
+  'Default currency to ZAR. Write the description for a traveller deciding whether to book, keeping the',
+  "host's own voice and any local words they used. Plain language, short sentences, no marketing copy.",
+  'Raise a clarification only when an experience has no price, or its length or group size is genuinely unclear.',
 ].join(' ');
 
 export class OfferingExtractionService {

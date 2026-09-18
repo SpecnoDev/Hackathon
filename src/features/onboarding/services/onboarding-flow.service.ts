@@ -15,13 +15,15 @@ import { OfferingExtractionService } from './offering-extraction.service';
 import { ProfileSubmissionService } from './profile-submission.service';
 
 const CONFIRM_OPTIONS = [
-  { id: ACTION_CONFIRM, title: "Yes, that's right" },
+  { id: ACTION_CONFIRM, title: 'Yes, that is right' },
   { id: ACTION_REDO, title: 'Let me redo it' },
 ];
 
+/** Mirrors the voice step in the app (copy-offerings.constant.ts) so both ask for the same things. */
 const OFFERINGS_PROMPT =
-  'Now tell me what you do — in your own words, one message. Include your rates if you have them.\n\n' +
-  '_Example: "I do plumbing and geyser installs around the southern suburbs, R450 an hour, and I quote separately on bathroom renovations."_';
+  'Now tell us what you offer travellers, in your own words, in one message.\n\n' +
+  'Say what you do, how long it takes, how many people you can take, and what they pay.\n\n' +
+  '_Example: "I cook umngqusho and chicken at my home in Langa. We eat together and I tell you about the area. About two hours, up to six people, R250 each."_';
 
 export class OnboardingFlowService {
   constructor(
@@ -54,7 +56,7 @@ export class OnboardingFlowService {
       default:
         return this.whatsapp.sendText(
           session.waId,
-          'You are all signed up. Send *restart* if you want to register another profile.',
+          'You are all set up. Send *restart* if you want to list someone else.',
         );
     }
   }
@@ -64,7 +66,9 @@ export class OnboardingFlowService {
       const greeting = session.displayName ? `Hi ${session.displayName}! ` : 'Hi! ';
       await this.whatsapp.sendButtons(
         session.waId,
-        `${greeting}I sign service providers up to the marketplace. It takes about two minutes: a few ID details, then tell me what you do.\n\n_${DEMO_DATA_NOTICE}_`,
+        `${greeting}This is Hosted. We put local guides, drivers and home cooks in front of travellers. You get booked, and you get paid to your phone.\n\n` +
+          'It takes about two minutes. A few details about you, then tell us what you offer.\n\n' +
+          `_${DEMO_DATA_NOTICE}_`,
         [{ id: ACTION_BEGIN, title: 'Get started' }],
       );
       return;
@@ -111,7 +115,7 @@ export class OnboardingFlowService {
   private async onKycReview(session: ConversationSession, buttonId?: string): Promise<void> {
     if (buttonId === ACTION_REDO) {
       await this.store.save({ ...session, stage: 'kyc', stepIndex: 0, kyc: {} });
-      await this.whatsapp.sendText(session.waId, `No problem, let's start those again.\n\n${KYC_STEPS[0].prompt}`);
+      await this.whatsapp.sendText(session.waId, `No problem. Let us start again.\n\n${KYC_STEPS[0].prompt}`);
       return;
     }
 
@@ -121,21 +125,21 @@ export class OnboardingFlowService {
     }
 
     await this.store.save({ ...session, stage: 'offerings' });
-    await this.whatsapp.sendText(session.waId, `Verified. ✅\n\n${OFFERINGS_PROMPT}`);
+    await this.whatsapp.sendText(session.waId, `Thank you. We will check your ID and tell you. ✅\n\n${OFFERINGS_PROMPT}`);
   }
 
   private async onOfferings(session: ConversationSession, text: string): Promise<void> {
     if (text.length < MIN_OFFERING_DESCRIPTION_LENGTH) {
-      await this.whatsapp.sendText(session.waId, `Give me a bit more detail so I can set your listing up properly.\n\n${OFFERINGS_PROMPT}`);
+      await this.whatsapp.sendText(session.waId, `Tell us a little more so we can write your listing properly.\n\n${OFFERINGS_PROMPT}`);
       return;
     }
 
-    await this.whatsapp.sendText(session.waId, 'Thanks — writing that up now, one moment…');
+    await this.whatsapp.sendText(session.waId, 'Thank you. We are writing down what you said…');
 
     try {
       const extracted = await this.extraction.extract(text);
       if (!extracted.offerings.length) {
-        await this.whatsapp.sendText(session.waId, `I could not pick out any services there. Could you describe what you do again?\n\n${OFFERINGS_PROMPT}`);
+        await this.whatsapp.sendText(session.waId, `We could not work out what you offer from that. Say it again in your own words.\n\n${OFFERINGS_PROMPT}`);
         return;
       }
 
@@ -144,7 +148,7 @@ export class OnboardingFlowService {
       await this.whatsapp.sendButtons(session.waId, this.summariseOfferings(extracted.offerings, extracted.clarifications), CONFIRM_OPTIONS);
     } catch (error) {
       console.error(`[onboarding] Extraction failed for ${session.waId}`, error);
-      await this.whatsapp.sendText(session.waId, 'Something went wrong writing that up. Please send your description again.');
+      await this.whatsapp.sendText(session.waId, 'Something went wrong on our side. Send your description again.');
     }
   }
 
@@ -171,12 +175,13 @@ export class OnboardingFlowService {
       await this.store.save({ ...session, stage: 'done' });
       await this.whatsapp.sendText(
         session.waId,
-        `You're listed. 🎉\n\nManage your listing here:\n${issueHostLink(hostId)}\n\nThe link signs you in for ${MAGIC_LINK_TTL_MINUTES} minutes. Send *restart* to register another provider.`,
+        `You are in. 🎉 Travellers can find you now.\n\nOpen your listings here:\n${issueHostLink(hostId)}\n\n` +
+          `The link signs you in for ${MAGIC_LINK_TTL_MINUTES} minutes. Send *restart* to list someone else.`,
       );
     } catch (error) {
       console.error(`[onboarding] Submission failed for ${session.waId}`, error);
       await this.store.save({ ...session, stage: 'offerings_review' });
-      await this.whatsapp.sendButtons(session.waId, 'I could not reach the registry just then. Try again?', CONFIRM_OPTIONS);
+      await this.whatsapp.sendButtons(session.waId, 'We could not save that just now. Try again?', CONFIRM_OPTIONS);
     }
   }
 
