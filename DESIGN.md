@@ -646,16 +646,16 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 
 **`page-title`**: The four host tab roots (Offerings, Bookings, Earnings, Profile) have no top bar. The tab's name sits top-left in `{typography.display-xl}` ink with 16px above and 32px below, the way Airbnb titles its tabs. It is the screen's one Cal Sans element, so section headings beneath it use `{typography.title-lg}`. A top bar never repeats the heading under it: when a screen has both, the bar names the flow ("New offering", "Offering") and the heading asks the question.
 
-**`bottom-nav`**: 64px white bar with a top hairline. Host tabs: Offerings, Bookings, Earnings, Profile. Traveller tabs: Explore, Trips, Bookings, Profile, matching the traveller routes in `docs/TECH_STACK.md`. A Saved tab returns when favourites exist. Icon above a 14px label; muted at rest.
+**`bottom-nav`**: 64px white bar with a top hairline. Host tabs: Offerings, Bookings, Earnings, Profile. Traveller tabs: Explore, Trips, Saved, Profile. Bookings live inside Trips, because a traveller thinks of "my trip", not "my booking". The bar is the same component on both sides. Icon above a 14px label; muted at rest.
 
 **`bottom-nav-item-active`**: Icon and label in `{colors.primary-text}`, icon switches to its filled variant. No underline, no pill.
 
 ### Search and browse (traveller)
-**`search-bar-pill`**: 56px white pill with the lift shadow, a search glyph, and placeholder copy in `{typography.body-md}` muted ("Where are you going?"). Tapping opens a full-screen search sheet.
+**`search-bar-pill`**: 56px white pill with the lift shadow, a search glyph, and placeholder copy in `{typography.body-md}` muted ("Where are you going?"). Tapping opens the full-screen search: one line in the traveller's own words with example prompts, recent searches, popular places as chips, a day and a guest stepper, and one primary button. On results the pill turns into a two-line summary (the place in `{typography.title-sm}`, the day and guests in `{typography.caption}` muted) that reopens the search.
 
-**`category-chip`** and **`category-chip-active`**: 40px pills in a horizontal scroll strip. Rest is `{colors.surface-soft}` with ink label; active is ink fill with white label. The strip follows the four `OfferingCategory` values in the schema: Experiences, Guides and concierge, Transport, Security. Food is an Experience, not a category of its own. Transport and Security appear in the strip but are credential-gated in the hackathon build (PRD p.12); their gated look is a Known Gap.
+**`category-chip`** and **`category-chip-active`**: pills in a horizontal scroll strip, 48px tall so a thumb cannot miss, each with its glyph from the outline set. Rest is `{colors.surface-soft}` with ink label; active is ink fill with white label. The traveller strip reads All, Experiences, Food, Guides, Transport. Food and Guides are chips of their own because that is how a traveller looks, even though the schema files them under wider categories; the mapping is a Known Gap. Transport and Security appear in the strip but are credential-gated in the hackathon build (PRD p.12); their gated look is a Known Gap.
 
-**`listing-card`**: Photo-first. 4:3 image clipped at `{rounded.md}`, a `{component.verified-badge}` floating top-left over the photo with the lift shadow, a save heart top-right in a white circle (post-MVP: there is no saved-listings model yet, so leave the heart out of the hackathon build). Beneath: title in `{typography.title-sm}`, town and duration in `{typography.body-sm}` muted, a `{component.rating-row}`, and the price ("From R350 per person") in `{typography.title-sm}` right-aligned.
+**`listing-card`**: Photo-first. 4:3 image clipped at `{rounded.md}`, a `{component.verified-badge}` floating top-left over the photo with the lift shadow, a save heart top-right: a 36px white circle with the lift shadow inside a 48px hit area, outlined at rest and filled when saved, so the shape carries the state and not a colour. Beneath: title in `{typography.title-sm}`, town and duration in `{typography.body-sm}` muted, the host's 24px portrait with "Hosted by Nomsa" because every listing is a person, then a `{component.rating-row}` left and the price ("From R350 per person", or "for the group") in `{typography.title-sm}` right. A listing with no reviews says "New" instead of showing zero stars.
 
 **`listing-card-photo`**: The photo plate alone, reused in saved lists and the host's "My offerings".
 
@@ -665,8 +665,26 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 
 **`review-card`**: White card, reviewer initial in a `{colors.surface-strong}` circle, name and date in `{typography.caption}`, rating row, review text in `{typography.body-md}` `{colors.body}`.
 
+**`editorial-rail`**: A home-screen row: a `{typography.title-lg}` heading with an optional "See all" link, then listing cards 288px wide scrolling sideways. The row bleeds to the screen edge so the next card peeks in, and snaps with the page gutter as scroll padding so the first card lines up with the heading. Rows on home: Near you, Loved by travellers, Browse by place, Just added, Hosts in a town.
+
+**`photo-carousel`**: Listing detail opens with it. Native scroll snapping, 4:3 on a phone, 16:9 from tablet, 21:9 on a desktop so the title stays in view. A counter ("2 of 5") sits bottom-right in a `{colors.scrim}` pill at 70 percent with white `{typography.badge}` text. Back, share and save float over the top as 48px white circles with the lift shadow.
+
+**`rating-breakdown`**: Top of "All reviews". The average in `{typography.display-lg}` beside one orange star and the review count, then five rows: the star label, a bar in ink on `{colors.surface-strong}`, and the number of votes, so the bar is never the only signal.
+
+**`trip-card`**: The Trips tab. Drawn like the host's `offering-card`: the photo is the card and the trip's status pill floats on it with the lift shadow. Beneath: title, "Hosted by", then the day and the guests, each with its glyph. A finished trip that has no review yet carries a "Leave a review" link under the card.
+
+**`action-row`**: Trip detail, and any screen with several quiet things to do. Glyph, label in `{typography.title-sm}`, chevron, 56px tall, soft hairline between rows. The screen keeps exactly one loud button, pinned in the footer, and a destructive action sits last in the content, never in the footer.
+
+**`star-input`**: Leaving a review. Five 48px stars in a radio group; chosen stars fill with `{colors.star-rating}`, the rest stay in `{colors.border-strong}`, and the choice is written out underneath ("4 stars") so it never rests on the orange fill alone.
+
+**`safety-sheet`**: Reachable from every trip in every state. Share my trip (a link), the local emergency numbers as large `tel:` rows with the number in `{typography.title-lg}`, and Report a problem.
+
+**`plan-stop`**: One stop in a trip plan: the listing in one line (thumbnail, title, host), a Book button or the trip's status pill, then a control row of 48px round buttons: earlier, later, the day with minus and plus, and remove. The drive time to the stop sits above it in `{typography.caption}` muted with a car glyph. A plan has one green button, Share plan.
+
+**`place-page`**: The PRD's browse-by-place entry. A full-width photo, the town in `{typography.display-xl}`, one paragraph, the hosts who live there as portrait tiles on `{colors.surface-soft}`, then one `editorial-rail` per category.
+
 ### Booking
-**`date-picker-day`** and **`date-picker-day-selected`**: 44px circles; selected is green fill with white numeral. Unavailable days are `{colors.muted-soft}` with a strike.
+**`date-picker-day`** and **`date-picker-day-selected`**: circles in a month grid; selected is green fill with white numeral. Unavailable days are `{colors.muted-soft}` with a strike, and a line under the grid says so in words. Today gets an ink ring, never a colour, so it does not compete with the chosen day. As built the cells are 48px for thumbs and give way to the token's 44px only on a 360px phone, where seven 48px cells do not fit. Start times sit under the calendar as chips; a listing with no set times says "Any time. Your host confirms."
 
 **`price-summary`**: `{colors.surface-soft}` block with line items in `{typography.body-md}` (price × guests, service fee) and a total row in `{typography.title-md}`. Fees are always shown before payment.
 
@@ -683,7 +701,7 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 
 **`steps-timeline`**: "What you will do". 40px `{colors.surface-soft}` circles numbered in `{typography.title-sm}`, joined by a 1px `{colors.hairline}` line, each step one sentence in `{typography.body-md}`. Airbnb gives every step a photo; we do not, because a host goes live on three photos and the traveller is on mobile data.
 
-**`listing-detail`**: The order of a listing, borrowed from Airbnb's experience page and used by the host's preview and the traveller's detail alike. Photos (one plate; a lead plate over two for three photos; a two-by-two grid from four). A centred header: town and kind in `{typography.caption}` muted, the title in `{typography.display-lg}`, duration and group size muted, then the `rating-row` or a "New" pill. Two rows: "Hosted by" with the host's initial or portrait and their badge, and the meeting place on a `{colors.surface-soft}` map-pin tile. The description. Then sections, each opened by a soft hairline and a `{typography.title-lg}` heading: What you will do (`steps-timeline`), What is included (green checks), When you can come, Meet your host (`host-story-block` with the voice note), Things to know (`detail-row`: who can come, how active it is, what to bring, category extras, languages, cancelling). The `sticky-book-bar` closes it. Left out on purpose: the review carousel until reviews exist, and the map, which belongs to the traveller side only.
+**`listing-detail`**: The order of a listing, borrowed from Airbnb's experience page and used by the host's preview and the traveller's detail alike. Photos (one plate; a lead plate over two for three photos; a two-by-two grid from four). A centred header: town and kind in `{typography.caption}` muted, the title in `{typography.display-lg}`, duration and group size muted, then the `rating-row` or a "New" pill. Two rows: "Hosted by" with the host's initial or portrait and their badge, and the meeting place on a `{colors.surface-soft}` map-pin tile. The description. Then sections, each opened by a soft hairline and a `{typography.title-lg}` heading: What you will do (`steps-timeline`), What is included (green checks), When you can come, Meet your host (`host-story-block` with the voice note), Things to know (`detail-row`: who can come, how active it is, what to bring, category extras, languages, cancelling). The `sticky-book-bar` closes it. Left out on purpose: the review carousel until reviews exist, and the map, which belongs to the traveller side only. On the traveller side the `host-story-block` moves up to sit directly under the header, because the person has to be on the first screenful; the header is left-aligned there (category, duration and town in `{typography.caption}`, the title, then the rating row and badge); two reviews show with a "Show all" button; and "Add to a trip plan" closes the page. From 1128px the page is two columns with the price and the Book button in a card that stays in view on the right, and the bar at the bottom steps aside.
 
 ### Status
 **`verified-badge`**: Green-tint pill, green-text label with a check glyph: "Verified" or "Community verified". On photos it gets the lift shadow.
@@ -803,7 +821,7 @@ Spacing uses Tailwind's built-in 4px scale rather than named utilities: xxs is `
 | `EmptyState`, `EmptyIllustration` | `empty-state` and its four illustrations |
 | `OfferingDraftStack`, `ListingPreview`, `NextStepsCard`, `OfferingCard` (in `src/features/supply/components`) | `detail-row`, `listing-detail` with `steps-timeline`, `next-steps-card`, `offering-card` |
 | `HostShell` | `top-bar`, `step-indicator`, `offline-banner`, host `bottom-nav`, the primary button pinned to the bottom, and the centred 480px column from tablet up |
-| `TravellerShell` | `top-bar` or `search-bar-pill`, traveller `bottom-nav`, content capped at 1200px |
+| `TravellerShell` | `top-bar` or `search-bar-pill`, traveller `bottom-nav`, the pinned action, and two widths: `page` (1200px) for browsing grids, `column` (the host's 480px) for forms, receipts and anything read top to bottom |
 | `ChatBubble` | Not specified here. See Known Gaps |
 
 Density belongs to the shell, not to each component. Inside `HostShell` a `Button` defaults to 56px and body text to 18px. Inside `TravellerShell` they default to 48px and 16px. See Two Densities.
@@ -833,6 +851,7 @@ Gaps against the PRD and the tech stack:
 - Gated categories: Transport and Security appear in the chip strip but are credential-gated in the hackathon build. Their gated look is not specified.
 - Listing facts the schema does not hold yet: the PRD asks every listing for "what to bring" and "what to expect", and experiences for "physical difficulty" and "age suitability". The host app now captures all four (steps, what to bring, how active it is, who can come) and `listing-detail` shows them, but the `Offering` model in `docs/TECH_STACK.md` has no columns for them, nor for the price unit.
 - Cancelling: `listing-detail` shows a cancellation line because the PRD requires cancellation terms on every listing, but the PRD sets no window. The 24 hours shown is a placeholder for the product owner to replace. Accessibility notes ("can a wheelchair user join"), which Airbnb lists under Things to know, are not captured at all.
+- Traveller prototype, open decisions: the fee a traveller pays is shown as a "Service fee" line but set to R0, because the PRD leaves the fee model open; cancelling gives everything back up to 24 hours before and half after that, both placeholders; the chip strip's Food and Guides are not schema categories; travellers sign in by phone code here while `docs/TECH_STACK.md` says email code or Google; photography is hotlinked stand-ins until hosts upload their own; the meeting-point map and the results map are placeholders; a shared trip or plan link only opens on the phone that made it, because trips and plans live on the device until the API exists.
 - Badge wording by tier: the schema has three tiers (registered, identity, community). Which tiers show "Verified" and which show "Community verified" needs confirming with the product owner.
 
 Open accessibility decisions:
