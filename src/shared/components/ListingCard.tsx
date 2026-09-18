@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { OfferingSummary } from '@/shared/dto';
-import { formatRands } from '@/shared/utils';
+import { formatRand } from '@/shared/utils';
 
 const CATEGORY_LABEL: Record<OfferingSummary['category'], string> = {
   TOUR: 'Tour',
@@ -71,7 +71,7 @@ export function ListingCard({ offering }: { offering: OfferingSummary }) {
         </div>
 
         <p className="text-title-sm text-ink">
-          From {formatRands(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
+          From {formatRand(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
         </p>
       </div>
     </Link>

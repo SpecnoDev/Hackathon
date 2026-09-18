@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   ENV_KEYS,
+  GUEST_ROUTES,
   HOST_ONBOARDED_CLAIM,
   HOST_SESSION_COOKIE,
   PUBLIC_ROUTES,
@@ -97,7 +98,7 @@ export const middleware = async (request: NextRequest): Promise<NextResponse> =>
     return redirected;
   };
 
-  if (!session) return pathname === ROUTES.home ? response : redirect(ROUTES.login);
+  if (!session) return GUEST_ROUTES.some((route) => isWithin(pathname, route)) ? response : redirect(ROUTES.login);
 
   const home = ROLE_HOME_ROUTE[session.role];
   if (pathname === ROUTES.home) return redirect(home);
