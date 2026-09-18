@@ -8,6 +8,8 @@ export const ROUTES = {
   explore: '/traveller/explore',
   listings: '/traveller/listings',
   trips: '/traveller/trips',
+  bookings: '/traveller/bookings',
+  profile: '/traveller/profile',
   host: '/host',
   hostOnboarding: '/host/onboarding',
   hostListings: '/host/listings',

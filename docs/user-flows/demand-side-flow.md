@@ -9,6 +9,7 @@ This is the sequence agreed as the non-negotiable baseline — "can I browse, bo
 1. **Browse listings**
    - Traveler lands on the marketplace view, sees all available experiences (tours, food, transport, accommodation, security/concierge — anything a local supplier listed).
    - No login required to browse.
+   - A persistent bottom tab bar (Explore, Trips, Bookings, Profile) frames every traveler screen, not just this one — Explore is the tab the traveler lands on, matching the pattern in comparable apps (see detailed doc, step 1).
 
 2. **View a listing**
    - Click into an experience card → detail view.
@@ -25,10 +26,12 @@ This is the sequence agreed as the non-negotiable baseline — "can I browse, bo
 5. **View booked experiences in an itinerary view**
    - A simple list/timeline of what the traveler has booked — dates, times, experiences.
    - This is the "did it work" moment — not the drag-and-drop builder (that's nice-to-have, see below).
+   - Lives on the **Bookings** tab (see step 1's tab bar) — the Trips tab is the pre-booking co-create surface, Bookings is post-checkout.
 
 6. **Review the experience**
    - Post-experience rating/review.
    - Called out explicitly as a trust/verification signal for the marketplace, not just feedback — reviews are what let travelers trust unverified/informal local suppliers.
+   - Same Bookings tab as step 5 — reviewing hangs off a completed booking in that list, not a separate screen.
 
 ## Nice-to-have (only after core flow works)
 
