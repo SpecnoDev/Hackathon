@@ -9,6 +9,7 @@ const CATEGORY_LABEL: Record<OfferingSummary['category'], string> = {
   TRANSPORT: 'Transport',
   ACCOMMODATION: 'Accommodation',
   CONCIERGE: 'Concierge',
+  GUIDE: 'Guide',
   SECURITY: 'Security',
 };
 

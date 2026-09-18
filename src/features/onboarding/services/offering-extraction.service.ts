@@ -7,8 +7,8 @@ import { ExtractedOfferings } from '@/core/interfaces';
 const OfferingSchema = z.object({
   title: z.string().describe('Short name a traveller would recognise, e.g. "Home-cooked lunch in Langa"'),
   category: z
-    .enum(['TOUR', 'FOOD', 'TRANSPORT', 'ACCOMMODATION', 'CONCIERGE', 'SECURITY'])
-    .describe('TOUR for walks, workshops, visits and stories. CONCIERGE when the host arranges access rather than hosting it.'),
+    .enum(['TOUR', 'FOOD', 'TRANSPORT', 'ACCOMMODATION', 'CONCIERGE', 'GUIDE', 'SECURITY'])
+    .describe('TOUR for walks, workshops, visits and stories. GUIDE when they show people around, CONCIERGE when they arrange access rather than hosting it.'),
   description: z.string().describe("One or two sentences a traveller would read, in the host's own voice"),
   pricingModel: z.enum(['hourly', 'fixed', 'quote_on_request']),
   rateAmount: z.number().nullable().describe('Numeric rate if stated, otherwise null'),

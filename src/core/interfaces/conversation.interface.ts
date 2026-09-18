@@ -1,6 +1,19 @@
-export type OnboardingStage = 'welcome' | 'kyc' | 'kyc_review' | 'offerings' | 'offerings_review' | 'submitting' | 'done';
+export type OnboardingStage =
+  | 'identify'
+  | 'returning'
+  | 'welcome'
+  | 'kyc'
+  | 'kyc_review'
+  | 'offerings'
+  | 'offerings_review'
+  | 'submitting'
+  | 'done';
 
 export interface KycDraft {
+  language?: string;
+  documentType?: string;
+  selfieMediaId?: string;
+  offeringKind?: string;
   fullName?: string;
   idNumber?: string;
   dateOfBirth?: string;

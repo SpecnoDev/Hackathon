@@ -19,7 +19,7 @@ export class ConversationStore {
 
     return stored
       ? (stored.state as unknown as ConversationSession)
-      : { waId, stage: 'welcome', stepIndex: 0, displayName, kyc: {}, updatedAt: Date.now() };
+      : { waId, stage: 'identify', stepIndex: 0, displayName, kyc: {}, updatedAt: Date.now() };
   }
 
   async save(session: ConversationSession): Promise<void> {

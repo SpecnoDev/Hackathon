@@ -4,6 +4,9 @@ import {
   ENV_KEYS,
   GRAPH_BASE_URL,
   INTERACTIVE_BODY_MAX,
+  LIST_DESCRIPTION_MAX,
+  LIST_TITLE_MAX,
+  MAX_LIST_ROWS,
   MAX_REPLY_BUTTONS,
   optionalEnv,
   requireEnv,
@@ -39,6 +42,30 @@ export class WhatsAppService {
             type: 'reply',
             reply: { id, title: title.slice(0, BUTTON_TITLE_MAX) },
           })),
+        },
+      },
+    });
+  }
+
+  /** WhatsApp caps reply buttons at three, so anything longer is asked as a list. */
+  sendList(to: string, body: string, prompt: string, options: ReplyOption[]): Promise<void> {
+    return this.send({
+      to,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: { text: body.slice(0, INTERACTIVE_BODY_MAX) },
+        action: {
+          button: prompt.slice(0, BUTTON_TITLE_MAX),
+          sections: [
+            {
+              rows: options.slice(0, MAX_LIST_ROWS).map(({ id, title, description }) => ({
+                id,
+                title: title.slice(0, LIST_TITLE_MAX),
+                ...(description ? { description: description.slice(0, LIST_DESCRIPTION_MAX) } : {}),
+              })),
+            },
+          ],
         },
       },
     });

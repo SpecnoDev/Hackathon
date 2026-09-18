@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { OfferingCategory } from '@prisma/client';
 import { OFFERING_ID_MAX_LENGTH, OFFERING_LIST_DEFAULT_TAKE, OFFERING_LIST_MAX_TAKE } from '@/core/constants';
 
 export const OFFERING_CATEGORIES = [
@@ -7,8 +8,25 @@ export const OFFERING_CATEGORIES = [
   'TRANSPORT',
   'ACCOMMODATION',
   'CONCIERGE',
+  'GUIDE',
   'SECURITY',
 ] as const;
+
+/**
+ * The database owns this list. Prisma generates `OfferingCategory` from schema.prisma, and the
+ * assertion below fails the build if the two ever disagree in either direction, so adding a
+ * category to the schema without adding it here cannot compile. The literals are restated rather
+ * than derived because this file is pulled into client forms, where the Prisma runtime cannot go;
+ * `import type` is erased, so nothing ships to the browser.
+ *
+ * A category added straight to the database without a schema change is a different failure and is
+ * caught by `npm run db:check`, not by the compiler.
+ */
+type Exhaustive<Listed extends OfferingCategory> = [OfferingCategory] extends [Listed]
+  ? true
+  : ['missing from OFFERING_CATEGORIES:', Exclude<OfferingCategory, Listed>];
+
+export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<(typeof OFFERING_CATEGORIES)[number]> = true;
 
 export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
 
