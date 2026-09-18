@@ -1,5 +1,8 @@
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Cal_Sans, Montserrat } from 'next/font/google';
+import { APP_ICONS, PWA_NAME, PWA_SHORT_NAME, PWA_THEME_COLOR } from '@/core/constants';
+import { OfflineBanner } from '@/core/layout';
 import './globals.css';
 
 const montserrat = Montserrat({
@@ -18,12 +21,22 @@ const calSans = Cal_Sans({
   adjustFontFallback: false,
 });
 
-export const metadata = { title: 'Provider onboarding' };
+export const metadata: Metadata = {
+  title: PWA_NAME,
+  // Next links app/manifest.ts automatically; iOS reads none of it and needs these two.
+  appleWebApp: { capable: true, title: PWA_SHORT_NAME, statusBarStyle: 'default' },
+  icons: { apple: APP_ICONS.appleTouch },
+};
+
+export const viewport: Viewport = { themeColor: PWA_THEME_COLOR };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${montserrat.variable} ${calSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <OfflineBanner />
+        {children}
+      </body>
     </html>
   );
 }

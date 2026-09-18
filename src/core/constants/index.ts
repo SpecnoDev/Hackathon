@@ -6,6 +6,7 @@ export * from './auth.constant';
 export * from './language.constant';
 export * from './offering.constant';
 export * from './phone.constant';
+export * from './pwa.constant';
 export * from './route.constant';
 export * from './time.constant';
 export * from './money.constant';

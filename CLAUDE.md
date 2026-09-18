@@ -8,7 +8,7 @@ A two-sided travel marketplace PWA: hosts list by voice and get paid without a b
 
 Three folders under `src/`. Nothing else at that level.
 
-- **`core/`** — technical foundation, organised by type: `constants/`, `interfaces/`, `services/`, `guards/`, `utils/`, `layout/`. Cross-cutting only: database, auth, HTTP, AI, app chrome. Never feature logic.
+- **`core/`** — technical foundation, organised by type: `constants/`, `interfaces/`, `services/`, `offline/`, `guards/`, `utils/`, `layout/`. Cross-cutting only: database, auth, HTTP, AI, app chrome. Never feature logic. `offline/` is the one browser-side corner — IndexedDB and the outbox — kept out of `services/` because that barrel reaches `next/headers`, `node:crypto` and Prisma, so a client component can never import it.
 - **`features/`** — organised by feature: `onboarding/`, `auth/`, `supply/`, `demand/`. Inside each, the same by-type split scoped to that feature (`pages/`, `components/`, `services/`, `dto/`, `hooks/`).
 - **`shared/`** — reusable and feature-agnostic: `components/`, `dto/`, `utils/`. Presentational or purely functional, with no feature knowledge.
 
