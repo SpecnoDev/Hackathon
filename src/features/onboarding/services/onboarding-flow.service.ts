@@ -35,8 +35,8 @@ export class OnboardingFlowService {
     const imageMediaId = message.image?.id;
 
     const session = RESTART_KEYWORDS.includes(text.toLowerCase())
-      ? this.store.reset(message.from)
-      : this.store.get(message.from, displayName);
+      ? await this.store.reset(message.from)
+      : await this.store.get(message.from, displayName);
 
     switch (session.stage) {
       case 'welcome':
@@ -68,7 +68,7 @@ export class OnboardingFlowService {
       return;
     }
 
-    this.store.save({ ...session, stage: 'kyc', stepIndex: 0 });
+    await this.store.save({ ...session, stage: 'kyc', stepIndex: 0 });
     await this.whatsapp.sendText(session.waId, KYC_STEPS[0].prompt);
   }
 
@@ -96,19 +96,19 @@ export class OnboardingFlowService {
     const next = KYC_STEPS[stepIndex];
 
     if (next) {
-      this.store.save({ ...session, kyc, stepIndex });
+      await this.store.save({ ...session, kyc, stepIndex });
       await this.whatsapp.sendText(session.waId, next.prompt);
       return;
     }
 
     const reviewed = { ...session, kyc, stepIndex, stage: 'kyc_review' as const };
-    this.store.save(reviewed);
+    await this.store.save(reviewed);
     await this.whatsapp.sendButtons(session.waId, this.summariseKyc(reviewed), CONFIRM_OPTIONS);
   }
 
   private async onKycReview(session: ConversationSession, buttonId?: string): Promise<void> {
     if (buttonId === ACTION_REDO) {
-      this.store.save({ ...session, stage: 'kyc', stepIndex: 0, kyc: {} });
+      await this.store.save({ ...session, stage: 'kyc', stepIndex: 0, kyc: {} });
       await this.whatsapp.sendText(session.waId, `No problem, let's start those again.\n\n${KYC_STEPS[0].prompt}`);
       return;
     }
@@ -118,7 +118,7 @@ export class OnboardingFlowService {
       return;
     }
 
-    this.store.save({ ...session, stage: 'offerings' });
+    await this.store.save({ ...session, stage: 'offerings' });
     await this.whatsapp.sendText(session.waId, `Verified. ✅\n\n${OFFERINGS_PROMPT}`);
   }
 
@@ -138,7 +138,7 @@ export class OnboardingFlowService {
       }
 
       const reviewed = { ...session, stage: 'offerings_review' as const, rawOfferingDescription: text, extracted };
-      this.store.save(reviewed);
+      await this.store.save(reviewed);
       await this.whatsapp.sendButtons(session.waId, this.summariseOfferings(extracted.offerings, extracted.clarifications), CONFIRM_OPTIONS);
     } catch (error) {
       console.error(`[onboarding] Extraction failed for ${session.waId}`, error);
@@ -148,7 +148,7 @@ export class OnboardingFlowService {
 
   private async onOfferingsReview(session: ConversationSession, buttonId?: string): Promise<void> {
     if (buttonId === ACTION_REDO) {
-      this.store.save({ ...session, stage: 'offerings', extracted: undefined });
+      await this.store.save({ ...session, stage: 'offerings', extracted: undefined });
       await this.whatsapp.sendText(session.waId, OFFERINGS_PROMPT);
       return;
     }
@@ -162,18 +162,18 @@ export class OnboardingFlowService {
       return;
     }
 
-    this.store.save({ ...session, stage: 'submitting' });
+    await this.store.save({ ...session, stage: 'submitting' });
 
     try {
       const reference = await this.submission.submit(session);
-      this.store.save({ ...session, stage: 'done' });
+      await this.store.save({ ...session, stage: 'done' });
       await this.whatsapp.sendText(
         session.waId,
         `You're listed. 🎉\n\nYour reference is *${reference}*. We'll be in touch when a customer requests one of your services.\n\nSend *restart* to register another provider.`,
       );
     } catch (error) {
       console.error(`[onboarding] Submission failed for ${session.waId}`, error);
-      this.store.save({ ...session, stage: 'offerings_review' });
+      await this.store.save({ ...session, stage: 'offerings_review' });
       await this.whatsapp.sendButtons(session.waId, 'I could not reach the registry just then. Try again?', CONFIRM_OPTIONS);
     }
   }

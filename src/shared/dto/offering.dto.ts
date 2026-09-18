@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { OFFERING_LIST_DEFAULT_TAKE, OFFERING_LIST_MAX_TAKE } from '@/core/constants';
 
 export const OFFERING_CATEGORIES = [
   'TOUR',
@@ -10,6 +11,25 @@ export const OFFERING_CATEGORIES = [
 ] as const;
 
 export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
+
+/** What the bot's extraction produces: a trade in its own words, and a rate only when one was stated. */
+export const offeringDraftSchema = z.object({
+  title: z.string().trim().min(1),
+  category: z.string().trim().min(1),
+  description: z.string().trim().min(1),
+  rateAmount: z.number().nonnegative().nullable(),
+  tags: z.array(z.string().trim().min(1)).default([]),
+});
+
+export const offeringQuerySchema = z.object({
+  region: z.string().trim().min(1).optional(),
+  category: z.enum(OFFERING_CATEGORIES).optional(),
+  q: z.string().trim().min(1).optional(),
+  take: z.coerce.number().int().positive().max(OFFERING_LIST_MAX_TAKE).default(OFFERING_LIST_DEFAULT_TAKE),
+});
+
+export type OfferingDraftDto = z.infer<typeof offeringDraftSchema>;
+export type OfferingQueryDto = z.infer<typeof offeringQuerySchema>;
 
 export const offeringListQuerySchema = z.object({
   region: z.string().trim().min(1).optional(),

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { ENV_KEYS, SIGNATURE_HEADER, WEBHOOK_MODE_SUBSCRIBE, optionalEnv, requireEnv } from '@/core/constants';
 import { WhatsAppWebhookPayload } from '@/core/interfaces';
 import { conversationStore } from '@/core/services';
@@ -37,17 +37,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const payload = JSON.parse(rawBody) as WhatsAppWebhookPayload;
-  const claimed = (payload.entry ?? [])
+  const inbound = (payload.entry ?? [])
     .flatMap((entry) => entry.changes ?? [])
     .flatMap(({ value }) =>
-      (value.messages ?? [])
-        .filter((message) => conversationStore.claimMessage(message.id))
-        .map((message) => ({ message, displayName: value.contacts?.[0]?.profile?.name })),
+      (value.messages ?? []).map((message) => ({ message, displayName: value.contacts?.[0]?.profile?.name })),
     );
 
-  void Promise.all(
-    claimed.map(({ message, displayName }) =>
-      onboardingFlow.handle(message, displayName).catch((error) => console.error('[webhook] handler failed', error)),
+  const claims = await Promise.all(inbound.map(({ message }) => conversationStore.claimMessage(message.id)));
+
+  after(
+    Promise.all(
+      inbound
+        .filter((_, index) => claims[index])
+        .map(({ message, displayName }) =>
+          onboardingFlow.handle(message, displayName).catch((error) => console.error('[webhook] handler failed', error)),
+        ),
     ),
   );
 

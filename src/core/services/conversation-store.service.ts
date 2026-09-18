@@ -1,57 +1,54 @@
+import { Prisma } from '@prisma/client';
 import { PROCESSED_MESSAGE_TTL_MS, SESSION_TTL_MS } from '../constants';
 import { ConversationSession } from '../interfaces';
+import { prisma } from './prisma.service';
 
-/**
- * In-memory only: state lives in this Node process. It survives `next dev` hot reloads
- * via the globalThis handle below, but NOT a restart, and NOT a serverless deployment
- * where each invocation may get a fresh process. Swap for Redis before either matters.
- */
 export class ConversationStore {
-  private readonly sessions = new Map<string, ConversationSession>();
-  private readonly processed = new Map<string, number>();
-
   /** Returns false when this message id has already been handled (Meta retries webhooks). */
-  claimMessage(messageId: string): boolean {
-    this.evictExpired();
-    if (this.processed.has(messageId)) return false;
-    this.processed.set(messageId, Date.now());
-    return true;
+  async claimMessage(messageId: string): Promise<boolean> {
+    await this.evictExpired();
+    const { count } = await prisma.processedWebhookMessage.createMany({
+      data: { id: messageId },
+      skipDuplicates: true,
+    });
+    return count === 1;
   }
 
-  get(waId: string, displayName?: string): ConversationSession {
-    const existing = this.sessions.get(waId);
-    if (existing) return existing;
+  async get(waId: string, displayName?: string): Promise<ConversationSession> {
+    const stored = await prisma.conversationSession.findUnique({ where: { waId } });
 
-    const created: ConversationSession = {
-      waId,
-      stage: 'welcome',
-      stepIndex: 0,
-      displayName,
-      kyc: {},
-      updatedAt: Date.now(),
-    };
-    this.sessions.set(waId, created);
-    return created;
+    return stored
+      ? (stored.state as unknown as ConversationSession)
+      : { waId, stage: 'welcome', stepIndex: 0, displayName, kyc: {}, updatedAt: Date.now() };
   }
 
-  save(session: ConversationSession): void {
-    this.sessions.set(session.waId, { ...session, updatedAt: Date.now() });
+  async save(session: ConversationSession): Promise<void> {
+    const state = { ...session, updatedAt: Date.now() } as unknown as Prisma.InputJsonObject;
+
+    await prisma.conversationSession.upsert({
+      where: { waId: session.waId },
+      create: { waId: session.waId, state },
+      update: { state },
+    });
   }
 
-  reset(waId: string): ConversationSession {
-    this.sessions.delete(waId);
+  async reset(waId: string): Promise<ConversationSession> {
+    await prisma.conversationSession.deleteMany({ where: { waId } });
     return this.get(waId);
   }
 
-  private evictExpired(): void {
+  private async evictExpired(): Promise<void> {
     const now = Date.now();
-    for (const [id, at] of this.processed)
-      if (now - at > PROCESSED_MESSAGE_TTL_MS) this.processed.delete(id);
-    for (const [id, session] of this.sessions)
-      if (now - session.updatedAt > SESSION_TTL_MS) this.sessions.delete(id);
+
+    await Promise.all([
+      prisma.processedWebhookMessage.deleteMany({
+        where: { receivedAt: { lt: new Date(now - PROCESSED_MESSAGE_TTL_MS) } },
+      }),
+      prisma.conversationSession.deleteMany({
+        where: { updatedAt: { lt: new Date(now - SESSION_TTL_MS) } },
+      }),
+    ]);
   }
 }
 
-const globalScope = globalThis as { __conversationStore?: ConversationStore };
-
-export const conversationStore = (globalScope.__conversationStore ??= new ConversationStore());
+export const conversationStore = new ConversationStore();
