@@ -11,6 +11,7 @@ export const ENV_KEYS = {
   idHashSalt: 'ID_HASH_SALT',
   supabaseUrl: 'NEXT_PUBLIC_SUPABASE_URL',
   supabasePublishableKey: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  adminEmails: 'ADMIN_EMAILS',
 } as const;
 
 export const DEFAULT_GRAPH_VERSION = 'v21.0';

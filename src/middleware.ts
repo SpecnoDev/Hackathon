@@ -13,9 +13,14 @@ import {
   requireEnv,
 } from '@/core/constants';
 
+/**
+ * The edge cannot reach the database, so a Supabase cookie resolves only to `authenticated`:
+ * admin and traveller are indistinguishable here. The route group layouts make the
+ * authoritative call, which is also why they, and not this file, are the security boundary.
+ */
 type EdgeSession =
   | { role: typeof USER_ROLES.host; onboarded: boolean }
-  | { role: typeof USER_ROLES.traveller }
+  | { role: 'authenticated' }
   | null;
 
 const HMAC_ALGORITHM = { name: 'HMAC', hash: 'SHA-256' } as const;
@@ -76,7 +81,7 @@ const readSession = async (request: NextRequest, response: NextResponse): Promis
     data: { user },
   } = await supabase.auth.getUser();
 
-  return user ? { role: USER_ROLES.traveller } : null;
+  return user ? { role: 'authenticated' } : null;
 };
 
 const isWithin = (pathname: string, route: string): boolean =>
@@ -99,15 +104,18 @@ export const middleware = async (request: NextRequest): Promise<NextResponse> =>
 
   if (!session) return pathname === ROUTES.home ? response : redirect(ROUTES.login);
 
-  const home = ROLE_HOME_ROUTE[session.role];
-  if (pathname === ROUTES.home) return redirect(home);
-  if (ROLE_FORBIDDEN_ROUTES[session.role].some((route) => isWithin(pathname, route))) return redirect(home);
+  // A Supabase session could be an admin or a traveller, and only the database knows which, so
+  // both trees are let through here and their layouts turn the wrong one away.
+  if (session.role !== USER_ROLES.host)
+    return pathname === ROUTES.home ? redirect(ROUTES.explore) : response;
 
-  return session.role === USER_ROLES.host &&
-    !session.onboarded &&
-    !isWithin(pathname, ROUTES.hostOnboarding)
-    ? redirect(ROUTES.hostOnboarding)
-    : response;
+  // Ahead of the role matrix so an unfinished host reaches onboarding in one hop, from any route.
+  if (!session.onboarded)
+    return isWithin(pathname, ROUTES.hostOnboarding) ? response : redirect(ROUTES.hostOnboarding);
+
+  const isForbidden = ROLE_FORBIDDEN_ROUTES[USER_ROLES.host].some((route) => isWithin(pathname, route));
+
+  return pathname === ROUTES.home || isForbidden ? redirect(ROLE_HOME_ROUTE[USER_ROLES.host]) : response;
 };
 
 // Next requires a statically analysable literal here, so this one list cannot come from

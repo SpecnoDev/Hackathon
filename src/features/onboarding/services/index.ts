@@ -3,6 +3,7 @@ import { OfferingExtractionService } from './offering-extraction.service';
 import { OnboardingFlowService } from './onboarding-flow.service';
 import { ProfileSubmissionService } from './profile-submission.service';
 
+export * from './host-onboarding.service';
 export * from './offering-extraction.service';
 export * from './onboarding-flow.service';
 export * from './profile-submission.service';
