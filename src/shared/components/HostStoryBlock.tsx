@@ -9,10 +9,12 @@ interface HostStoryBlockProps {
   story: string;
   badge?: ReactNode;
   voiceNote?: ReactNode;
+  /** A link out of the block, e.g. to the host's profile. */
+  action?: ReactNode;
 }
 
 /** DESIGN.md: "This block is the brand; give it room." Travellers are choosing a person, not a product. */
-export const HostStoryBlock = ({ firstName, town, portrait, story, badge, voiceNote }: HostStoryBlockProps) => (
+export const HostStoryBlock = ({ firstName, town, portrait, story, badge, voiceNote, action }: HostStoryBlockProps) => (
   <section className="flex flex-col gap-4 rounded-lg bg-surface-soft p-6">
     <div className="flex items-center gap-4">
       {portrait ? (
@@ -31,5 +33,6 @@ export const HostStoryBlock = ({ firstName, town, portrait, story, badge, voiceN
     </div>
     <p className="text-body-md text-body">{story}</p>
     {voiceNote}
+    {action}
   </section>
 );
