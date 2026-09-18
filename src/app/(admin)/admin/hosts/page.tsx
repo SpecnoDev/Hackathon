@@ -11,8 +11,8 @@ import {
 } from '@/features/admin/constants';
 import { listAdminHosts } from '@/features/admin/services';
 import { statusFilterOptions, statusFromQuery } from '@/features/admin/utils';
-import { EmptyState } from '@/shared/components';
-import { ACCOUNT_STATUSES } from '@/shared/dto';
+import { EmptyState, Pagination } from '@/shared/components';
+import { ACCOUNT_STATUSES, readPagination, toPageRange } from '@/shared/dto';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +25,10 @@ export default async function AdminHostsPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const status = statusFromQuery((await searchParams)[STATUS_FILTER_PARAM], ACCOUNT_STATUSES);
-  const hosts = await listAdminHosts(status);
+  const query = await searchParams;
+  const status = statusFromQuery(query[STATUS_FILTER_PARAM], ACCOUNT_STATUSES);
+  const pagination = readPagination(query);
+  const { rows: hosts, total } = await listAdminHosts(status, toPageRange(pagination));
 
   return (
     <div className="flex flex-col gap-6">
@@ -37,27 +39,36 @@ export default async function AdminHostsPage({
 
       <StatusFilter basePath={ROUTES.adminHosts} options={FILTERS} active={status ?? ALL_STATUSES_FILTER} />
 
-      {hosts.length === 0 ? (
+      {total === 0 ? (
         <EmptyState illustration="missing" title={COPY.empty.title} message={COPY.empty.message} />
       ) : (
-        <AdminTable columns={COLUMNS}>
-          {hosts.map(({ id, fullName, phone, serviceArea, tier, status: hostStatus, _count }) => (
-            <AdminRow key={id}>
-              <AdminCell>
-                <Link href={adminHostPath(id)} className="text-link text-primary-text underline">
-                  {fullName}
-                </Link>
-              </AdminCell>
-              <AdminCell muted>{phone}</AdminCell>
-              <AdminCell muted>{serviceArea}</AdminCell>
-              <AdminCell muted>{VERIFICATION_TIER_LABEL[tier]}</AdminCell>
-              <AdminCell>
-                <AccountStatusPill status={hostStatus} />
-              </AdminCell>
-              <AdminCell muted>{_count.offerings}</AdminCell>
-            </AdminRow>
-          ))}
-        </AdminTable>
+        <>
+          <AdminTable columns={COLUMNS}>
+            {hosts.map(({ id, fullName, phone, serviceArea, tier, status: hostStatus, _count }) => (
+              <AdminRow key={id}>
+                <AdminCell>
+                  <Link href={adminHostPath(id)} className="text-link text-primary-text underline">
+                    {fullName}
+                  </Link>
+                </AdminCell>
+                <AdminCell muted>{phone}</AdminCell>
+                <AdminCell muted>{serviceArea}</AdminCell>
+                <AdminCell muted>{VERIFICATION_TIER_LABEL[tier]}</AdminCell>
+                <AdminCell>
+                  <AccountStatusPill status={hostStatus} />
+                </AdminCell>
+                <AdminCell muted>{_count.offerings}</AdminCell>
+              </AdminRow>
+            ))}
+          </AdminTable>
+          <Pagination
+            total={total}
+            page={pagination.page}
+            size={pagination.size}
+            basePath={ROUTES.adminHosts}
+            query={{ [STATUS_FILTER_PARAM]: status }}
+          />
+        </>
       )}
     </div>
   );

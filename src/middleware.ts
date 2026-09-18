@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   ENV_KEYS,
+  ADMIN_ROUTES,
   GUEST_ROUTES,
   HOST_ONBOARDED_CLAIM,
   HOST_SESSION_COOKIE,
@@ -11,6 +12,7 @@ import {
   ROUTES,
   SESSION_TOKEN_SEPARATOR,
   USER_ROLES,
+  isMockAuthEnabled,
   requireEnv,
 } from '@/core/constants';
 
@@ -91,6 +93,8 @@ const isWithin = (pathname: string, route: string): boolean =>
 export const middleware = async (request: NextRequest): Promise<NextResponse> => {
   const { pathname } = request.nextUrl;
   if (PUBLIC_ROUTES.some((route) => isWithin(pathname, route))) return NextResponse.next();
+  // Demo bypass: the layout guard hands out a demo operator identity, so nothing here should redirect first.
+  if (isMockAuthEnabled() && ADMIN_ROUTES.some((route) => isWithin(pathname, route))) return NextResponse.next();
 
   const response = NextResponse.next({ request });
   const session = await readSession(request, response);

@@ -30,3 +30,4 @@ export * from './TopBar';
 export * from './VerifiedBadge';
 export * from './VoiceNotePlayer';
 export * from './VoiceRecordButton';
+export * from './Pagination';

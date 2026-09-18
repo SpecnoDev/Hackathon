@@ -11,7 +11,7 @@ interface StatTileProps {
   money?: boolean;
 }
 
-const SHELL = 'flex flex-col gap-1 rounded-md border p-4';
+const SHELL = 'flex flex-col gap-1 rounded-lg border p-4 transition-colors duration-150 motion-reduce:transition-none';
 const PLAIN = 'border-hairline bg-canvas';
 const MONEY = 'border-accent-tint bg-accent-tint';
 

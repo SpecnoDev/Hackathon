@@ -1,3 +1,4 @@
+import { relativeTime } from '@/shared/utils';
 import { ADMIN_TIMESTAMP, AUDIT_COPY } from '../constants';
 import type { AuditEntry } from '../services';
 
@@ -7,38 +8,46 @@ interface AuditTableProps {
   emptyMessage: string;
 }
 
+const COLUMNS = Object.values(AUDIT_COPY.columns);
+
 export const AuditTable = ({ entries, emptyMessage }: AuditTableProps) =>
   entries.length === 0 ? (
-    <p className="mt-6 rounded-md border border-hairline bg-canvas p-6 text-body-md text-muted">{emptyMessage}</p>
+    <p className="rounded-lg border border-hairline bg-canvas p-6 text-body-md text-muted">{emptyMessage}</p>
   ) : (
-    <table className="mt-6 w-full border-collapse overflow-hidden rounded-md border border-hairline bg-canvas text-left">
-      <thead className="border-b border-hairline">
-        <tr className="text-caption text-muted">
-          <th className="p-3">{AUDIT_COPY.columns.when}</th>
-          <th className="p-3">{AUDIT_COPY.columns.who}</th>
-          <th className="p-3">{AUDIT_COPY.columns.what}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {entries.map(({ id, at, actorEmail, sentence, reason, action, subjectLabel, subjectId }) => (
-          <tr key={id} className="border-b border-hairline-soft align-top last:border-0">
-            <td className="p-3 text-body-sm whitespace-nowrap text-muted">
-              <time dateTime={at.toISOString()}>{ADMIN_TIMESTAMP.format(at)}</time>
-            </td>
-            <td className="p-3 text-body-sm text-muted">{actorEmail}</td>
-            <td className="p-3">
-              <p className="text-body-md text-ink">
-                {sentence}
-                {reason ? `${AUDIT_COPY.reasonSeparator}${reason}` : ''}
-              </p>
-              <p className="mt-1 text-caption text-muted">
-                {[reason ? null : AUDIT_COPY.noReason, `${subjectLabel} ${subjectId}`, action]
-                  .filter(Boolean)
-                  .join(AUDIT_COPY.metaSeparator)}
-              </p>
-            </td>
+    <div className="overflow-hidden rounded-lg border border-hairline bg-canvas">
+      <table className="w-full border-collapse text-left">
+        <thead className="bg-surface-soft">
+          <tr>
+            {COLUMNS.map((column) => (
+              <th key={column} scope="col" className="px-4 py-3 text-caption text-muted">
+                {column}
+              </th>
+            ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody className="text-body-sm text-ink">
+          {entries.map(({ id, at, actorEmail, sentence, reason, action, subjectLabel, subjectId }) => (
+            <tr
+              key={id}
+              className="border-t border-hairline-soft align-top transition-colors duration-150 hover:bg-surface-soft motion-reduce:transition-none"
+            >
+              <td className="px-4 py-3 whitespace-nowrap">
+                <time dateTime={at.toISOString()} title={ADMIN_TIMESTAMP.format(at)} className="block text-ink">
+                  {relativeTime(at)}
+                </time>
+                <span className="block text-caption text-muted">{ADMIN_TIMESTAMP.format(at)}</span>
+              </td>
+              <td className="px-4 py-3 text-muted">{actorEmail}</td>
+              <td className="px-4 py-3">
+                <p className="text-body-md text-ink">{sentence}</p>
+                <p className="mt-1 text-body-sm text-muted">{reason ?? AUDIT_COPY.noReason}</p>
+                <p className="mt-1 text-caption text-muted-soft">
+                  {[`${subjectLabel} ${subjectId}`, action].join(AUDIT_COPY.metaSeparator)}
+                </p>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
