@@ -25,6 +25,16 @@ enum VerificationTier {
   COMMUNITY
 }
 
+// Where KYC leaves an account until an admin approves it (IN_REVIEW), and the two ways an
+// admin takes it away again. New accounts default to ACTIVE for the prototype: the review
+// gate exists in the data so switching it on is a default change, not a migration.
+enum AccountStatus {
+  IN_REVIEW
+  ACTIVE
+  SUSPENDED
+  BLOCKED
+}
+
 // TOUR was EXPERIENCE - renamed to stop colliding with "Experience", the glossary's
 // word for the whole Offering model. See docs/user-flows/demand-side-schema-requirements.md.
 enum OfferingCategory {
@@ -76,25 +86,28 @@ enum SustainabilityTag {
 }
 
 model Host {
-  id             String           @id @default(uuid())
-  authUserId     String?          @unique
-  phone          String           @unique
-  fullName       String
-  language       Language         @default(EN)
-  contactChannel ContactChannel   @default(WHATSAPP)
-  serviceArea    String
-  story          String?
-  photoUrl       String?
-  tier           VerificationTier @default(REGISTERED)
-  idNumberHash   String?
-  idDocumentPath String?
-  payoutChannel  PayoutChannel?
-  payoutPhone    String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  offerings      Offering[]
-  bookings       Booking[]
-  payouts        Payout[]
+  id              String           @id @default(uuid())
+  authUserId      String?          @unique
+  phone           String           @unique
+  fullName        String
+  language        Language         @default(EN)
+  contactChannel  ContactChannel   @default(WHATSAPP)
+  serviceArea     String
+  story           String?
+  photoUrl        String?
+  tier            VerificationTier @default(REGISTERED)
+  status          AccountStatus    @default(ACTIVE)
+  statusReason    String?
+  statusChangedAt DateTime?
+  idNumberHash    String?
+  idDocumentPath  String?
+  payoutChannel   PayoutChannel?
+  payoutPhone     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  offerings       Offering[]
+  bookings        Booking[]
+  payouts         Payout[]
 }
 
 model Offering {
@@ -163,17 +176,20 @@ model Review {
 }
 
 model Traveller {
-  id         String       @id @default(uuid())
-  authUserId String       @unique
-  email      String       @unique
-  name       String
-  phone      String?
-  language   Language     @default(EN)
-  createdAt  DateTime     @default(now())
-  trips      TripMember[]
-  bookings   Booking[]
-  votes      Vote[]
-  reviews    Review[]
+  id              String        @id @default(uuid())
+  authUserId      String        @unique
+  email           String        @unique
+  name            String
+  phone           String?
+  language        Language      @default(EN)
+  status          AccountStatus @default(ACTIVE)
+  statusReason    String?
+  statusChangedAt DateTime?
+  createdAt       DateTime      @default(now())
+  trips           TripMember[]
+  bookings        Booking[]
+  votes           Vote[]
+  reviews         Review[]
 }
 
 model Trip {
@@ -199,15 +215,15 @@ model TripMember {
 }
 
 model TripBlock {
-  id         String    @id
+  id         String   @id
   tripId     String
   offeringId String
-  day        DateTime  @db.Date
+  day        DateTime @db.Date
   startTime  String?
   position   Int
   addedById  String
-  trip       Trip      @relation(fields: [tripId], references: [id])
-  offering   Offering  @relation(fields: [offeringId], references: [id])
+  trip       Trip     @relation(fields: [tripId], references: [id])
+  offering   Offering @relation(fields: [offeringId], references: [id])
   votes      Vote[]
   booking    Booking?
 
@@ -259,6 +275,21 @@ model Payout {
   sentAt      DateTime?
   booking     Booking       @relation(fields: [bookingId], references: [id])
   host        Host          @relation(fields: [hostId], references: [id])
+}
+
+/**
+ * Append-only: written in the same transaction as the change it records, never updated or deleted.
+ */
+model AdminAction {
+  id          String   @id @default(uuid())
+  actorEmail  String
+  action      String
+  subjectType String
+  subjectId   String
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
 }
 
 model ConversationSession {

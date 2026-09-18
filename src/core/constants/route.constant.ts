@@ -23,7 +23,9 @@ export const ROUTES = {
   flows: '/flows',
   admin: '/admin',
   adminHosts: '/admin/hosts',
+  adminTravellers: '/admin/travellers',
   adminOfferings: '/admin/offerings',
+  adminAudit: '/admin/audit',
 } as const;
 
 /**

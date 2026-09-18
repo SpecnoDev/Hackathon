@@ -1,15 +1,25 @@
 import { OfferingCategory, OfferingStatus, Prisma, VerificationTier } from '@prisma/client';
-import { API_ERROR_CODES, HTTP_STATUS, OFFERING_LIST_DEFAULT_TAKE } from '@/core/constants';
+import { ACTIVE_ACCOUNT_STATUS, API_ERROR_CODES, HTTP_STATUS, OFFERING_LIST_DEFAULT_TAKE } from '@/core/constants';
 import { ApiError } from '@/core/utils';
 import { OfferingFieldsPatchDto, OfferingQueryDto, OfferingWriteDto } from '@/shared/dto';
 import { prisma } from './prisma.service';
 
 const hostSummary = { select: { id: true, fullName: true, photoUrl: true, tier: true } };
 
+/**
+ * What the public may see, declared once so every caller inherits it instead of remembering it.
+ * Suspending a host already pauses their live rows; this second condition is what makes the
+ * status itself binding, so a row that reaches LIVE by any other path still stays off the market.
+ */
+export const PUBLIC_OFFERING_WHERE = {
+  status: OfferingStatus.LIVE,
+  host: { status: ACTIVE_ACCOUNT_STATUS },
+} as const;
+
 export const listLiveOfferings = ({ region, category, q, take }: OfferingQueryDto) =>
   prisma.offering.findMany({
     where: {
-      status: OfferingStatus.LIVE,
+      ...PUBLIC_OFFERING_WHERE,
       ...(region && { region: { equals: region, mode: 'insensitive' as const } }),
       ...(category && { category }),
       ...(q && {
@@ -35,7 +45,7 @@ export const listHostOfferings = (hostId: string) =>
 
 export const findLiveOffering = (id: string) =>
   prisma.offering.findFirst({
-    where: { id, status: OfferingStatus.LIVE },
+    where: { id, ...PUBLIC_OFFERING_WHERE },
     include: { host: hostSummary },
   });
 

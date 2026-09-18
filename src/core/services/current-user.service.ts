@@ -1,5 +1,5 @@
 import { Host, Traveller } from '@prisma/client';
-import { ENV_KEYS, USER_ROLES, adminEmails, optionalEnv } from '../constants';
+import { ENV_KEYS, USER_ROLES, adminEmails, isAccountActive, optionalEnv } from '../constants';
 import { prisma } from './prisma.service';
 import { readHostSession } from './session.service';
 import { createSupabaseServerClient } from './supabase-server.service';
@@ -20,7 +20,9 @@ export const getCurrentUser = async (): Promise<CurrentUser> => {
 
   if (hostId) {
     const host = await prisma.host.findUnique({ where: { id: hostId } });
-    if (host) return { role: USER_ROLES.host, host };
+    // Status is read on every request, not stamped into the cookie: a suspension has to bite on
+    // the next page load rather than when the session finally expires.
+    if (host && isAccountActive(host.status)) return { role: USER_ROLES.host, host };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -35,7 +37,7 @@ export const getCurrentUser = async (): Promise<CurrentUser> => {
 
   const traveller = await ensureTravellerForAuthUser(user.id, user.email);
 
-  return traveller ? { role: USER_ROLES.traveller, traveller } : null;
+  return traveller && isAccountActive(traveller.status) ? { role: USER_ROLES.traveller, traveller } : null;
 };
 
 /** A Supabase sign-up only creates an auth user, so the first visit is what makes them a traveller. */

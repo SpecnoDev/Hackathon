@@ -8,6 +8,7 @@ import {
   ENV_KEYS,
   HTTP_STATUS,
   OFFERING_CATEGORY_KEYWORDS,
+  isAccountActive,
   requireEnv,
 } from '../constants';
 import { HostIntakeDto, HostProfilePatchDto, OfferingDraftDto } from '@/shared/dto';
@@ -54,6 +55,16 @@ export const isHostOnboarded = ({ fullName, serviceArea }: Pick<Host, 'fullName'
 
 export const findHostIdByPhone = (phone: string): Promise<{ id: string } | null> =>
   prisma.host.findUnique({ where: { phone }, select: { id: true } });
+
+/**
+ * The one answer to "may this host hold a session". A suspended, blocked or still-in-review host
+ * reads exactly like a forged link or a deleted account — the caller is never told which.
+ */
+export const findActiveHostId = async (hostId: string): Promise<string | null> => {
+  const host = await prisma.host.findUnique({ where: { id: hostId }, select: { id: true, status: true } });
+
+  return host && isAccountActive(host.status) ? host.id : null;
+};
 
 export const upsertHostFromIntake = async ({ whatsappId, kyc, offerings }: HostIntakeDto): Promise<{ id: string }> => {
   const profile = {
