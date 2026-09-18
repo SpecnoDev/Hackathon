@@ -5,10 +5,10 @@ import { OFFERING_ID_MAX_LENGTH, OFFERING_LIST_DEFAULT_TAKE, OFFERING_LIST_MAX_T
 export const OFFERING_CATEGORIES = [
   'TOUR',
   'FOOD',
+  'GUIDE',
   'TRANSPORT',
   'ACCOMMODATION',
   'CONCIERGE',
-  'GUIDE',
   'SECURITY',
 ] as const;
 
@@ -27,6 +27,8 @@ type Exhaustive<Listed extends OfferingCategory> = [OfferingCategory] extends [L
   : ['missing from OFFERING_CATEGORIES:', Exclude<OfferingCategory, Listed>];
 
 export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<(typeof OFFERING_CATEGORIES)[number]> = true;
+
+export const PRICE_UNITS = ['PER_PERSON', 'PER_TRIP'] as const;
 
 export const SUSTAINABILITY_TAGS = ['LOW_IMPACT_TRAVEL', 'SUPPORTS_LOCAL_LIVELIHOODS'] as const;
 
@@ -58,6 +60,8 @@ export const offeringListQuerySchema = z.object({
   q: z.string().trim().min(1).optional(),
   lang: z.string().trim().min(1).optional(),
   groupSize: z.coerce.number().int().min(1).optional(),
+  /** Comma-separated offering ids — the saved-listing feed's way of turning ids back into cards. */
+  ids: z.string().trim().min(1).optional(),
 });
 
 export type OfferingListQuery = z.infer<typeof offeringListQuerySchema>;
@@ -69,7 +73,11 @@ export const offeringSummarySchema = z.object({
   town: z.string(),
   region: z.string(),
   priceCents: z.int(),
+  priceUnit: z.enum(PRICE_UNITS),
   durationMin: z.int().nullable(),
+  groupMin: z.int(),
+  groupMax: z.int().nullable(),
+  inclusions: z.array(z.string()),
   photos: z.array(z.string()),
   avgRating: z.number().nullable(),
   reviewCount: z.int(),
@@ -99,7 +107,16 @@ export const offeringDetailSchema = z.object({
   description: z.string(),
   category: z.enum(OFFERING_CATEGORIES),
   priceCents: z.int(),
+  priceUnit: z.enum(PRICE_UNITS),
   durationMin: z.int().nullable(),
+  groupMin: z.int(),
+  groupMax: z.int().nullable(),
+  inclusions: z.array(z.string()),
+  steps: z.array(z.string()),
+  whatToBring: z.array(z.string()),
+  safetyNotes: z.array(z.string()),
+  languages: z.array(z.string()),
+  availability: z.record(z.string(), z.unknown()),
   meetingPoint: z.string(),
   town: z.string(),
   region: z.string(),

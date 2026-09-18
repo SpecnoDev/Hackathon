@@ -1,16 +1,7 @@
 'use client';
 
 import { OFFERING_CATEGORIES, type OfferingListQuery } from '@/shared/dto';
-
-const CATEGORY_LABEL: Record<(typeof OFFERING_CATEGORIES)[number], string> = {
-  TOUR: 'Tours',
-  FOOD: 'Food experiences',
-  TRANSPORT: 'Transport',
-  ACCOMMODATION: 'Accommodation',
-  CONCIERGE: 'Concierge',
-  GUIDE: 'Guides',
-  SECURITY: 'Security',
-};
+import { CATEGORY_LABEL } from '../constants';
 
 export function CategoryChips({
   active,

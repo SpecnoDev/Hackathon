@@ -1,27 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireTraveller } from '@/core/guards';
 import { fail, ok } from '@/core/utils';
-import { addTripBlock } from '@/features/demand/services';
-import { createTripBlockSchema } from '@/shared/dto';
+import { voteOnBlock } from '@/features/demand/services';
+import { voteBlockSchema } from '@/shared/dto';
 
 export async function POST(
-  request: NextRequest,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   try {
     const travellerId = await requireTraveller();
-    const { id: tripId } = await params;
-    const input = createTripBlockSchema.parse(await request.json());
+    const { id: blockId } = await params;
+    const input = voteBlockSchema.parse(await request.json());
 
-    const block = await addTripBlock(travellerId, tripId, input);
-    if (!block) {
+    const voted = await voteOnBlock(travellerId, blockId, input);
+    if (!voted) {
       return NextResponse.json(
         { error: { code: 'NOT_A_MEMBER', message: 'Not a member of this trip.' } },
         { status: 403 },
       );
     }
 
-    return ok(block);
+    return ok({ voted: true });
   } catch (error) {
     return fail(error);
   }

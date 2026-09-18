@@ -1,5 +1,6 @@
 export * from './whatsapp.constants';
 export * from './onboarding.constants';
+export * from './booking-policy.constant';
 export * from './env.constant';
 export * from './api.constant';
 export * from './auth.constant';

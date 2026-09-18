@@ -149,6 +149,7 @@ type OfferingSeed = {
   category:
     | 'TOUR'
     | 'FOOD'
+    | 'GUIDE'
     | 'TRANSPORT'
     | 'ACCOMMODATION'
     | 'CONCIERGE'
@@ -156,8 +157,13 @@ type OfferingSeed = {
   title: string;
   description: string;
   priceCents: number;
+  priceUnit: 'PER_PERSON' | 'PER_TRIP';
   durationMin: number | null;
   groupMax: number | null;
+  steps: string[];
+  whatToBring: string[];
+  safetyNotes: string[];
+  languages: ('EN' | 'AF' | 'XH' | 'ZU')[];
   town: string;
   region: string;
   lat: number;
@@ -176,8 +182,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: "Auntie Nomsa's Home-Cooked Kitchen Table",
     description: 'A home-cooked Xhosa meal at Nomsa\'s kitchen table in Langa, with stories from the neighbourhood.',
     priceCents: 18000,
+    priceUnit: 'PER_PERSON',
     durationMin: 120,
     groupMax: 4,
+    steps: ['Arrive at Nomsa\'s home in Langa', 'Help prepare a traditional Xhosa dish', 'Share the meal around the kitchen table', 'Hear stories from the neighbourhood'],
+    whatToBring: ['An appetite', 'Cash for tips (optional)'],
+    safetyNotes: ['Home-based visit in a residential area — Nomsa will meet you at a nearby landmark'],
+    languages: ['EN', 'XH'],
     town: 'Langa',
     region: 'Cape Town',
     lat: -33.9469,
@@ -193,12 +204,17 @@ const OFFERINGS: OfferingSeed[] = [
   {
     id: 'off-bokaap-walk',
     hostId: 'host-thabo',
-    category: 'TOUR',
+    category: 'GUIDE',
     title: 'Bo-Kaap Walking Tour with a Local Storyteller',
     description: 'A 2.5 hour walk through the Bo-Kaap with Thabo, covering its history, architecture and food.',
     priceCents: 25000,
+    priceUnit: 'PER_PERSON',
     durationMin: 150,
     groupMax: 8,
+    steps: ['Meet Thabo at the Bo-Kaap Museum', 'Walk the colourful streets, hearing the neighbourhood\'s history', 'Stop for a spice-shop tasting', 'End at a viewpoint over the city'],
+    whatToBring: ['Comfortable walking shoes', 'Water bottle', 'Sun hat'],
+    safetyNotes: ['Uneven cobbled streets — take care on the steeper sections'],
+    languages: ['EN', 'AF'],
     town: 'Bo-Kaap',
     region: 'Cape Town',
     lat: -33.9214,
@@ -217,8 +233,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: 'Township Art & Mural Cycle Tour',
     description: 'A guided cycle through Cape Town\'s townships, stopping at murals and community art projects.',
     priceCents: 32000,
+    priceUnit: 'PER_PERSON',
     durationMin: 180,
     groupMax: 10,
+    steps: ['Bike fitting and safety briefing', 'Cycle through Khayelitsha\'s main routes', 'Stop at three mural sites with the artists\' stories', 'Visit a community art project'],
+    whatToBring: ['Closed-toe shoes', 'Sunscreen'],
+    safetyNotes: ['Helmets provided and required', 'Ride in single file behind the guide at all times'],
+    languages: ['EN', 'XH'],
     town: 'Khayelitsha',
     region: 'Cape Town',
     lat: -34.0403,
@@ -237,8 +258,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: 'Farm Table Lunch in the Stellenbosch Winelands',
     description: 'A long lunch on Annelie\'s family farm, paired with wines from the estate.',
     priceCents: 45000,
+    priceUnit: 'PER_PERSON',
     durationMin: 150,
     groupMax: 12,
+    steps: ['Welcome drink on the farmhouse porch', 'A guided walk through the vineyard', 'A long lunch of farm-grown produce', 'Wine pairing with each course'],
+    whatToBring: ['Nothing — just an appetite'],
+    safetyNotes: ['Farm has uneven ground — flat shoes recommended'],
+    languages: ['EN', 'AF'],
     town: 'Stellenbosch',
     region: 'Winelands',
     lat: -33.9366,
@@ -258,8 +284,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: 'Stellenbosch Vineyard Tram Tour',
     description: 'A relaxed tram ride through three Stellenbosch vineyards with tastings at each stop.',
     priceCents: 38000,
+    priceUnit: 'PER_PERSON',
     durationMin: 210,
     groupMax: 16,
+    steps: ['Board the tram in central Stellenbosch', 'Three vineyard stops with tastings at each', 'Cellar tour at the final stop'],
+    whatToBring: ['ID for tastings', 'Light jacket — the tram is open-sided'],
+    safetyNotes: ['Tastings are optional for non-drinkers and drivers'],
+    languages: ['EN', 'AF'],
     town: 'Stellenbosch',
     region: 'Winelands',
     lat: -33.9321,
@@ -272,12 +303,17 @@ const OFFERINGS: OfferingSeed[] = [
   {
     id: 'off-soweto-walk',
     hostId: 'host-siya',
-    category: 'TOUR',
+    category: 'GUIDE',
     title: 'Soweto Walk with a Local Driver',
     description: 'A walking tour through Soweto with Siya, including Vilakazi Street and the Hector Pieterson Memorial.',
     priceCents: 28000,
+    priceUnit: 'PER_PERSON',
     durationMin: 180,
     groupMax: 10,
+    steps: ['Meet Siya at the Vilakazi Street sign', 'Walk past the Mandela and Tutu family homes', 'Visit the Hector Pieterson Memorial', 'Stop for a local snack along the way'],
+    whatToBring: ['Comfortable shoes', 'Camera'],
+    safetyNotes: ['Stay with the group in busier areas of the street'],
+    languages: ['EN', 'ZU'],
     town: 'Soweto',
     region: 'Johannesburg',
     lat: -26.2485,
@@ -296,8 +332,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: 'Airport Transfer — Reliable Local Driver',
     description: 'Door-to-door airport transfers in and around Johannesburg with Siya.',
     priceCents: 15000,
+    priceUnit: 'PER_TRIP',
     durationMin: null,
     groupMax: 4,
+    steps: ['Siya meets you at arrivals with a name sign', 'Door-to-door drop-off at your accommodation'],
+    whatToBring: ['Flight details for pickup timing'],
+    safetyNotes: ['Licensed and insured vehicle'],
+    languages: ['EN', 'ZU'],
     town: 'Johannesburg',
     region: 'Johannesburg',
     lat: -26.1367,
@@ -316,8 +357,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: 'Hermanus Cliff Path Whale Walk',
     description: 'A guided walk along the Hermanus cliff path, one of the best land-based whale watching spots in the world.',
     priceCents: 22000,
+    priceUnit: 'PER_PERSON',
     durationMin: 120,
     groupMax: 8,
+    steps: ['Meet at the Old Harbour', 'Walk the cliff path scanning for whales', 'Stop at the best-known lookout points'],
+    whatToBring: ['Binoculars if you have them', 'Windbreaker — it\'s exposed on the cliffs'],
+    safetyNotes: ['Path runs close to the cliff edge in places — keep to the marked path'],
+    languages: ['EN'],
     town: 'Hermanus',
     region: 'Overberg',
     lat: -34.4187,
@@ -334,8 +380,13 @@ const OFFERINGS: OfferingSeed[] = [
     title: 'Hermanus Sunset Coastal Walk',
     description: 'An evening walk along the Hermanus coastline, timed for sunset over the bay.',
     priceCents: 18000,
+    priceUnit: 'PER_PERSON',
     durationMin: 90,
     groupMax: 6,
+    steps: ['Meet an hour before sunset at the New Harbour', 'Walk the coastal path as the light changes', 'Finish at a viewpoint for sunset over the bay'],
+    whatToBring: ['Warm layer for the evening', 'Camera'],
+    safetyNotes: ['Path can be slippery near the tide line after rain'],
+    languages: ['EN'],
     town: 'Hermanus',
     region: 'Overberg',
     lat: -34.4205,
@@ -445,6 +496,20 @@ async function main() {
         avgRating: agg._avg.rating ?? null,
         reviewCount: agg._count.rating,
       },
+    });
+  }
+
+  const SAVED_LISTINGS: { travellerId: string; offeringId: string }[] = [
+    { travellerId: 'trav-jess', offeringId: 'off-bokaap-walk' },
+    { travellerId: 'trav-jess', offeringId: 'off-hermanus-sunset' },
+    { travellerId: 'trav-mike', offeringId: 'off-winelands-farm' },
+  ];
+
+  for (const saved of SAVED_LISTINGS) {
+    await prisma.savedListing.upsert({
+      where: { travellerId_offeringId: saved },
+      update: {},
+      create: saved,
     });
   }
 
