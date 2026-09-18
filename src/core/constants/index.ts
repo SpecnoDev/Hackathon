@@ -3,6 +3,7 @@ export * from './onboarding.constants';
 export * from './env.constant';
 export * from './api.constant';
 export * from './auth.constant';
+export * from './language.constant';
 export * from './offering.constant';
 export * from './phone.constant';
 export * from './route.constant';

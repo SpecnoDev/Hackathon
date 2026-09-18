@@ -40,6 +40,15 @@ const toOfferingRow = (draft: OfferingDraftDto, host: Host): Prisma.OfferingCrea
   availability: { ...AVAILABILITY_ON_REQUEST },
 });
 
+/**
+ * Host carries no onboarding flag, so completion is derived from the two answers the
+ * marketplace cannot work without. Both columns are required, so a host created at sign-up
+ * holds empty strings until the onboarding path fills them, and a host the bot onboarded is
+ * already complete on arrival.
+ */
+export const isHostOnboarded = ({ fullName, serviceArea }: Pick<Host, 'fullName' | 'serviceArea'>): boolean =>
+  Boolean(fullName.trim() && serviceArea.trim());
+
 export const findHostIdByPhone = (phone: string): Promise<{ id: string } | null> =>
   prisma.host.findUnique({ where: { phone }, select: { id: true } });
 

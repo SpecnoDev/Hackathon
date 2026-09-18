@@ -1,7 +1,17 @@
 import { HOURS_PER_DAY, MINUTES_PER_HOUR, MS_PER_SECOND, SECONDS_PER_MINUTE } from './time.constant';
 
-export const USER_ROLES = { host: 'host', traveller: 'traveller' } as const;
+export const USER_ROLES = { admin: 'admin', host: 'host', traveller: 'traveller' } as const;
 export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+
+/**
+ * Admins are an allowlist of Supabase account emails rather than a table, so the backoffice
+ * needs no schema change and no invite flow for the demo. Comma separated, case insensitive.
+ */
+export const adminEmails = (raw: string | undefined): readonly string[] =>
+  (raw ?? '')
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
 
 export const HOST_SESSION_COOKIE = 'host_session';
 export const HOST_SESSION_TTL_SECONDS = 7 * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;

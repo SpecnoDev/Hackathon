@@ -1,10 +1,11 @@
 import { Host, Traveller } from '@prisma/client';
-import { USER_ROLES } from '../constants';
+import { ENV_KEYS, USER_ROLES, adminEmails, optionalEnv } from '../constants';
 import { prisma } from './prisma.service';
 import { readHostSession } from './session.service';
 import { createSupabaseServerClient } from './supabase-server.service';
 
 export type CurrentUser =
+  | { role: typeof USER_ROLES.admin; email: string }
   | { role: typeof USER_ROLES.host; host: Host }
   | { role: typeof USER_ROLES.traveller; traveller: Traveller }
   | null;
@@ -28,7 +29,24 @@ export const getCurrentUser = async (): Promise<CurrentUser> => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const traveller = await prisma.traveller.findUnique({ where: { authUserId: user.id } });
+  const email = user.email?.toLowerCase();
+  if (email && adminEmails(optionalEnv(ENV_KEYS.adminEmails)).includes(email))
+    return { role: USER_ROLES.admin, email };
+
+  const traveller = await ensureTravellerForAuthUser(user.id, user.email);
 
   return traveller ? { role: USER_ROLES.traveller, traveller } : null;
+};
+
+/** A Supabase sign-up only creates an auth user, so the first visit is what makes them a traveller. */
+const ensureTravellerForAuthUser = async (
+  authUserId: string,
+  email: string | undefined,
+): Promise<Traveller | null> => {
+  const existing = await prisma.traveller.findUnique({ where: { authUserId } });
+  if (existing || !email) return existing;
+
+  return prisma.traveller.create({
+    data: { authUserId, email, name: email.split('@')[0] },
+  });
 };

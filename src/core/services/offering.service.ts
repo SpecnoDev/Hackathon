@@ -1,4 +1,5 @@
 import { OfferingStatus } from '@prisma/client';
+import { OFFERING_LIST_DEFAULT_TAKE } from '@/core/constants';
 import { OfferingQueryDto } from '@/shared/dto';
 import { prisma } from './prisma.service';
 
@@ -20,6 +21,15 @@ export const listLiveOfferings = ({ region, category, q, take }: OfferingQueryDt
     include: { host: hostSummary },
     orderBy: { createdAt: 'desc' },
     take,
+  });
+
+/** Every status, so a host sees their drafts. Scope by the id a guard returned, never by the body. */
+export const listHostOfferings = (hostId: string) =>
+  prisma.offering.findMany({
+    where: { hostId },
+    select: { id: true, title: true, status: true, priceCents: true },
+    orderBy: { updatedAt: 'desc' },
+    take: OFFERING_LIST_DEFAULT_TAKE,
   });
 
 export const findLiveOffering = (id: string) =>
