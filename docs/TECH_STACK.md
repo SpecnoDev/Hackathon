@@ -325,9 +325,9 @@ model ProcessedWebhookMessage {
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-DATABASE_URL=                      # pooler :6543 ?pgbouncer=true&connection_limit=1
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=   # older projects call this the anon key
+SUPABASE_SECRET_KEY=                    # older projects call this the service role key
+DATABASE_URL=                      # Connect → ORMs → Prisma; pooler :6543 ?pgbouncer=true&connection_limit=1
 DIRECT_URL=                        # :5432, migrations
 
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -346,7 +346,7 @@ PROFILE_API_URL=http://localhost:3000/api/v1/hosts
 PROFILE_API_TOKEN=                 # same value as INTERNAL_API_TOKEN
 ```
 
-Values are shared out of band. `.env` is git-ignored.
+Use `.env` — every `.env*` file except `.env.example` is git-ignored. Values are shared out of band, never committed. Anything the deployed app needs must also be set in Vercel → Environment Variables.
 
 ## Setup
 
