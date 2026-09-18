@@ -1,6 +1,6 @@
 # Conventions
 
-Read `docs/TECH_STACK.md` before writing code — it holds the stack, schema and API contract. `docs/PRD.md.pdf` holds the product. This file is how we write it.
+Read `docs/TECH_STACK.md` before writing code — it holds the stack, schema and API contract. `docs/PRD.md.pdf` holds the product. `DESIGN.md` holds the design system — read it before building any UI; it wins on anything visual. This file is how we write it.
 
 A two-sided travel marketplace PWA: hosts list by voice and get paid without a bank account, travellers co-create an itinerary and book. Hosts are the primary user — when host simplicity and traveller convenience conflict, the host wins.
 
