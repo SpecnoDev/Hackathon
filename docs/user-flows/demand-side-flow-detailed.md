@@ -4,7 +4,7 @@ Working doc that fleshes out [demand-side-flow.md](demand-side-flow.md) with res
 
 Research method: [Mobbin MCP](https://mobbin.com) searches against comparable apps (Airbnb Experiences, Viator — both "browse local experiences/tours" marketplaces). Filled in one step at a time, per core MVP loop order.
 
-Status key: 🟩 researched · ⬜ not yet researched
+Status key: 🟩 researched · 🟨 partially researched (scope/decisions resolved, comparable-app research still outstanding) · ⬜ not yet researched
 
 ---
 
@@ -119,9 +119,55 @@ A detail page already exists (built ahead of this research pass, same as browse-
 
 ---
 
-## 3. Book it ⬜
+## 3. Book it 🟩
 
-Not yet researched. Source flow doc: traveler selects the experience and confirms a booking.
+**Source flow doc (unchanged):** traveler selects the experience and confirms a booking.
+
+**Resolved first — what "book it" actually means here:** the source flow doc's wording ("selects the experience and confirms a booking") reads like a single-listing checkout, but neither the schema nor the PRD supports that path. The only route that creates a `Booking` is `POST /trips/:id/checkout`, which fires "one booking per locked block" (TECH_STACK.md's API table), and a block only exists on a locked `Trip` that went through add → vote → lock (PRD → Co-create the itinerary; must-demo #5). There is no schema path from "tap Book on a listing" straight to a `Booking` row. Confirmed with Francois: step 3 targets the real trip flow, not a shortcut — the "Book" CTA's job is to get the offering onto a trip as a `TripBlock`, not to create a `Booking` directly. Voting, locking and checkout (which is where `Booking` rows actually get created, and which triggers step 4's pot) are later flow-doc steps, out of scope for this step's build even though they're touched on below for sequencing.
+
+**Known gap going in:** DESIGN.md line 814 already flags this — "the PRD's must-demo list includes a shared day timeline with blocks, a simple vote and a lock... None of those components are specified here yet: day timeline, trip block, vote control, locked state." Step 3 is where that gap has to close, at least for the add-to-trip part of it.
+
+**Current code state (confirmed before planning):** no `trips/` or `bookings/` routes exist under `app/(traveller)/` yet; no `trip.service.ts` or `booking.service.ts` under `core/services/`; no trip/booking zod schemas under `shared/dto/`. The listing detail page's "Book" button (`listings/[id]/page.tsx`, both the desktop sticky sidebar and the mobile `sticky-book-bar`) is a plain `<button>` with no handler — dead, decorative, waiting for this step. The Prisma schema already has `Trip`, `TripMember`, `TripBlock`, `Vote` fully modeled, so nothing here needs a migration.
+
+### What "Book it" covers for this step
+
+1. Tapping **Book** on a listing needs a trip to add itself to. First-time flow: no trip exists yet → prompt to start one (name, dates) → the offering becomes its first block. Returning flow: an open, unlocked trip already exists → add directly, or choose which trip if the traveler is on more than one.
+2. Landing surface for "what's on my trip so far" — the day timeline. This is `/trips/[id]`, per TECH_STACK.md's route table, and is the DESIGN.md gap (trip block, day timeline) that needs closing.
+3. Explicitly **not** in this step: voting UI, locking, checkout, the pot. Those are real later steps in the flow doc's own numbering (pay-for-it is step 4) and PRD must-demo items #5/#6 — pulling them in here would blur step boundaries the doc has kept clean for steps 1–2.
+
+### Research (comparable apps, Mobbin)
+
+Mobbin was reachable this pass — retried the two hunches from the previous session plus a first-trip empty state, against real screens/flows this time.
+
+**Comparable apps researched:** Airbnb (save-to-wishlist), Wanderlog, Pangea, Viator (itinerary view), Tripsy, Tripadvisor, Vrbo (trip creation), Navan, Polarsteps (add-to-trip bottom sheets).
+
+**Common pattern observed — the "add to X" bottom sheet (Mobbin: [Airbnb — Saving a listing to wishlist](https://mobbin.com/flows/bc4355c5-ff64-4f7c-8108-1760a654883c), [Navan — Add to trip](https://mobbin.com/screens/ce95cb3f-9568-4415-8609-2c6a31235264), [Pangea — Add to Trip](https://mobbin.com/screens/4ae04e0d-fe71-4b71-a2d1-0ebe4ab43d32), [Polarsteps — Add a spot](https://mobbin.com/screens/32c19338-c68a-4aa9-a936-487db3fc085b)):**
+- **This confirms the hunch: it's a bottom sheet, not a navigated screen.** Every comparable — a generic wishlist (Airbnb), a business trip tool (Navan), and two dedicated trip planners (Pangea, Polarsteps) — surfaces "add to X" as a sheet layered over the current screen, not a new route. None of them navigate away from the item being added.
+- The sheet's primary job is **picking a destination for the item**: an existing trip/list (shown as a named row, e.g. "New York 2025 · 4 saved") or "Create new" inline, without leaving the sheet. Airbnb's flow is a clean 3-step version of this: tap save → sheet lists existing wishlists + "Create new" → typing a name and confirming creates it and immediately shows "Saved to [name]" back on the original screen.
+- Secondary, optional fields appear **inside the same sheet**, not as a separate step: Pangea's "Add to Trip" sheet has a type toggle (Spot/Accommodation/Custom), a Want-to-go/Been toggle, then optional "When", "Note", "Link" fields, all collapsed behind "+ Add" buttons rather than shown as empty inputs.
+- After confirming, the origin screen shows a **lightweight inline confirmation** ("Saved to New York 2025 · Change") rather than a route change or a modal — the traveler stays exactly where they were.
+
+**Common pattern observed — day-by-day itinerary (Mobbin: [Wanderlog — Itinerary](https://mobbin.com/flows/88a3eab3-6cca-496f-a3cb-bca2011df206)):**
+- Wanderlog's itinerary is **tabbed by day** (`Mon 12/1`, `Tue 12/2`, ...) with a horizontally scrollable day-selector strip, not one long scroll — this is the closest real analogue to the day-timeline gap DESIGN.md flags.
+- Each day is a vertical list of numbered stops in visit order, each with a thumbnail, name, one-line description, and a time; an "Add a place" affordance sits inline under the day's stop list, not just as a global FAB.
+- Flights/lodging get their own distinct row treatment (icon + check-in/check-out) inside the same day list, rather than a separate section — relevant since our trip blocks are mixed-category too (tours, food, transport, accommodation).
+
+**Common pattern observed — first trip / empty state (Mobbin: [Tripsy — Creating a trip](https://mobbin.com/flows/164d40f3-5c8c-4afd-951a-6a0983f48062), [Vrbo — Creating a trip](https://mobbin.com/flows/b878a72d-ea73-425b-8850-d1bd6bb54f21)):**
+- First-time empty state is a single clear CTA ("Create a Trip" / "Plan a trip") over short reassurance copy — no multi-field form shown before the CTA is tapped.
+- Creation itself is minimal: name + a date-range picker (calendar UI, start/end tap), matching exactly the "name, dates" minimum this doc already scoped — not more fields than that.
+
+**What this means for our build:**
+- **Decision made:** the "Book" CTA opens a **bottom sheet** over the listing detail page — not a navigated screen. This is now grounded in four comparables (Airbnb, Navan, Pangea, Polarsteps), not instinct.
+- Sheet content, in order: pick an existing open trip (row per trip, e.g. "Cape Town, 12–15 Oct") or "Start a new trip" inline (name + date range, Tripsy/Vrbo pattern) → confirm → offering becomes a `TripBlock` via `POST /trips/:id/blocks` (or `POST /trips` first, for a new trip) → sheet closes, listing page shows an inline "Added to [trip name] · Change" confirmation in place of the Book button, Airbnb-wishlist-style.
+- The day-timeline (`/trips/[id]`) should follow Wanderlog's tabbed-by-day pattern, not one long scroll — a horizontally-scrollable day strip with numbered stops underneath. This is the concrete shape for the DESIGN.md gap (day timeline, trip block) once this step's build reaches that surface.
+- No comparable exercises optional fields (note, custom time) beyond what's needed here — `TripBlock.startTime` is optional in the schema and can stay a collapsed "+ Add" affordance per the Pangea pattern, not a required field on the sheet.
+
+### Not yet integrated / follow-up work
+
+- Voting UI and lock — separate design pass, needed before step 4 (pay for it) can open a pot on a locked trip. Not covered by this research pass.
+- Trip creation UX beyond the minimum (name + dates) — e.g. inviting others via `shareCode` — is part of the same must-demo #5 surface but not required just to get a listing onto a trip.
+- `POST /trips`, `POST /trips/:id/blocks`, `GET/POST` trip routes and `shared/dto` trip schemas don't exist yet — needed to implement this step, not yet built.
+- The day-timeline surface itself (`/trips/[id]`) is scoped in direction (Wanderlog's day-tab pattern) but not yet detailed screen-by-screen — this research pass covered the add-to-trip sheet in full but only sized the day-timeline destination.
 
 ---
 
@@ -153,6 +199,8 @@ Not yet researched (UX/flow still open). Data model resolved: see [demand-side-s
 | 4 | Clicking into a card (step 2, "View a listing") | Resolved — sticky book bar, standalone trust row, meeting-point map; see step 2 above |
 | 5 | `Offering.category` enum too narrow for the sectioned feed (missing FOOD, ACCOMMODATION) | Resolved — see schema requirements doc |
 | 6 | Listing detail page built ahead of research, reaches `shared/dto`/`api/v1` directly from a Server Component with no zod schema or route | Resolved — adding `offeringDetailSchema` + `GET /api/v1/offerings/[id]`, see step 2 above |
+| 7 | Source flow doc's step 3 ("traveler selects the experience and confirms a booking") implies single-listing checkout, but the schema/API only create a `Booking` via trip checkout on a locked block | Resolved — step 3 targets add-to-trip (`TripBlock`), not direct booking; see step 3 above |
+| 8 | DESIGN.md's day-timeline/trip-block/vote/lock components are unspecified (line 814) | Partially resolved — add-to-trip is a bottom sheet (researched, see step 3), day-timeline sized to Wanderlog's day-tab pattern but not detailed screen-by-screen; vote/lock still fully open, deferred to a later step |
 
 ---
 

@@ -22,7 +22,7 @@ export class ProfileSubmissionService {
     };
   }
 
-  /** Returns the registry's reference for the created profile. */
+  /** Returns the id of the created host, which the bot reads back as their reference. */
   async submit(session: ConversationSession): Promise<string> {
     const token = optionalEnv(ENV_KEYS.profileApiToken);
 
@@ -40,7 +40,7 @@ export class ProfileSubmissionService {
       throw new Error('Registry rejected the profile');
     }
 
-    const { reference } = (await response.json()) as { reference?: string };
-    return reference ?? 'unknown';
+    const { data } = (await response.json()) as { data?: { id?: string } };
+    return data?.id ?? 'unknown';
   }
 }

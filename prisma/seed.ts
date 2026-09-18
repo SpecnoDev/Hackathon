@@ -58,6 +58,91 @@ const TRAVELLERS = [
   { id: 'trav-lindi', authUserId: 'auth-lindi', email: 'lindi@example.com', name: 'Lindiwe Sithole' },
 ];
 
+// These records pre-date the canonical seed below. Keep their media URLs in the
+// database, but repair the old /seed/... values that referenced files which were
+// never committed to public/.
+const LEGACY_OFFERING_MEDIA = [
+  {
+    id: '22222222-0000-4000-8000-000000000001',
+    photoUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000002',
+    photoUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000003',
+    photoUrl: 'https://images.unsplash.com/photo-1509644851169-2acc08aa25b5?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000004',
+    photoUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000005',
+    photoUrl: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000006',
+    photoUrl: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000007',
+    photoUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000008',
+    photoUrl: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000009',
+    photoUrl: 'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000010',
+    photoUrl: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000011',
+    photoUrl: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000012',
+    photoUrl: 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000013',
+    photoUrl: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000014',
+    photoUrl: 'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000015',
+    photoUrl: 'https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1200&q=80',
+  },
+  {
+    id: '22222222-0000-4000-8000-000000000016',
+    photoUrl: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=1200&q=80',
+  },
+] as const;
+
+const LEGACY_HOST_MEDIA = [
+  ['11111111-0000-4000-8000-000000000001', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000002', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000003', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000004', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000005', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000006', 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000007', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000008', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000009', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000010', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000011', 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&q=80'],
+  ['11111111-0000-4000-8000-000000000012', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80'],
+] as const;
+
 type OfferingSeed = {
   id: string;
   hostId: string;
@@ -363,7 +448,26 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${HOSTS.length} hosts, ${TRAVELLERS.length} travellers, ${OFFERINGS.length} offerings.`);
+  const mediaRepairs = await Promise.all([
+    ...LEGACY_OFFERING_MEDIA.map(({ id, photoUrl }) =>
+      prisma.offering.updateMany({
+        where: { id },
+        data: { photos: [photoUrl] },
+      }),
+    ),
+    ...LEGACY_HOST_MEDIA.map(([id, photoUrl]) =>
+      prisma.host.updateMany({
+        where: { id },
+        data: { photoUrl },
+      }),
+    ),
+  ]);
+
+  const repairedMediaRecords = mediaRepairs.reduce((total, result) => total + result.count, 0);
+
+  console.log(
+    `Seeded ${HOSTS.length} hosts, ${TRAVELLERS.length} travellers, ${OFFERINGS.length} offerings; repaired ${repairedMediaRecords} legacy media records.`,
+  );
 }
 
 main()

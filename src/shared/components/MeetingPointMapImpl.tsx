@@ -13,15 +13,19 @@ const MARKER_ICON = divIcon({
 
 export default function MeetingPointMapImpl({ lat, lng }: { lat: number; lng: number }) {
   return (
-    <MapContainer
-      center={[lat, lng]}
-      zoom={14}
-      scrollWheelZoom={false}
-      className="h-full w-full"
-      attributionControl={false}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={[lat, lng]} icon={MARKER_ICON} />
-    </MapContainer>
+    // isolate: Leaflet's internal panes use raw z-index up to 1000, which otherwise paints
+    // over page-level fixed overlays (sticky bars, sheets) that use Tailwind's much lower z-* scale.
+    <div className="relative isolate h-full w-full">
+      <MapContainer
+        center={[lat, lng]}
+        zoom={14}
+        scrollWheelZoom={false}
+        className="h-full w-full"
+        attributionControl={false}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <Marker position={[lat, lng]} icon={MARKER_ICON} />
+      </MapContainer>
+    </div>
   );
 }

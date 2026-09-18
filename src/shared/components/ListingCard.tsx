@@ -26,7 +26,7 @@ export function ListingCard({ offering }: { offering: OfferingSummary }) {
 
   return (
     <Link
-      href={`/listings/${offering.id}`}
+      href={`/traveller/explore/listings/${offering.id}`}
       className="flex flex-col rounded-md bg-canvas text-ink no-underline"
     >
       <div className="relative aspect-4/3 overflow-hidden rounded-md bg-surface-soft">
