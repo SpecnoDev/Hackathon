@@ -53,6 +53,20 @@ enum PriceUnit {
   PER_TRIP
 }
 
+/** PRD: instant book where the host allows it; otherwise a request the host answers within a deadline. */
+enum BookingMode {
+  INSTANT
+  ON_REQUEST
+}
+
+/** How the traveller chose to pay. The payment itself is a mock reference; no card data is stored anywhere. */
+enum PaymentMethod {
+  CARD
+  INSTANT_EFT
+  QR
+  WALLET
+}
+
 enum OfferingStatus {
   DRAFT
   IN_REVIEW
@@ -128,6 +142,7 @@ model Offering {
   translations      Json?
   priceCents        Int
   priceUnit         PriceUnit          @default(PER_TRIP)
+  bookingMode       BookingMode        @default(ON_REQUEST)
   durationMin       Int?
   groupMin          Int                @default(1)
   groupMax          Int?
@@ -273,10 +288,13 @@ model Booking {
   blockId           String?       @unique
   status            BookingStatus @default(REQUESTED)
   date              DateTime
+  startTime         String?
   groupSize         Int
   totalCents        Int
   feeCents          Int
   hostReceivesCents Int
+  paymentMethod     PaymentMethod?
+  whatsAppOptIn     Boolean       @default(false)
   paymentRef        String?
   respondBy         DateTime
   cancelReason      String?

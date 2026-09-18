@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation';
 import { requireTravellerPage } from '@/core/guards';
 import { CancelBookingView, TravellerScreen } from '@/features/demand/components';
 import { TRAVELLER_ROUTES } from '@/features/demand/constants';
-import { getTravellerBooking, refundFor } from '@/features/demand/services';
+import { getTravellerBooking } from '@/features/demand/services';
+import { refundFor } from '@/features/demand/utils';
 
 const CANCELLABLE = ['REQUESTED', 'CONFIRMED'] as const;
 

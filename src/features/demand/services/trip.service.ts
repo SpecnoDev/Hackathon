@@ -1,7 +1,7 @@
 import { HOST_RESPONSE_HOURS, MS_PER_SECOND, MINUTES_PER_HOUR, SECONDS_PER_MINUTE } from '@/core/constants';
 import { prisma } from '@/core/services';
 import type { CreateTripBlockInput, CreateTripInput, TripDetail, TripSummary, VoteBlockInput } from '@/shared/dto';
-import { priceBooking } from './booking-pricing.service';
+import { priceBooking } from '../utils';
 
 const MS_PER_HOUR = MS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
 

@@ -6,8 +6,8 @@ const prisma = new PrismaClient({ adapter });
 
 /*
  * The traveller catalogue below is Brandon's demand-designs prototype data, kept verbatim so both sides of the demo tell one
- * story, then mapped onto the schema in `main`. Types mirror the prototype's interfaces; the two extra prototype-only fields
- * (`bookingMode`, `ratings`) are read for nothing yet — booking mode has no column, and ratings aggregate from real reviews.
+ * story, then mapped onto the schema in `main`. Types mirror the prototype's interfaces; `ratings` is read for nothing,
+ * since ratings aggregate from real reviews.
  */
 type LanguageCode = Language;
 type Weekday = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
@@ -965,6 +965,7 @@ async function main() {
       sourceLanguage: listing.languages[0],
       priceCents: listing.priceCents,
       priceUnit: listing.priceUnit,
+      bookingMode: listing.bookingMode,
       durationMin: listing.durationMin,
       groupMin: listing.groupMin,
       groupMax: listing.groupMax,

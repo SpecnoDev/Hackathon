@@ -29,6 +29,9 @@ export type Exhaustive<All extends string, Listed extends All> = [All] extends [
 export const OFFERING_CATEGORIES_MATCH_SCHEMA: Exhaustive<OfferingCategory, (typeof OFFERING_CATEGORIES)[number]> = true;
 
 export const PRICE_UNITS = ['PER_PERSON', 'PER_TRIP'] as const;
+/** Instant book where the host allows it; otherwise the host answers a request within a deadline. */
+export const BOOKING_MODES = ['INSTANT', 'ON_REQUEST'] as const;
+export type BookingMode = (typeof BOOKING_MODES)[number];
 
 export const OFFERING_SORTS = ['recommended', 'top_rated', 'newest', 'price_asc', 'price_desc'] as const;
 export type OfferingSort = (typeof OFFERING_SORTS)[number];
@@ -83,6 +86,7 @@ export const offeringSummarySchema = z.object({
   region: z.string(),
   priceCents: z.int(),
   priceUnit: z.enum(PRICE_UNITS),
+  bookingMode: z.enum(BOOKING_MODES),
   durationMin: z.int().nullable(),
   groupMin: z.int(),
   groupMax: z.int().nullable(),
@@ -117,6 +121,7 @@ export const offeringDetailSchema = z.object({
   category: z.enum(OFFERING_CATEGORIES),
   priceCents: z.int(),
   priceUnit: z.enum(PRICE_UNITS),
+  bookingMode: z.enum(BOOKING_MODES),
   durationMin: z.int().nullable(),
   groupMin: z.int(),
   groupMax: z.int().nullable(),

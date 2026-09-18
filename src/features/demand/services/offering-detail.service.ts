@@ -22,6 +22,7 @@ export const getOfferingDetail = async (id: string): Promise<OfferingDetail | nu
     category: offering.category,
     priceCents: offering.priceCents,
     priceUnit: offering.priceUnit,
+    bookingMode: offering.bookingMode,
     durationMin: offering.durationMin,
     groupMin: offering.groupMin,
     groupMax: offering.groupMax,

@@ -11,11 +11,13 @@ export const TRAVELLER_ROUTES = {
   listing: (id: string): string => `${ROUTES.explore}/listings/${id}`,
   listingReviews: (id: string): string => `${ROUTES.explore}/listings/${id}/reviews`,
   book: {
-    date: (id: string): string => `${ROUTES.explore}/listings/${id}/book/date`,
+    date: (id: string, block?: { id: string; day: string }): string =>
+      block ? `${ROUTES.explore}/listings/${id}/book/date?block=${block.id}&day=${block.day}` : `${ROUTES.explore}/listings/${id}/book/date`,
     guests: (id: string): string => `${ROUTES.explore}/listings/${id}/book/guests`,
     review: (id: string): string => `${ROUTES.explore}/listings/${id}/book/review`,
-    confirmed: (tripId: string): string => `${ROUTES.trips}/${tripId}/confirmed`,
-    requested: (tripId: string): string => `${ROUTES.trips}/${tripId}/requested`,
+    pay: (id: string): string => `${ROUTES.explore}/listings/${id}/book/pay`,
+    confirmed: (bookingId: string): string => `${ROUTES.trips}/bookings/${bookingId}/confirmed`,
+    requested: (bookingId: string): string => `${ROUTES.trips}/bookings/${bookingId}/requested`,
   },
   trips: {
     list: ROUTES.trips,

@@ -18,6 +18,8 @@ const Section = ({ title, children }: { title: string; children: ReactNode }) =>
   </section>
 );
 
+const bookLabel = (offering: OfferingDetail): string => (offering.bookingMode === 'INSTANT' ? COPY_LISTING.book : COPY_LISTING.request);
+
 const Price = ({ offering }: { offering: OfferingDetail }) => (
   <p className="flex flex-col">
     <span className="text-title-md text-ink">{formatRand(offering.priceCents)}</span>
@@ -195,12 +197,17 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </>
             )}
           </Section>
+
+          <AddToTrip offeringId={offering.id} offeringTitle={offering.title} />
         </article>
 
         <aside className="hidden desktop:block">
           <div className="sticky top-8 flex flex-col gap-4 rounded-lg border border-hairline p-6 shadow-lift">
             <Price offering={offering} />
-            <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sidebar" />
+            <Button size="md" href={TRAVELLER_ROUTES.book.date(offering.id)}>
+              {bookLabel(offering)}
+            </Button>
+            {offering.bookingMode === 'ON_REQUEST' ? <p className="text-caption text-muted">{COPY_LISTING.requestNote}</p> : null}
           </div>
         </aside>
       </div>
@@ -209,7 +216,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-hairline bg-canvas shadow-lift desktop:hidden">
         <div className="mx-auto flex min-h-20 max-w-page items-center justify-between gap-4 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] tablet:px-6">
           <Price offering={offering} />
-          <AddToTrip offeringId={offering.id} offeringTitle={offering.title} trigger="sticky-bar" />
+          <span className="shrink-0 whitespace-nowrap">
+            <Button size="md" fullWidth={false} href={TRAVELLER_ROUTES.book.date(offering.id)}>
+              {bookLabel(offering)}
+            </Button>
+          </span>
         </div>
       </div>
     </TravellerScreen>

@@ -1,12 +1,13 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { TripDetail } from '@/shared/dto';
 import { Banner, Button, Icon } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
-import { TRAVELLER_ROUTES } from '../constants';
+import { COPY_TRIP, TRAVELLER_ROUTES } from '../constants';
 
 const post = (path: string, body?: unknown): Promise<Response> =>
   fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
@@ -85,6 +86,17 @@ export const TripDetailView = ({ trip: initialTrip }: { trip: TripDetail }) => {
                   <p className="text-body-sm text-muted">{block.day} · {formatRand(block.priceCents)}</p>
                 </div>
               </div>
+              {block.bookingId ? (
+                <Link href={TRAVELLER_ROUTES.bookings.detail(block.bookingId)} className="flex min-h-12 items-center gap-2 border-t border-hairline-soft pt-3 text-link text-primary-text underline">
+                  <Icon name="circle-check" size={16} />
+                  {COPY_TRIP.booked}
+                </Link>
+              ) : !trip.locked ? (
+                <Link href={TRAVELLER_ROUTES.book.date(block.offeringId, { id: block.id, day: block.day })} className="flex min-h-12 items-center gap-2 border-t border-hairline-soft pt-3 text-link text-primary-text underline">
+                  <Icon name="calendar-check" size={16} />
+                  {COPY_TRIP.bookStop}
+                </Link>
+              ) : null}
               {!trip.locked ? (
                 <div className="flex items-center justify-between border-t border-hairline-soft pt-3">
                   <div className="flex items-center gap-3">

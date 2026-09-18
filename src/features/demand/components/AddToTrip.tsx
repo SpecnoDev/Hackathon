@@ -209,15 +209,8 @@ function TripSheet({
   );
 }
 
-export function AddToTrip({
-  offeringId,
-  offeringTitle,
-  trigger,
-}: {
-  offeringId: string;
-  offeringTitle: string;
-  trigger: 'sidebar' | 'sticky-bar';
-}) {
+/** The listing's secondary action: put this on a co-created trip plan, to vote on and book later. */
+export function AddToTrip({ offeringId, offeringTitle }: { offeringId: string; offeringTitle: string }) {
   const [open, setOpen] = useState(false);
   const [added, setAdded] = useState<{ trip: TripSummary; queued: boolean } | null>(null);
 
@@ -239,11 +232,9 @@ export function AddToTrip({
 
   return (
     <>
-      <span className={trigger === 'sidebar' ? '' : 'shrink-0 whitespace-nowrap'}>
-        <Button size="md" fullWidth={trigger === 'sidebar'} onClick={() => setOpen(true)}>
-          {COPY_LISTING.book}
-        </Button>
-      </span>
+      <Button size="md" variant="secondary" icon="route" onClick={() => setOpen(true)}>
+        {COPY_LISTING.addToTrip}
+      </Button>
 
       {open && (
         <TripSheet

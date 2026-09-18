@@ -1,4 +1,5 @@
 export * from './api.constant';
+export * from './booking.constant';
 export * from './cancel-reason.constant';
 export * from './category.constant';
 export * from './copy.constant';

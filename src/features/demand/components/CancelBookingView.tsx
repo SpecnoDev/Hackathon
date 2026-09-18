@@ -6,7 +6,7 @@ import type { BookingSummary } from '@/shared/dto';
 import { Banner, Button, OptionTile } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
 import { CANCEL_REASON_LABEL, CANCEL_REASONS, TRAVELLER_ROUTES, type CancelReason } from '../constants';
-import type { Refund } from '../services';
+import type { Refund } from '../utils';
 
 /** Why, then exactly what comes back, before the one button that cannot be undone. */
 export const CancelBookingView = ({ booking, refund }: { booking: BookingSummary; refund: Refund }) => {

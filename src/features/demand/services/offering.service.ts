@@ -61,6 +61,7 @@ export const toOfferingSummary = (offering: OfferingWithHost): OfferingSummary =
   region: offering.region,
   priceCents: offering.priceCents,
   priceUnit: offering.priceUnit,
+  bookingMode: offering.bookingMode,
   durationMin: offering.durationMin,
   groupMin: offering.groupMin,
   groupMax: offering.groupMax,

@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ROUTES } from '@/core/constants';
 import { requireTravellerPage } from '@/core/guards';
-import { TRAVELLER_ROUTES } from '@/features/demand/constants';
+import { COPY_COMMON, COPY_LISTING, TRAVELLER_ROUTES } from '@/features/demand/constants';
 import { getTravellerBooking } from '@/features/demand/services';
+import { formatDayAndTime } from '@/features/demand/utils';
 import { Banner, Button, DetailFact } from '@/shared/components';
 import { BookingStatusPill, TravellerScreen } from '@/features/demand/components';
 import { formatRand } from '@/shared/utils';
@@ -19,7 +20,6 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
   if (!booking) notFound();
 
   const canCancel = CANCELLABLE.includes(booking.status as (typeof CANCELLABLE)[number]);
-  const when = new Date(booking.date).toLocaleDateString('en-ZA', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
     <TravellerScreen barTitle="Trip" backHref={ROUTES.trips} width="column">
@@ -42,13 +42,24 @@ export default async function BookingDetailPage({ params }: { params: Promise<{ 
 
         <ul className="flex flex-col gap-5">
           <DetailFact icon="calendar" title="When">
-            {when}
+            <p>{formatDayAndTime(booking.date, booking.startTime)}</p>
+            {booking.startTime ? null : <p className="text-body-sm text-muted">{COPY_COMMON.anyTime}</p>}
           </DetailFact>
           <DetailFact icon="users" title="Guests">
             {booking.groupSize === 1 ? '1 guest' : `${booking.groupSize} guests`}
           </DetailFact>
           <DetailFact icon="banknote" title="Total">
             {formatRand(booking.totalCents)}
+          </DetailFact>
+          <DetailFact icon="map-pin" title="Where you meet">
+            <p>{booking.meetingPoint}</p>
+            <p className="text-muted">{booking.offeringTown}</p>
+          </DetailFact>
+          <DetailFact icon="user" title="Host">
+            <p>{booking.hostFirstName}</p>
+            <Link href={TRAVELLER_ROUTES.host(booking.hostId)} className="flex min-h-12 items-center text-link text-primary-text underline">
+              {COPY_LISTING.seeProfile(booking.hostFirstName)}
+            </Link>
           </DetailFact>
         </ul>
 

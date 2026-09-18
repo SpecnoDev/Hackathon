@@ -9,3 +9,6 @@ export const HOST_RESPONSE_HOURS = 4;
 export const FREE_CANCELLATION_WINDOW_HOURS = 24;
 export const LATE_CANCELLATION_REFUND_BPS = 5000;
 export const TRAVELLER_SERVICE_FEE_BPS = 0;
+
+/** Payments are a mock: an instant booking is stamped with this prefix and its own id, never a card detail. */
+export const MOCK_PAYMENT_REF_PREFIX = 'mock_';
