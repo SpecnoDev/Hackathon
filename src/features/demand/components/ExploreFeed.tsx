@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ListingCard } from '@/shared/components';
 import type { OfferingListQuery, OfferingSummary } from '@/shared/dto';
+import { formatRands } from '@/shared/utils';
 import { CategoryChips } from './CategoryChips';
 import { FilterBar, type Filters } from './FilterBar';
 
@@ -70,7 +71,21 @@ export function ExploreFeed({
       ) : (
         <div className="grid grid-cols-1 gap-4 pt-4 tablet:grid-cols-2 desktop:grid-cols-3">
           {sorted.map((offering) => (
-            <ListingCard key={offering.id} offering={offering} />
+            <ListingCard
+              key={offering.id}
+              href={`/listings/${offering.id}`}
+              title={offering.title}
+              photo={offering.photos[0]}
+              photoAlt={offering.title}
+              badge={offering.hostTier === 'COMMUNITY' ? 'Community verified' : offering.hostTier === 'IDENTITY' ? 'Verified' : undefined}
+              meta={offering.town}
+              host={`Hosted by ${offering.hostFirstName}`}
+              rating={offering.avgRating}
+              ratingCount={offering.reviewCount}
+              newLabel="New"
+              price={`From ${formatRands(offering.priceCents)}`}
+              priceUnit="per person"
+            />
           ))}
         </div>
       )}
