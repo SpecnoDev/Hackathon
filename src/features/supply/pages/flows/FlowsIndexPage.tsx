@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore, type ReactNode } from 'react';
 import Link from 'next/link';
 import { connectivityService } from '@/core/services/client';
 import { Button, Icon, OptionTile, ToggleRow, type IconName } from '@/shared/components';
@@ -160,14 +160,15 @@ const notifications = (targets: Targets): Array<{ channel: string; icon: IconNam
   { channel: 'SMS', icon: 'smartphone', text: targets.sentPayoutText ?? 'Payout sent.', href: targets.sentPayoutId ? HOST_ROUTES.earnings.payout(targets.sentPayoutId) : undefined },
 ];
 
-export const FlowsIndexPage = () => {
+/** `extra` is where the route adds the other side's screens: a feature may not import another feature. */
+export const FlowsIndexPage = ({ extra }: { extra?: ReactNode }) => {
   const targets = useHostApp(selectTargets);
   const personas = useHostApp(selectPersonas);
   const failVerification = useHostApp(selectOutcome);
   const simulatedOffline = useSyncExternalStore(connectivityService.subscribe, connectivityService.isSimulatedOffline, () => false);
 
   return (
-    <HostScreen barTitle="Hosted · every host screen" barTitleIsHeading>
+    <HostScreen barTitle="Hosted · every screen" barTitleIsHeading>
       <div className="flex flex-col gap-10">
         <section className="flex flex-col gap-3">
           <h2 className="text-title-lg text-ink">Demo controls</h2>
@@ -224,6 +225,7 @@ export const FlowsIndexPage = () => {
             </ul>
           </section>
         ))}
+        {extra}
       </div>
     </HostScreen>
   );
