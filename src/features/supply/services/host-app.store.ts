@@ -1,6 +1,7 @@
 import { connectivityService } from '@/core/services/client';
 import { hostReceivesCents, maskPhone, toE164 } from '@/shared/utils';
 import {
+  DEFAULT_GROUP_MAX,
   DEMO_PAYOUT_DELAY_MS,
   DEMO_VERIFICATION_DELAY_MS,
   GROUP_SIZE_MIN,
@@ -42,12 +43,12 @@ import { createId } from '../utils';
 import type { HostApiOutcome } from './host-api.service';
 import { hostApiService } from './host-api.service';
 import { hostAppStorage } from './host-app-storage.service';
-import { toOfferingPayload } from './offering-payload.service';
+import type { HostProfileRow, OfferingRow } from './offering-payload.service';
+import { fromHostProfile, fromOfferingRow, toOfferingPayload } from './offering-payload.service';
 
 type Listener = () => void;
 
 const SAVE_DEBOUNCE_MS = 150;
-const DEFAULT_GROUP_MAX = 4;
 const API = '/api/v1';
 const CAPTURE_KEY: Record<CaptureKind, string> = { document: 'verify-document', selfie: 'verify-selfie' };
 
@@ -102,6 +103,9 @@ class HostAppStore {
   private hydration: Promise<void> | undefined;
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly listeners = new Set<Listener>();
+  private syncing: Promise<void> | undefined;
+  /** Hosts the demo ledger graft has already run for, this session. See graftDemoLedgerOnto. */
+  private readonly ledgerGraftedHostIds = new Set<string>();
 
   subscribe = (listener: Listener): (() => void) => {
     this.listeners.add(listener);
@@ -117,8 +121,82 @@ class HostAppStore {
       if (saved?.schemaVersion === HOST_APP_SCHEMA_VERSION) this.state = saved;
       this.ready = true;
       this.emit();
+      // Best-effort and never awaited: ready stays IndexedDB-driven so venue Wi-Fi never white-screens.
+      if (connectivityService.isOnline()) void this.syncFromServer();
     });
     return this.hydration;
+  }
+
+  /**
+   * Pulls the signed-in host's profile and offerings from the server (the `host_session` cookie
+   * says who that is). Best-effort and silent: no session or no signal just leaves the store as
+   * it was — offline, or a fresh device that has never registered, is the normal case, not a fault.
+   */
+  syncFromServer(): Promise<void> {
+    this.syncing ??= this.runSync().finally(() => {
+      this.syncing = undefined;
+    });
+    return this.syncing;
+  }
+
+  private async runSync(): Promise<void> {
+    const profileResponse = await hostApiService.request<HostProfileRow>('GET', `${API}/hosts/me`);
+    if (!profileResponse.ok || !profileResponse.data) return;
+    const profile = profileResponse.data;
+    const hostId = profile.id;
+    const existingHost = this.state.hosts.find((item) => item.id === hostId);
+    const host = fromHostProfile(profile, existingHost);
+    this.update((state) => ({
+      ...state,
+      hosts: existingHost ? state.hosts.map((item) => (item.id === hostId ? host : item)) : [...state.hosts, host],
+      // The host_session cookie is authoritative for who is signed in, so this always wins — even
+      // right after a sign-out, where there is no local active host to defer to anyway.
+      activeHostId: hostId,
+    }));
+
+    const syncStartedAt = now();
+    const offeringsResponse = await hostApiService.request<OfferingRow[]>('GET', `${API}/hosts/me/offerings`);
+    if (!offeringsResponse.ok || !offeringsResponse.data) return;
+    const rows = offeringsResponse.data;
+    this.update((state) => {
+      const localById = new Map(state.offerings.map((item) => [item.id, item]));
+      const serverOfferings = rows.map((row) => fromOfferingRow(row, localById.get(row.id)));
+      const serverIds = new Set(serverOfferings.map((item) => item.id));
+      // Everything for this host that isn't on the server is kept only if it's still queued in the
+      // outbox, or was created locally after this sync's GET started (published mid-flight, so this
+      // response predates it) — anything else is stale and dropped.
+      const keptLocalOnly = state.offerings.filter(
+        (item) => item.hostId === hostId && !serverIds.has(item.id) && (item.pendingSync || item.createdAt > syncStartedAt),
+      );
+      const otherHosts = state.offerings.filter((item) => item.hostId !== hostId);
+      return { ...state, offerings: [...serverOfferings, ...keptLocalOnly, ...otherHosts] };
+    });
+    this.graftDemoLedgerOnto(hostId);
+  }
+
+  /**
+   * DEMO ONLY, obviously removable: the seed ledger (bookings/payouts) was written against the
+   * three local personas in host-seed.constant.ts, so it means nothing once a real synced host
+   * signs in — Bookings/Earnings would render blank titles for offering ids that don't exist for
+   * this host. Re-keys that ledger onto the signed-in host and round-robins each booking onto one
+   * of their real synced offerings, so the judged demo path has something to show. Runs once per
+   * host per session; safe to re-run (idempotent) but pointless once bookings/payouts sync for real.
+   */
+  private graftDemoLedgerOnto(hostId: string): void {
+    if (this.ledgerGraftedHostIds.has(hostId)) return;
+    this.ledgerGraftedHostIds.add(hostId);
+    this.update((state) => {
+      const offeringIds = state.offerings.filter((item) => item.hostId === hostId).map((item) => item.id);
+      if (offeringIds.length === 0) return state;
+      const host = state.hosts.find((item) => item.id === hostId);
+      return {
+        ...state,
+        bookings: state.bookings.map((booking, index) => ({ ...booking, hostId, offeringId: offeringIds[index % offeringIds.length] })),
+        payouts: host
+          ? state.payouts.map((payout) => ({ ...payout, hostId, channel: host.payoutChannel, destination: this.payoutDestination(host) }))
+          : state.payouts.map((payout) => ({ ...payout, hostId })),
+      };
+    });
   }
 
   private emit(): void {
@@ -248,12 +326,23 @@ class HostAppStore {
     this.answerRegistration({ phone, codeSentAt: now(), codeConfirmed: undefined });
   }
 
-  async confirmCode(code: string): Promise<boolean> {
+  /**
+   * RETURNING means the synced profile already has a name — a host who registered before, on
+   * this device or another. NEW_HOST covers both a first-ever sign-up and a sync that failed
+   * (offline right after verifying): either way, registration has more questions to ask.
+   */
+  async confirmCode(code: string): Promise<'WRONG_CODE' | 'NEW_HOST' | 'RETURNING'> {
     const phone = this.state.registration.phone ?? '';
     const response = await hostApiService.request<{ id: string }>('POST', `${API}/auth/host/verify`, { phone, code });
-    if (!response.ok) return false;
-    this.answerRegistration({ codeConfirmed: true, hostId: response.data?.id });
-    return true;
+    if (!response.ok) return 'WRONG_CODE';
+    const hostId = response.data?.id;
+    this.answerRegistration({ codeConfirmed: true, hostId });
+    // The host_session cookie was just set: any sync already in flight started before it existed
+    // and is answering a different question, so don't coalesce onto it.
+    this.syncing = undefined;
+    await this.syncFromServer();
+    const host = this.state.hosts.find((item) => item.id === hostId);
+    return host?.firstName.trim() ? 'RETURNING' : 'NEW_HOST';
   }
 
   /** The last step. Creates the host and signs them in. */
@@ -279,7 +368,9 @@ class HostAppStore {
     this.enqueue('PATCH', '/hosts/me', { fullName: firstName, language, contactChannel });
     this.update((state) => ({
       ...state,
-      hosts: [...state.hosts, host],
+      // confirmCode's syncFromServer may already have pulled this host in (with an empty name):
+      // upsert by id rather than always pushing, or a NEW_HOST registration would duplicate the row.
+      hosts: state.hosts.some((item) => item.id === host.id) ? state.hosts.map((item) => (item.id === host.id ? host : item)) : [...state.hosts, host],
       activeHostId: host.id,
       registration: { ...state.registration, contactChannel, completedAt: now() },
       verification: { state: 'IDLE' },

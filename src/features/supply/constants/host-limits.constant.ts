@@ -20,6 +20,7 @@ export const VOICE_NOTE_MAX_SECONDS = 90;
 export const VOICE_NOTE_MIN_SECONDS = 2;
 
 export const GROUP_SIZE_MIN = 1;
+export const DEFAULT_GROUP_MAX = 4;
 export const GROUP_SIZE_MAX = 20;
 export const SEATS_MIN = 1;
 export const SEATS_MAX = 22;

@@ -37,7 +37,9 @@ export const EnterCodePage = () => {
   }, [codeSentAt]);
 
   const confirm = async (entered: string): Promise<void> => {
-    if (await hostAppStore.confirmCode(entered)) router.push(HOST_ROUTES.register.name);
+    const result = await hostAppStore.confirmCode(entered);
+    if (result === 'RETURNING') router.replace(HOST_ROUTES.offerings.list);
+    else if (result === 'NEW_HOST') router.push(HOST_ROUTES.register.name);
     else {
       setWrong(true);
       setCode('');
