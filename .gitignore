@@ -1,0 +1,9 @@
+.claude/
+node_modules/
+dist/
+.env
+uploads/
+*.log
+.next/
+next-env.d.ts
+*.tsbuildinfo
