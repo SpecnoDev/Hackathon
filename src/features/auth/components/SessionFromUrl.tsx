@@ -5,23 +5,27 @@ import { useEffect } from 'react';
 import { ROUTES } from '@/core/constants';
 import { createSupabaseBrowserClient } from '@/core/services/client';
 
-const TOKEN_FRAGMENT = 'access_token=';
+const ACCESS_TOKEN = 'access_token';
+const REFRESH_TOKEN = 'refresh_token';
 
 /**
- * A sign-in link minted server-side returns its tokens in the URL fragment, which never reaches
- * the server. Building the browser client here makes it read that fragment into cookies, after
- * which the server can resolve the role like any other sign-in.
+ * A sign-in link minted server-side returns its tokens after the hash, which the browser never
+ * sends to the server. The client is built for the PKCE flow and ignores that fragment, so the
+ * tokens are read out by hand and set as the session, after which the server resolves the role.
  */
 export function SessionFromUrl() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!window.location.hash.includes(TOKEN_FRAGMENT)) return;
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = fragment.get(ACCESS_TOKEN);
+    const refreshToken = fragment.get(REFRESH_TOKEN);
+    if (!accessToken || !refreshToken) return;
 
     createSupabaseBrowserClient()
-      .auth.getSession()
-      .then(({ data }) => {
-        if (data.session) router.replace(ROUTES.loginComplete);
+      .auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      .then(({ error }) => {
+        if (!error) router.replace(ROUTES.loginComplete);
       });
   }, [router]);
 
