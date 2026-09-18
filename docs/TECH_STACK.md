@@ -1,6 +1,6 @@
 # Tech Stack & Architecture
 
-North star for the build. Product context lives in `docs/PRD.md.pdf`; code conventions live in `CLAUDE.md`.
+North star for the build. Product context lives in `docs/PRD.md`; code conventions live in `CLAUDE.md`.
 
 **Owners** — Henry: platform, auth, API, AI, WhatsApp bot · Marlon: supply (host app) · Francois: demand (traveller app).
 
