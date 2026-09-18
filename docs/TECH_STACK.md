@@ -114,14 +114,18 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Language         { EN AF XH ZU }
-enum ContactChannel   { IN_APP WHATSAPP SMS }
-enum VerificationTier { REGISTERED IDENTITY COMMUNITY }
-enum OfferingCategory { EXPERIENCE TRANSPORT CONCIERGE SECURITY }
-enum OfferingStatus   { DRAFT IN_REVIEW LIVE PAUSED REJECTED }
-enum BookingStatus    { REQUESTED CONFIRMED DECLINED COMPLETED CANCELLED }
-enum PayoutChannel    { BANK CASH_SEND WALLET CASH_PICKUP }
-enum PayoutStatus     { PENDING SENT }
+enum Language          { EN AF XH ZU }
+enum ContactChannel    { IN_APP WHATSAPP SMS }
+enum VerificationTier  { REGISTERED IDENTITY COMMUNITY }
+// TOUR was EXPERIENCE — renamed to stop colliding with "Experience", the glossary's
+// word for the whole Offering model. See docs/user-flows/demand-side-schema-requirements.md.
+enum OfferingCategory  { TOUR FOOD TRANSPORT ACCOMMODATION CONCIERGE SECURITY }
+enum OfferingStatus    { DRAFT IN_REVIEW LIVE PAUSED REJECTED }
+enum BookingStatus     { REQUESTED CONFIRMED DECLINED COMPLETED CANCELLED }
+enum PayoutChannel     { BANK CASH_SEND WALLET CASH_PICKUP }
+enum PayoutStatus      { PENDING SENT }
+enum VouchSource       { SURVEY NOMINATION }
+enum SustainabilityTag { LOW_IMPACT_TRAVEL SUPPORTS_LOCAL_LIVELIHOODS }
 
 model Host {
   id             String           @id @default(uuid())
@@ -146,36 +150,68 @@ model Host {
 }
 
 model Offering {
-  id             String           @id              // client-generated
-  hostId         String
-  host           Host             @relation(fields: [hostId], references: [id])
-  category       OfferingCategory
-  status         OfferingStatus   @default(DRAFT)
-  title          String
-  description    String
-  sourceLanguage Language
-  translations   Json?                             // { en: {title, description}, xh: {…} }
-  priceCents     Int
-  durationMin    Int?
-  groupMin       Int              @default(1)
-  groupMax       Int?
-  inclusions     String[]
-  meetingPoint   String
-  town           String
-  region         String
-  lat            Float?
-  lng            Float?
-  photos         String[]
-  availability   Json                              // { type: 'on_request'|'dates'|'recurring', … }
-  voiceNotePath  String?
-  transcript     String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  blocks         TripBlock[]
-  bookings       Booking[]
+  id                String             @id              // client-generated
+  hostId            String
+  host              Host               @relation(fields: [hostId], references: [id])
+  category          OfferingCategory
+  status            OfferingStatus     @default(DRAFT)
+  title             String
+  description       String
+  sourceLanguage    Language
+  translations      Json?                               // { en: {title, description}, xh: {…} }
+  priceCents        Int
+  durationMin       Int?
+  groupMin          Int                @default(1)
+  groupMax          Int?
+  inclusions        String[]
+  meetingPoint      String
+  town              String
+  region            String
+  lat               Float?
+  lng               Float?
+  photos            String[]
+  availability      Json                                // { type: 'on_request'|'dates'|'recurring', … }
+  voiceNotePath     String?
+  transcript        String?
+  vouchCount        Int                @default(0)      // denormalized from Vouch
+  avgRating         Float?                               // denormalized from Review; null until first review
+  reviewCount       Int                @default(0)
+  sustainabilityTag SustainabilityTag?                   // optional, display-only — not filtered or ranked
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  blocks            TripBlock[]
+  bookings          Booking[]
+  vouches           Vouch[]
+  reviews           Review[]
 
   @@index([status, region])
   @@index([hostId])
+}
+
+model Vouch {
+  id          String      @id @default(uuid())
+  offeringId  String
+  offering    Offering    @relation(fields: [offeringId], references: [id])
+  voucherArea String                                     // e.g. "Woodstock" — the provenance shown on the card
+  source      VouchSource
+  createdAt   DateTime    @default(now())
+
+  @@index([offeringId])
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  bookingId   String    @unique                          // one review per booking — also proves it's real
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  offeringId  String
+  offering    Offering  @relation(fields: [offeringId], references: [id])
+  travellerId String
+  traveller   Traveller @relation(fields: [travellerId], references: [id])
+  rating      Int                                        // 1–5, enforced in the zod DTO
+  comment     String?
+  createdAt   DateTime  @default(now())
+
+  @@index([offeringId])
 }
 
 model Traveller {
@@ -189,6 +225,7 @@ model Traveller {
   trips      TripMember[]
   bookings   Booking[]
   votes      Vote[]
+  reviews    Review[]
 }
 
 model Trip {
@@ -260,6 +297,7 @@ model Booking {
   traveller         Traveller     @relation(fields: [travellerId], references: [id])
   block             TripBlock?    @relation(fields: [blockId], references: [id])
   payout            Payout?
+  review            Review?
 }
 
 model Payout {

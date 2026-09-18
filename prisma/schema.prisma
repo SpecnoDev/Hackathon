@@ -1,0 +1,272 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Language {
+  EN
+  AF
+  XH
+  ZU
+}
+
+enum ContactChannel {
+  IN_APP
+  WHATSAPP
+  SMS
+}
+
+enum VerificationTier {
+  REGISTERED
+  IDENTITY
+  COMMUNITY
+}
+
+// TOUR was EXPERIENCE - renamed to stop colliding with "Experience", the glossary's
+// word for the whole Offering model. See docs/user-flows/demand-side-schema-requirements.md.
+enum OfferingCategory {
+  TOUR
+  FOOD
+  TRANSPORT
+  ACCOMMODATION
+  CONCIERGE
+  SECURITY
+}
+
+enum OfferingStatus {
+  DRAFT
+  IN_REVIEW
+  LIVE
+  PAUSED
+  REJECTED
+}
+
+enum BookingStatus {
+  REQUESTED
+  CONFIRMED
+  DECLINED
+  COMPLETED
+  CANCELLED
+}
+
+enum PayoutChannel {
+  BANK
+  CASH_SEND
+  WALLET
+  CASH_PICKUP
+}
+
+enum PayoutStatus {
+  PENDING
+  SENT
+}
+
+enum VouchSource {
+  SURVEY
+  NOMINATION
+}
+
+enum SustainabilityTag {
+  LOW_IMPACT_TRAVEL
+  SUPPORTS_LOCAL_LIVELIHOODS
+}
+
+model Host {
+  id             String           @id @default(uuid())
+  authUserId     String?          @unique
+  phone          String           @unique
+  fullName       String
+  language       Language         @default(EN)
+  contactChannel ContactChannel   @default(WHATSAPP)
+  serviceArea    String
+  story          String?
+  photoUrl       String?
+  tier           VerificationTier @default(REGISTERED)
+  idNumberHash   String?
+  idDocumentPath String?
+  payoutChannel  PayoutChannel?
+  payoutPhone    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  offerings      Offering[]
+  bookings       Booking[]
+  payouts        Payout[]
+}
+
+model Offering {
+  id                String             @id
+  hostId            String
+  host              Host               @relation(fields: [hostId], references: [id])
+  category          OfferingCategory
+  status            OfferingStatus     @default(DRAFT)
+  title             String
+  description       String
+  sourceLanguage    Language
+  translations      Json?
+  priceCents        Int
+  durationMin       Int?
+  groupMin          Int                @default(1)
+  groupMax          Int?
+  inclusions        String[]
+  meetingPoint      String
+  town              String
+  region            String
+  lat               Float?
+  lng               Float?
+  photos            String[]
+  availability      Json
+  voiceNotePath     String?
+  transcript        String?
+  vouchCount        Int                @default(0)
+  avgRating         Float?
+  reviewCount       Int                @default(0)
+  sustainabilityTag SustainabilityTag?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  blocks            TripBlock[]
+  bookings          Booking[]
+  vouches           Vouch[]
+  reviews           Review[]
+
+  @@index([status, region])
+  @@index([hostId])
+}
+
+model Vouch {
+  id          String      @id @default(uuid())
+  offeringId  String
+  offering    Offering    @relation(fields: [offeringId], references: [id])
+  voucherArea String
+  source      VouchSource
+  createdAt   DateTime    @default(now())
+
+  @@index([offeringId])
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  bookingId   String    @unique
+  booking     Booking   @relation(fields: [bookingId], references: [id])
+  offeringId  String
+  offering    Offering  @relation(fields: [offeringId], references: [id])
+  travellerId String
+  traveller   Traveller @relation(fields: [travellerId], references: [id])
+  rating      Int
+  comment     String?
+  createdAt   DateTime  @default(now())
+
+  @@index([offeringId])
+}
+
+model Traveller {
+  id         String       @id @default(uuid())
+  authUserId String       @unique
+  email      String       @unique
+  name       String
+  phone      String?
+  language   Language     @default(EN)
+  createdAt  DateTime     @default(now())
+  trips      TripMember[]
+  bookings   Booking[]
+  votes      Vote[]
+  reviews    Review[]
+}
+
+model Trip {
+  id          String       @id @default(uuid())
+  organiserId String
+  name        String
+  startDate   DateTime     @db.Date
+  endDate     DateTime     @db.Date
+  shareCode   String       @unique
+  locked      Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  members     TripMember[]
+  blocks      TripBlock[]
+}
+
+model TripMember {
+  tripId      String
+  travellerId String
+  trip        Trip      @relation(fields: [tripId], references: [id])
+  traveller   Traveller @relation(fields: [travellerId], references: [id])
+
+  @@id([tripId, travellerId])
+}
+
+model TripBlock {
+  id         String    @id
+  tripId     String
+  offeringId String
+  day        DateTime  @db.Date
+  startTime  String?
+  position   Int
+  addedById  String
+  trip       Trip      @relation(fields: [tripId], references: [id])
+  offering   Offering  @relation(fields: [offeringId], references: [id])
+  votes      Vote[]
+  booking    Booking?
+
+  @@index([tripId, day])
+}
+
+model Vote {
+  blockId     String
+  travellerId String
+  up          Boolean
+  block       TripBlock @relation(fields: [blockId], references: [id])
+  traveller   Traveller @relation(fields: [travellerId], references: [id])
+
+  @@id([blockId, travellerId])
+}
+
+model Booking {
+  id                String        @id @default(uuid())
+  offeringId        String
+  hostId            String
+  travellerId       String
+  blockId           String?       @unique
+  status            BookingStatus @default(REQUESTED)
+  date              DateTime
+  groupSize         Int
+  totalCents        Int
+  feeCents          Int
+  hostReceivesCents Int
+  paymentRef        String?
+  respondBy         DateTime
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  offering          Offering      @relation(fields: [offeringId], references: [id])
+  host              Host          @relation(fields: [hostId], references: [id])
+  traveller         Traveller     @relation(fields: [travellerId], references: [id])
+  block             TripBlock?    @relation(fields: [blockId], references: [id])
+  payout            Payout?
+  review            Review?
+}
+
+model Payout {
+  id          String        @id @default(uuid())
+  bookingId   String        @unique
+  hostId      String
+  amountCents Int
+  channel     PayoutChannel
+  destination String
+  status      PayoutStatus  @default(PENDING)
+  sentAt      DateTime?
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+  host        Host          @relation(fields: [hostId], references: [id])
+}
+
+model ConversationSession {
+  waId      String   @id
+  state     Json
+  updatedAt DateTime @updatedAt
+}
+
+model ProcessedWebhookMessage {
+  id         String   @id
+  receivedAt DateTime @default(now())
+}

@@ -8,7 +8,7 @@ Add to this as new terms come up — keep definitions short and specific to how 
 - **Demand side** — the traveler-facing half of the marketplace: browse, book, pay, view itinerary, review. Francois's track.
 - **Supply side** — the local-entrepreneur-facing half: onboarding, KYC, listing services, managing bookings, receiving payment. Marlon/Henry's track.
 - **Two-sided marketplace** — the overall product shape: supply (entrepreneurs) and demand (travelers) meeting on one platform.
-- **Experience** — a single bookable offering from a supplier (a tour, cooking class, transport, accommodation, security/concierge, etc.). The core unit of listing.
+- **Experience** — plain-English/pitch word for a single bookable listing from a supplier (a tour, cooking class, transport, accommodation, security/concierge, etc.) — the core unit of listing. In the schema and code this is the `Offering` model (`docs/TECH_STACK.md`). `OfferingCategory` has its own `TOUR` value for one specific category of offering — don't confuse the two: "Experience" the concept means any `Offering`; `TOUR` is one category among six (renamed from `EXPERIENCE` on 2026-09-18 to remove this exact collision, see [demand-side-schema-requirements.md](user-flows/demand-side-schema-requirements.md)).
 - **Trickle-down (impact)** — the problem framing: tourism revenue currently concentrates in large hotels/conglomerates; the product's goal is to route financial benefit down to local, informal entrepreneurs.
 - **Financial exclusion** — target suppliers are unbanked or under-banked and can't easily receive payment through normal merchant rails.
 - **Technological exclusion** — target suppliers have no website, no Instagram, no Airbnb presence, and are generally not comfortable with self-serve tech platforms.
@@ -22,7 +22,9 @@ Add to this as new terms come up — keep definitions short and specific to how 
 - **KYC (Know Your Customer)** — identity verification step for suppliers before they can list an experience. Checks against blacklists/red lists/politically-exposed-person databases. MVP: manual verification of one ID, or stubbed; Stitch API is the real-world candidate.
 - **Stitch** — South African identity-verification API considered for real KYC (paid, out of scope to integrate for the hackathon — mention as the intended real solution).
 - **Verification badge** — UI signal on a listing indicating the supplier passed some vetting/authenticity check (distinct from the impact badge).
-- **Community/impact badge** — UI signal on a listing indicating community standing or impact (e.g. sustainability, local enrichment). Both badges are meant to be derived from review data, not a separate workflow — exact derivation still undefined as of the discovery discussion.
+- **Community/impact badge** — UI signal on a listing indicating community standing or impact (e.g. sustainability, local enrichment).
+  - **Superseded 2026-09-18:** earlier team position was that both badges derive from review data, exact derivation undefined. Demand-side schema work (see [demand-side-schema-requirements.md](user-flows/demand-side-schema-requirements.md)) resolved this differently, following `PRD-context.md`'s framing of **vouching** as its own MVP journey, separate from reviews: the community/impact badge is now sourced from **vouching**, not from review content. The verification badge still ties to **review**. Flag if the team wants to revisit this split.
+- **Vouching / vouch count** — a per-listing count of local community members who've endorsed a supplier, shown with visible provenance (e.g. "37 Woodstock residents recommended this"), per `PRD-context.md`'s differentiator framing: "a listing on Airbnb Experiences exists because the operator uploaded it; a listing here carries a visible count of locals who recommended it." Exists independent of any booking — sourced from a community survey or a nominate-a-local flow (data source for the demo not yet decided). Distinct from a **review**, which requires a completed booking.
 - **Vetting** — human-in-the-loop safety check on a new supplier (e.g. a "dummy" trial run of their experience, checking equipment/route) — a proposed but unbuilt safety mechanism.
 
 ## Payments
@@ -39,7 +41,7 @@ Add to this as new terms come up — keep definitions short and specific to how 
 - **Drag-and-drop itinerary builder** — nice-to-have: a visual timeline (start date → end date) where experiences are dragged into slots.
 - **Co-created itinerary** — nice-to-have: multiple travelers (friends/family) collaboratively build one shared itinerary.
 - **Crew voting** — nice-to-have: group members vote/poll on proposed experiences to lock them into a shared itinerary.
-- **Review** — post-experience rating left by a traveler; explicitly framed as a trust/verification signal for informal suppliers, not just feedback — feeds the verification/impact badges.
+- **Review** — post-experience rating left by a traveler, tied to a completed booking; explicitly framed as a trust/verification signal for informal suppliers, not just feedback. Feeds the verification badge (see 2026-09-18 note under Community/impact badge — impact now comes from vouching, not reviews).
 
 ## Supply-side flow terms
 
