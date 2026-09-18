@@ -1,14 +1,17 @@
 import { createHash } from 'node:crypto';
-import { Host, OfferingCategory, Prisma } from '@prisma/client';
+import { Host, OfferingCategory, Prisma, VerificationTier } from '@prisma/client';
 import {
+  API_ERROR_CODES,
   AVAILABILITY_ON_REQUEST,
   CENTS_PER_RAND,
   DEFAULT_OFFERING_CATEGORY,
   ENV_KEYS,
+  HTTP_STATUS,
   OFFERING_CATEGORY_KEYWORDS,
   requireEnv,
 } from '../constants';
-import { HostIntakeDto, OfferingDraftDto } from '@/shared/dto';
+import { HostIntakeDto, HostProfilePatchDto, OfferingDraftDto } from '@/shared/dto';
+import { ApiError } from '../utils';
 import { prisma } from './prisma.service';
 
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');
@@ -74,4 +77,38 @@ export const upsertHostFromIntake = async ({ whatsappId, kyc, offerings }: HostI
   });
 
   return { id: host.id };
+};
+
+/** Idempotent: a replayed OTP verify for the same phone must not create a second host. */
+export const findOrCreateHostByPhone = (phone: string): Promise<Pick<Host, 'id' | 'tier'>> =>
+  prisma.host.upsert({
+    where: { phone },
+    create: { phone, fullName: '', serviceArea: '' },
+    update: {},
+    select: { id: true, tier: true },
+  });
+
+const SAFE_HOST_SELECT = {
+  id: true,
+  phone: true,
+  fullName: true,
+  language: true,
+  contactChannel: true,
+  serviceArea: true,
+  tier: true,
+  payoutChannel: true,
+  payoutPhone: true,
+} as const;
+
+/** Never selects idNumberHash or idDocumentPath — those never leave the server. */
+export const updateHostProfile = (hostId: string, patch: HostProfilePatchDto) =>
+  prisma.host.update({ where: { id: hostId }, data: patch, select: SAFE_HOST_SELECT });
+
+/** Mock KYC (PRD Phase 2 wires a real provider). A COMMUNITY host is never downgraded by re-verifying. */
+export const verifyHostIdentity = async (hostId: string): Promise<{ tier: VerificationTier }> => {
+  const host = await prisma.host.findUnique({ where: { id: hostId }, select: { tier: true } });
+  if (!host) throw new ApiError(API_ERROR_CODES.notFound, HTTP_STATUS.notFound, 'Host not found');
+  if (host.tier === 'COMMUNITY') return host;
+
+  return prisma.host.update({ where: { id: hostId }, data: { tier: 'IDENTITY' }, select: { tier: true } });
 };

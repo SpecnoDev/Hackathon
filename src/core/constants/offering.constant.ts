@@ -16,5 +16,7 @@ export const AVAILABILITY_ON_REQUEST = { type: 'on_request' } as const;
 
 export const OFFERING_LIST_DEFAULT_TAKE = 24;
 export const OFFERING_LIST_MAX_TAKE = 60;
+/** The client's id generator falls back to a 32-char hex string over plain HTTP; 64 leaves headroom. */
+export const OFFERING_ID_MAX_LENGTH = 64;
 
 export const CENTS_PER_RAND = 100;
