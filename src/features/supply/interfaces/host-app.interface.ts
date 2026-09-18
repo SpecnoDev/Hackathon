@@ -33,6 +33,7 @@ export type OfferingFieldId =
   | 'inclusions'
   | 'whatToBring'
   | 'meetingPoint'
+  | 'region'
   | 'languages'
   | 'difficulty'
   | 'ageSuitability'
@@ -81,6 +82,8 @@ export interface OfferingFields {
   whatToBring: string[];
   meetingPoint: string;
   town: string;
+  /** Host-chosen, from REGION_OPTIONS; drives the traveller region filter (`listLiveRegions()`), so it must match the seeded values. */
+  region: string;
   lat?: number;
   lng?: number;
   languages: LanguageCode[];
@@ -96,7 +99,6 @@ export interface Offering extends OfferingFields {
   id: string;
   hostId: string;
   category: OfferingCategory;
-  region: string;
   sourceLanguage: LanguageCode;
   status: OfferingStatus;
   /** Plain-language reason for REJECTED, IN_REVIEW, or a DRAFT that cannot go live yet. */
@@ -197,6 +199,8 @@ export interface RegistrationProgress {
   phone?: string;
   codeSentAt?: string;
   codeConfirmed?: boolean;
+  /** Set once the server confirms the OTP; becomes the Host's id so a resumed session cannot duplicate it. */
+  hostId?: string;
   firstName?: string;
   contactChannel?: ContactChannel;
   completedAt?: string;
@@ -226,7 +230,8 @@ export interface PublishResult {
 
 export interface HostAppState {
   schemaVersion: number;
-  activeHostId: string;
+  /** Undefined on a fresh device: no one has registered or signed in yet. */
+  activeHostId: string | undefined;
   hosts: Host[];
   offerings: Offering[];
   bookings: Booking[];

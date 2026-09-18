@@ -4,9 +4,10 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Icon, type IconName } from '@/shared/components';
 import { HostScreen } from '../../components';
-import { HOST_COPY, HOST_ROUTES } from '../../constants';
+import { HOST_COPY, HOST_ROUTES, NEW_DRAFT_KEY } from '../../constants';
 import { useHostApp, useHostAppReady } from '../../hooks';
 import type { HostAppState, PublishOutcome, PublishResult } from '../../interfaces';
+import { hostAppStore } from '../../services';
 
 const RESULT_ICON_PX = 48;
 const copy = HOST_COPY.create;
@@ -27,6 +28,12 @@ export const PublishedPage = () => {
   useEffect(() => {
     if (ready && !published) router.replace(HOST_ROUTES.offerings.list);
   }, [ready, published, router]);
+
+  // publishDraft() leaves the "new" draft in place (discarding it there would make useRequireDraft's own
+  // redirect on PreviewPage fire before this page ever renders); this is where it finally goes.
+  useEffect(() => {
+    if (published) hostAppStore.discardDraft(NEW_DRAFT_KEY);
+  }, [published]);
 
   if (!published) return <HostScreen barTitle={copy.flowTitle}>{null}</HostScreen>;
 

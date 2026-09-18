@@ -18,6 +18,7 @@ import {
   MIN_AGE_OPTIONS,
   PRICE_GUIDE_CENTS,
   PRICE_UNITS,
+  REGION_OPTIONS,
   SEATS_MAX,
   SEATS_MIN,
 } from '../constants';
@@ -51,6 +52,8 @@ export const isFieldComplete = (field: OfferingFieldId, fields: OfferingFields):
       return fields.priceCents > 0;
     case 'meetingPoint':
       return fields.meetingPoint.trim().length > 0 && fields.town.trim().length > 0;
+    case 'region':
+      return fields.region.trim().length > 0;
     case 'languages':
       return fields.languages.length > 0;
     default:
@@ -354,6 +357,17 @@ export const FieldEditor = ({ field, fields, onChange, error }: FieldEditorProps
       );
     case 'meetingPoint':
       return <MeetingPointEditor fields={fields} onChange={onChange} error={error} />;
+    case 'region':
+      return (
+        <div className="flex flex-col gap-4">
+          <ChoiceList label={fieldCopy.question}>
+            {REGION_OPTIONS.map((region) => (
+              <OptionTile key={region} icon={DRAFT_ROW_ICONS.region} title={region} selected={fields.region === region} onSelect={() => onChange({ region })} />
+            ))}
+          </ChoiceList>
+          {error ? <Banner tone="error">{error}</Banner> : null}
+        </div>
+      );
     case 'languages':
       return (
         <div className="flex flex-col gap-4">

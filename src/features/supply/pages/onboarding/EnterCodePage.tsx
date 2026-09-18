@@ -36,8 +36,8 @@ export const EnterCodePage = () => {
     return () => clearInterval(timer);
   }, [codeSentAt]);
 
-  const confirm = (entered: string): void => {
-    if (hostAppStore.confirmCode(entered)) router.push(HOST_ROUTES.register.name);
+  const confirm = async (entered: string): Promise<void> => {
+    if (await hostAppStore.confirmCode(entered)) router.push(HOST_ROUTES.register.name);
     else {
       setWrong(true);
       setCode('');

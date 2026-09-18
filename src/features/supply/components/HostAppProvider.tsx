@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { ToastProvider, useToast } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
 import { HOST_COPY, HOST_ROUTES } from '../constants';
 import { useHostApp, useHostAppReady, useOnline } from '../hooks';
 import type { HostAppState, Payout } from '../interfaces';
-import { hostAppStore, selectPayouts } from '../services';
+import { hostAppStore, selectIsSignedIn, selectPayouts } from '../services';
 
 const selectCheckDueAt = (state: HostAppState): string | undefined =>
   state.verification.state === 'CHECKING' ? state.verification.resolveAt : undefined;
@@ -15,6 +16,23 @@ const selectScheduledPayouts = (state: HostAppState): Payout[] =>
   selectPayouts(state).filter((payout) => payout.status === 'PENDING' && payout.autoSendAt);
 
 const msUntil = (iso: string): number => Math.max(0, Date.parse(iso) - Date.now());
+
+/** Routes a visitor with no active host must still be able to reach: landing, registration, and the demo persona switcher. */
+const SIGNED_OUT_PREFIXES = [HOST_ROUTES.welcome, `${HOST_ROUTES.home}/register`, HOST_ROUTES.flows];
+
+/** A fresh device (or one just reset) has no active host until registration or /flows switches a demo persona in. */
+const useRedirectSignedOut = (): void => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const ready = useHostAppReady();
+  const signedIn = useHostApp(selectIsSignedIn);
+
+  useEffect(() => {
+    if (!ready || signedIn) return;
+    if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return;
+    router.replace(HOST_ROUTES.welcome);
+  }, [ready, signedIn, pathname, router]);
+};
 
 /**
  * Everything that happens "later": saved state loading, queued writes going up when signal returns,
@@ -26,6 +44,8 @@ const HostAppEffects = () => {
   const ready = useHostAppReady();
   const checkDueAt = useHostApp(selectCheckDueAt);
   const scheduledPayouts = useHostApp(selectScheduledPayouts);
+
+  useRedirectSignedOut();
 
   useEffect(() => {
     void hostAppStore.hydrate();

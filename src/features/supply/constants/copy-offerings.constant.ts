@@ -69,6 +69,7 @@ export const COPY_CREATE = {
     inclusions: { label: 'What is included', question: 'What is included?', example: 'Example: Lunch, a cold drink, a walk to the market' },
     whatToBring: { label: 'What to bring', question: 'What should guests bring?', example: 'Example: Comfortable shoes, a hat, a warm jacket' },
     meetingPoint: { label: 'Where you meet', question: 'Where do you meet?', example: 'Example: Langa taxi rank, Washington Street' },
+    region: { label: 'Area', question: 'Which area is this in?', example: 'Choose the area travellers would search for.' },
     languages: { label: 'Languages you speak', question: 'Which languages do you speak with guests?', example: 'Choose every language you are happy to host in.' },
     difficulty: { label: 'How active it is', question: 'How active is it?', example: 'Choose the closest one. It helps guests know if they can manage.' },
     ageSuitability: { label: 'Who can come', question: 'Who can come?', example: 'Choose the youngest guest you are happy to host.' },

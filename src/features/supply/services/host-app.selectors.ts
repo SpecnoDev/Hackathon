@@ -6,6 +6,9 @@ const sumCents = (amounts: number[]): number => amounts.reduce((total, amount) =
 
 export const selectHost = (state: HostAppState): Host => state.hosts.find((host) => host.id === state.activeHostId) ?? state.hosts[0];
 
+/** False on a fresh device, or once `resetDemo()` has run, until registration or `switchPersona()` signs someone in. */
+export const selectIsSignedIn = (state: HostAppState): boolean => state.hosts.some((host) => host.id === state.activeHostId);
+
 export const selectOfferings = (state: HostAppState): Offering[] => state.offerings.filter((offering) => offering.hostId === state.activeHostId);
 
 export const selectBookings = (state: HostAppState): Booking[] => state.bookings.filter((booking) => booking.hostId === state.activeHostId);

@@ -60,8 +60,10 @@ const HOSTS: Host[] = [
   },
 ];
 
+/** `region` is filled by the `offering()` builder below (it takes its own region argument, always applied after these fields); empty here is never seen. */
 const fieldsFor = (kind: OfferingFields['kind'], overrides: Partial<OfferingFields> = {}): OfferingFields => ({
   kind,
+  region: '',
   ...LISTING_SAMPLES[kind].fields,
   photos: [],
   availability: ON_REQUEST,
@@ -224,7 +226,9 @@ export const createSeedState = (now: Date): HostAppState => {
 
   return {
     schemaVersion: HOST_APP_SCHEMA_VERSION,
-    activeHostId: SEED_HOST_IDS.nomsa,
+    // No one is signed in on a fresh device. The seed hosts still ship in state so /flows can
+    // switchPersona() into Nomsa/Thabo/Koos for demoing earnings and bookings.
+    activeHostId: undefined,
     hosts: HOSTS,
     offerings,
     bookings,
