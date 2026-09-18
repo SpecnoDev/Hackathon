@@ -2,7 +2,6 @@ import { connectivityService } from '@/core/services/client';
 import { hostReceivesCents, maskPhone, toE164 } from '@/shared/utils';
 import {
   DEMO_PAYOUT_DELAY_MS,
-  DEMO_REJECTED_OTP,
   DEMO_VERIFICATION_DELAY_MS,
   GROUP_SIZE_MIN,
   HOST_APP_SCHEMA_VERSION,
@@ -10,6 +9,7 @@ import {
   LISTING_SAMPLES,
   MS_PER_HOUR,
   NEW_DRAFT_KEY,
+  OUTBOX_MAX_ATTEMPTS,
   PAYOUT_WINDOW_HOURS,
   TITLE_MIN_LENGTH,
   createSeedState,
@@ -27,6 +27,7 @@ import type {
   OfferingDraft,
   OfferingFields,
   OfferingKind,
+  OfferingStatus,
   OutboxEntry,
   Payout,
   PayoutChannel,
@@ -38,7 +39,10 @@ import type {
   VerificationProgress,
 } from '../interfaces';
 import { createId } from '../utils';
+import type { HostApiOutcome } from './host-api.service';
+import { hostApiService } from './host-api.service';
 import { hostAppStorage } from './host-app-storage.service';
+import { toOfferingPayload } from './offering-payload.service';
 
 type Listener = () => void;
 
@@ -64,6 +68,7 @@ const emptyFields = (kind: OfferingKind, language: LanguageCode): OfferingFields
   whatToBring: [],
   meetingPoint: '',
   town: '',
+  region: '',
   languages: language === 'EN' ? ['EN'] : [language, 'EN'],
   photos: [],
   availability: { type: 'ON_REQUEST', dates: [], weekdays: [] },
@@ -72,17 +77,18 @@ const emptyFields = (kind: OfferingKind, language: LanguageCode): OfferingFields
 
 /** The listing content of an offering, without its identity, status or counters. */
 const pickFields = (offering: Offering): OfferingFields => {
-  const { id, hostId, category, region, sourceLanguage, status, statusReason, views, pendingSync, createdAt, updatedAt, ...fields } = offering;
+  const { id, hostId, category, sourceLanguage, status, statusReason, views, pendingSync, createdAt, updatedAt, ...fields } = offering;
   return fields;
 };
 
 /** What a listing needs before a traveller could book it. Photos are encouraged, not required. */
-export const missingDraftFields = (fields: OfferingFields): Array<'title' | 'description' | 'duration' | 'price' | 'meetingPoint'> => [
+export const missingDraftFields = (fields: OfferingFields): Array<'title' | 'description' | 'duration' | 'price' | 'meetingPoint' | 'region'> => [
   ...(fields.title.trim().length < TITLE_MIN_LENGTH ? (['title'] as const) : []),
   ...(fields.description.trim() ? [] : (['description'] as const)),
   ...(fields.durationMin > 0 ? [] : (['duration'] as const)),
   ...(fields.priceCents > 0 ? [] : (['price'] as const)),
   ...(fields.meetingPoint.trim() && fields.town.trim() ? [] : (['meetingPoint'] as const)),
+  ...(fields.region.trim() ? [] : (['region'] as const)),
 ];
 
 /**
@@ -146,28 +152,84 @@ class HostAppStore {
   }
 
   /**
-   * Records a write in the shape docs/TECH_STACK.md gives the outbox. Online it is treated as delivered;
-   * offline it waits. TODO: replace the online branch with a real fetch once /api/v1 exists.
-   * Returns true when the write is still waiting to upload.
+   * Records a write in the shape docs/TECH_STACK.md gives the outbox. Offline it waits; online it fires
+   * immediately and, since this stays synchronous for its 17 call sites, resolves asynchronously through
+   * `update()` instead of a return value: `onSuccess` (when given) applies a server-authoritative field
+   * once the response lands. A `RETRY` re-queues the entry for the next `flushOutbox`; a `DROPPED` write
+   * (the server rejected it outright) just needs `pendingSync` cleared so the UI stops saying "waiting".
+   * Returns true when the write is (at least optimistically) still waiting to upload.
    */
-  private enqueue(method: OutboxEntry['method'], path: string, body?: unknown): boolean {
-    if (connectivityService.isOnline()) return false;
-    this.update((state) => ({ ...state, outbox: [...state.outbox, { id: createId(), method, path: `${API}${path}`, body, attempts: 0 }] }));
-    return true;
+  private enqueue(method: OutboxEntry['method'], path: string, body?: unknown, onSuccess?: (data: unknown) => void): boolean {
+    const entry: OutboxEntry = { id: createId(), method, path: `${API}${path}`, body, attempts: 0 };
+    if (!connectivityService.isOnline()) {
+      this.update((state) => ({ ...state, outbox: [...state.outbox, entry] }));
+      return true;
+    }
+    void hostApiService.send(entry).then((result) => {
+      if (result.outcome === 'SYNCED') onSuccess?.(result.data);
+      else if (result.outcome === 'RETRY') this.update((state) => ({ ...state, outbox: [...state.outbox, entry] }));
+      else this.clearPendingSync(entry);
+    });
+    return false;
   }
 
-  /** Called when signal returns. Returns how many writes were waiting. */
-  flushOutbox(): number {
-    const waiting = this.state.outbox.length;
-    if (waiting === 0) return 0;
+  private applyOfferingStatus(id: string, data: unknown): void {
+    const status = (data as { status?: OfferingStatus } | undefined)?.status;
+    if (status) this.patchOffering(id, { status });
+  }
+
+  /** The offering or booking id a queued write is about, read off its path (or its POST body, for a create). */
+  private entityIdFromEntry(entry: OutboxEntry): string | undefined {
+    const nestedId = entry.path.match(/\/(?:offerings|bookings)\/([^/]+)/)?.[1];
+    if (nestedId) return nestedId;
+    return entry.path.endsWith('/offerings') ? (entry.body as { id?: string } | undefined)?.id : undefined;
+  }
+
+  /** A write that will never be retried (synced, or dropped outright) is no longer "waiting to upload". */
+  private clearPendingSync(entry: OutboxEntry): void {
+    const entityId = this.entityIdFromEntry(entry);
+    if (!entityId) return;
     this.update((state) => ({
       ...state,
-      outbox: [],
-      offerings: state.offerings.map((item) => ({ ...item, pendingSync: false })),
-      bookings: state.bookings.map((item) => ({ ...item, pendingSync: false })),
-      lastPublished: state.lastPublished?.outcome === 'WAITING_TO_UPLOAD' ? { ...state.lastPublished, outcome: 'LIVE' } : state.lastPublished,
+      offerings: state.offerings.map((item) => (item.id === entityId ? { ...item, pendingSync: false } : item)),
+      bookings: state.bookings.map((item) => (item.id === entityId ? { ...item, pendingSync: false } : item)),
     }));
-    return waiting;
+  }
+
+  /**
+   * `RETRY` stays queued (and counts an attempt, giving up once `OUTBOX_MAX_ATTEMPTS` is reached) so a
+   * permanent rejection (a bad 4xx, see hostApiService.send) can never loop forever; `SYNCED` and
+   * `DROPPED` both leave the outbox for good, the difference being only whether `onSuccess` fires.
+   */
+  private settleOutboxEntry(entry: OutboxEntry, outcome: HostApiOutcome): void {
+    const attempts = entry.attempts + 1;
+    const giveUp = outcome === 'RETRY' && attempts >= OUTBOX_MAX_ATTEMPTS;
+    const settled = outcome !== 'RETRY' || giveUp;
+    const entityId = settled ? this.entityIdFromEntry(entry) : undefined;
+    this.update((state) => ({
+      ...state,
+      outbox: settled ? state.outbox.filter((item) => item.id !== entry.id) : state.outbox.map((item) => (item.id === entry.id ? { ...item, attempts } : item)),
+      offerings: entityId ? state.offerings.map((item) => (item.id === entityId ? { ...item, pendingSync: false } : item)) : state.offerings,
+      bookings: entityId ? state.bookings.map((item) => (item.id === entityId ? { ...item, pendingSync: false } : item)) : state.bookings,
+      lastPublished:
+        outcome === 'SYNCED' && entityId && state.lastPublished?.offeringId === entityId && state.lastPublished.outcome === 'WAITING_TO_UPLOAD'
+          ? { ...state.lastPublished, outcome: 'LIVE' }
+          : state.lastPublished,
+    }));
+  }
+
+  private async replayOutbox(entries: OutboxEntry[]): Promise<void> {
+    for (const entry of entries) {
+      const result = await hostApiService.send(entry);
+      this.settleOutboxEntry(entry, result.outcome);
+    }
+  }
+
+  /** Called when signal returns. Returns how many writes were waiting; the replay itself finishes asynchronously. */
+  flushOutbox(): number {
+    const entries = this.state.outbox;
+    if (entries.length > 0) void this.replayOutbox(entries);
+    return entries.length;
   }
 
   // Registration
@@ -186,9 +248,11 @@ class HostAppStore {
     this.answerRegistration({ phone, codeSentAt: now(), codeConfirmed: undefined });
   }
 
-  confirmCode(code: string): boolean {
-    if (code === DEMO_REJECTED_OTP) return false;
-    this.answerRegistration({ codeConfirmed: true });
+  async confirmCode(code: string): Promise<boolean> {
+    const phone = this.state.registration.phone ?? '';
+    const response = await hostApiService.request<{ id: string }>('POST', `${API}/auth/host/verify`, { phone, code });
+    if (!response.ok) return false;
+    this.answerRegistration({ codeConfirmed: true, hostId: response.data?.id });
     return true;
   }
 
@@ -196,11 +260,13 @@ class HostAppStore {
   completeRegistration(contactChannel: ContactChannel): void {
     const { registration } = this.state;
     const phone = toE164(registration.phone ?? '') ?? '';
+    const firstName = (registration.firstName ?? '').trim();
+    const language = registration.language ?? 'EN';
     const host: Host = {
-      id: createId(),
+      id: registration.hostId ?? createId(),
       phone,
-      firstName: (registration.firstName ?? '').trim(),
-      language: registration.language ?? 'EN',
+      firstName,
+      language,
       contactChannel,
       notifications: { WHATSAPP: true, SMS: true, IN_APP: true },
       town: '',
@@ -210,7 +276,7 @@ class HostAppStore {
       payoutChannel: 'CASH_SEND',
       payoutDetails: { phone },
     };
-    this.enqueue('POST', '/hosts', { phone, fullName: host.firstName, language: host.language, contactChannel });
+    this.enqueue('PATCH', '/hosts/me', { fullName: firstName, language, contactChannel });
     this.update((state) => ({
       ...state,
       hosts: [...state.hosts, host],
@@ -238,8 +304,10 @@ class HostAppStore {
   }
 
   submitVerification(): void {
-    // TODO: no verification endpoint in the /api/v1 table yet; this path is a placeholder for Henry to confirm.
-    this.enqueue('POST', '/hosts/me/verification', { documentType: this.state.verification.documentType });
+    this.enqueue('POST', '/hosts/me/verification', { documentType: this.state.verification.documentType }, (data) => {
+      const tier = (data as { tier?: Host['tier'] } | undefined)?.tier;
+      if (tier) this.patchHost({ tier });
+    });
     this.setVerification({ state: 'CHECKING', resolveAt: inMs(DEMO_VERIFICATION_DELAY_MS) });
   }
 
@@ -337,9 +405,12 @@ class HostAppStore {
 
   saveEdit(offeringId: string): void {
     const draft = this.state.drafts[offeringId];
-    if (!draft) return;
-    const pendingSync = this.enqueue('PATCH', `/offerings/${offeringId}`, draft.fields);
-    this.patchOffering(offeringId, { ...draft.fields, category: kindOption(draft.fields.kind).category, pendingSync });
+    const existing = this.state.offerings.find((item) => item.id === offeringId);
+    if (!draft || !existing) return;
+    const category = kindOption(draft.fields.kind).category;
+    const merged: Offering = { ...existing, ...draft.fields, category };
+    const pendingSync = this.enqueue('PATCH', `/offerings/${offeringId}`, toOfferingPayload(merged), (data) => this.applyOfferingStatus(offeringId, data));
+    this.patchOffering(offeringId, { ...draft.fields, category, pendingSync });
     this.discardDraft(offeringId);
   }
 
@@ -360,7 +431,6 @@ class HostAppStore {
       id: createId(),
       hostId: host.id,
       category: kindOption(draft.fields.kind).category,
-      region: host.region,
       sourceLanguage: host.language,
       status: 'DRAFT',
       views: 0,
@@ -368,26 +438,32 @@ class HostAppStore {
       createdAt: created,
       updatedAt: created,
     };
-    const pendingSync = this.enqueue('POST', '/offerings', { id: base.id, ...draft.fields });
+    const pendingSync = this.enqueue('POST', '/offerings', { id: base.id, ...toOfferingPayload(base) }, (data) => this.applyOfferingStatus(base.id, data));
     const offering = { ...this.withGoLiveStatus(base, host.tier), pendingSync };
     const outcome: PublishResult['outcome'] =
       offering.status === 'DRAFT' ? 'NEEDS_ID' : offering.status === 'IN_REVIEW' ? 'NEEDS_LICENCE' : pendingSync ? 'WAITING_TO_UPLOAD' : 'LIVE';
     const result: PublishResult = { offeringId: offering.id, outcome };
+    // Registration never captures an area; the traveller listing detail shows the host's town, so the first publish backfills it.
+    if (!host.town) this.enqueue('PATCH', '/hosts/me', { serviceArea: draft.fields.town });
     this.update((state) => ({
       ...state,
       offerings: [offering, ...state.offerings],
-      hosts: state.hosts.map((item) => (item.id === host.id && !item.town ? { ...item, town: draft.fields.town } : item)),
+      hosts: state.hosts.map((item) =>
+        item.id === host.id ? { ...item, town: item.town || draft.fields.town, region: item.region || draft.fields.region } : item,
+      ),
       lastPublished: result,
     }));
-    this.discardDraft(NEW_DRAFT_KEY);
+    // The draft stays until PublishedPage discards it on mount: discarding here races useRequireDraft's
+    // own redirect on this screen and sends the host back to category before Published ever renders.
     return result;
   }
 
   // Offerings
 
   setOfferingPaused(id: string, paused: boolean): void {
-    const pendingSync = this.enqueue('PATCH', `/offerings/${id}`, { status: paused ? 'PAUSED' : 'LIVE' });
-    this.patchOffering(id, { status: paused ? 'PAUSED' : 'LIVE', pendingSync });
+    const status = paused ? 'PAUSED' : 'LIVE';
+    const pendingSync = this.enqueue('PATCH', `/offerings/${id}`, { status }, (data) => this.applyOfferingStatus(id, data));
+    this.patchOffering(id, { status, pendingSync });
   }
 
   duplicateOffering(sourceId: string): string | undefined {
@@ -395,14 +471,13 @@ class HostAppStore {
     if (!source) return undefined;
     const id = createId();
     const created = now();
-    const pendingSync = this.enqueue('POST', '/offerings', { id, ...pickFields(source) });
-    const copy: Offering = { ...source, id, status: 'DRAFT', statusReason: undefined, views: 0, createdAt: created, updatedAt: created, pendingSync };
-    this.update((state) => ({ ...state, offerings: [copy, ...state.offerings] }));
+    const base: Offering = { ...source, id, status: 'DRAFT', statusReason: undefined, views: 0, createdAt: created, updatedAt: created, pendingSync: false };
+    const pendingSync = this.enqueue('POST', '/offerings', { id, ...toOfferingPayload(base) }, (data) => this.applyOfferingStatus(id, data));
+    this.update((state) => ({ ...state, offerings: [{ ...base, pendingSync }, ...state.offerings] }));
     return id;
   }
 
   deleteOffering(id: string): void {
-    // TODO: the /api/v1 table has no DELETE for offerings yet.
     this.enqueue('DELETE', `/offerings/${id}`);
     this.update((state) => ({ ...state, offerings: state.offerings.filter((item) => item.id !== id) }));
     this.discardDraft(id);
@@ -493,9 +568,31 @@ class HostAppStore {
     this.update((state) => ({ ...state, demo: { verificationOutcome } }));
   }
 
-  async resetDemo(): Promise<void> {
+  /** Shared by resetDemo and signOut: wipe the local snapshot and start over from a fresh seed. */
+  private async resetToSeed(): Promise<void> {
     await hostAppStorage.clear();
     this.update(() => createSeedState(new Date()));
+  }
+
+  async resetDemo(): Promise<void> {
+    await this.resetToSeed();
+  }
+
+  /**
+   * Flushes the outbox first so unsynced host work is never wiped: `flushOutbox()` only fires the
+   * replay and returns immediately, so we drive `replayOutbox` directly here and wait for it. Local
+   * data is only wiped once the server has actually expired the `host_session` cookie — otherwise a
+   * shared phone would keep a live session after "signing out" offline — so this needs the network.
+   */
+  async signOut(): Promise<'SIGNED_OUT' | 'OFFLINE'> {
+    if (this.state.outbox.length > 0) {
+      await this.replayOutbox(this.state.outbox);
+      if (this.state.outbox.length > 0) return 'OFFLINE';
+    }
+    const response = await hostApiService.request('DELETE', `${API}/auth/host/session`);
+    if (!response.ok) return 'OFFLINE';
+    await this.resetToSeed();
+    return 'SIGNED_OUT';
   }
 }
 

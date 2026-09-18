@@ -73,6 +73,13 @@ export const OFFERING_KINDS: readonly KindOption[] = [
 export const kindOption = (kind: OfferingKind): KindOption =>
   OFFERING_KINDS.find((option) => option.kind === kind) ?? OFFERING_KINDS[0];
 
+/**
+ * Area-level names, matching the traveller seed's region filter (`listLiveRegions()` is data-driven off
+ * the DB, so a host who doesn't pick one of these won't show up under any traveller chip). Also the
+ * PRD's must-demo places: Observatory/Langa and Stellenbosch sit under Cape Town and Winelands.
+ */
+export const REGION_OPTIONS: readonly string[] = ['Cape Town', 'Winelands', 'Overberg', 'Johannesburg', 'Soweto', 'Eastern Cape', 'Karoo'];
+
 /** The order of the drafted-listing stack, which is also the order a traveller reads the listing in. Category extras are appended per kind. */
 export const BASE_FIELD_ORDER: readonly OfferingFieldId[] = [
   'title',
@@ -84,6 +91,7 @@ export const BASE_FIELD_ORDER: readonly OfferingFieldId[] = [
   'inclusions',
   'whatToBring',
   'meetingPoint',
+  'region',
   'languages',
 ];
 
@@ -109,6 +117,7 @@ export const DRAFT_ROW_ICONS: Record<DraftRowId, IconName> = {
   inclusions: 'circle-check',
   whatToBring: 'backpack',
   meetingPoint: 'map-pin',
+  region: 'compass',
   languages: 'globe',
   difficulty: 'footprints',
   ageSuitability: 'baby',
@@ -125,7 +134,7 @@ export const isDraftRowId = (value: string): value is DraftRowId => (DRAFT_ROW_I
 export const draftFieldOrder = (kind: OfferingKind): OfferingFieldId[] => [...BASE_FIELD_ORDER, ...kindOption(kind).extraFields];
 
 /** Screens 16a to 16f: one question each. What is included, languages and category extras are edited on the stack after. */
-export const GUIDED_FORM_FIELDS: readonly OfferingFieldId[] = ['title', 'description', 'duration', 'groupSize', 'price', 'meetingPoint'];
+export const GUIDED_FORM_FIELDS: readonly OfferingFieldId[] = ['title', 'description', 'duration', 'groupSize', 'price', 'meetingPoint', 'region'];
 
 export const DURATION_OPTIONS_MIN: readonly number[] = [60, 120, 180, 240, 480];
 

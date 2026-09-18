@@ -2,13 +2,13 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { Button, Icon, type IconName } from '@/shared/components';
+import { Button, Icon, useToast, type IconName } from '@/shared/components';
 import { formatLocalPhone, whatsAppLink } from '@/shared/utils';
 import { HostScreen, TierBadge } from '../../components';
 import { HOST_COPY, HOST_ROUTES, SUPPORT_WHATSAPP_NUMBER, languageName } from '../../constants';
 import { useHostApp } from '../../hooks';
 import type { Host, HostAppState } from '../../interfaces';
-import { selectHost } from '../../services';
+import { hostAppStore, selectHost } from '../../services';
 
 const copy = HOST_COPY.profile;
 const selectCurrentHost = (state: HostAppState): Host => selectHost(state);
@@ -28,6 +28,11 @@ const Row = ({ href, icon, label, children }: { href: string; icon: IconName; la
 
 export const ProfilePage = () => {
   const host = useHostApp(selectCurrentHost);
+  const toast = useToast();
+
+  const handleSignOut = async (): Promise<void> => {
+    if ((await hostAppStore.signOut()) === 'OFFLINE') toast(copy.signOutOffline);
+  };
 
   return (
     <HostScreen pageTitle={copy.title} showNav>
@@ -63,6 +68,9 @@ export const ProfilePage = () => {
 
         <Button variant="secondary" icon="message" href={whatsAppLink(SUPPORT_WHATSAPP_NUMBER, HOST_COPY.common.helpMessage)}>
           {copy.help}
+        </Button>
+        <Button variant="destructive" size="lg" onClick={() => void handleSignOut()}>
+          {copy.signOut}
         </Button>
       </div>
     </HostScreen>

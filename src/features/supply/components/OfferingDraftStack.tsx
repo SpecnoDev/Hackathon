@@ -29,6 +29,8 @@ const fieldValue = (field: OfferingFieldId, fields: OfferingFields): string | st
       return fields.whatToBring.join(', ');
     case 'meetingPoint':
       return [fields.meetingPoint, fields.town].filter(Boolean).join(', ');
+    case 'region':
+      return fields.region;
     case 'languages':
       return fields.languages.map(languageName).join(', ');
     case 'difficulty':

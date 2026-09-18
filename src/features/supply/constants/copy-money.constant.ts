@@ -154,6 +154,8 @@ export const COPY_PROFILE = {
   payout: 'How you get paid',
   notifications: 'Notifications',
   help: 'Get help on WhatsApp',
+  signOut: 'Sign out',
+  signOutOffline: 'Connect to the internet to sign out, so your changes are saved first.',
   languageScreen: {
     title: 'Choose your language',
     note: 'We are still translating the app. Your voice notes and listings already work in your language.',
