@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Sheet } from '@/shared/components';
+import { compressImage } from '@/shared/utils';
 import { HostScreen, PhotoSlots } from '../../components';
-import { CREATE_FLOW_STEPS, HOST_COPY, HOST_ROUTES, NEW_DRAFT_KEY, PHOTOS_TO_GO_LIVE } from '../../constants';
+import { CREATE_FLOW_STEPS, DEMO_LISTING_PHOTOS, HOST_COPY, HOST_ROUTES, NEW_DRAFT_KEY, PHOTOS_TO_GO_LIVE, isDemoMode } from '../../constants';
 import { useRequireDraft } from '../../hooks';
+import { hostAppStore } from '../../services';
 
 const PHOTOS_STEP = 4;
 const copy = HOST_COPY.create.photos;
@@ -14,6 +16,22 @@ export const PhotosPage = () => {
   const router = useRouter();
   const draft = useRequireDraft(NEW_DRAFT_KEY, HOST_ROUTES.create.category);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const demoLoaded = useRef(false);
+  const photoCount = draft?.fields.photos.length ?? 0;
+
+  // Demo pitch mode: loads the three sample photos so the listing already qualifies to go LIVE
+  // (PHOTOS_TO_GO_LIVE) and the presenter's only tap is the existing Continue button.
+  useEffect(() => {
+    if (!isDemoMode || !draft || photoCount > 0 || demoLoaded.current) return;
+    demoLoaded.current = true;
+    void (async () => {
+      for (const src of DEMO_LISTING_PHOTOS) {
+        const response = await fetch(src);
+        await hostAppStore.addDraftPhoto(NEW_DRAFT_KEY, await compressImage(await response.blob()));
+      }
+    })();
+  }, [draft, photoCount]);
+
   if (!draft) return <HostScreen barTitle={HOST_COPY.create.flowTitle}>{null}</HostScreen>;
 
   const hasPhotos = draft.fields.photos.length > 0;

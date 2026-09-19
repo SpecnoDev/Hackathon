@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, TextInput } from '@/shared/components';
 import { HostScreen } from '../../components';
-import { HOST_COPY, HOST_ROUTES, REGISTER_FLOW_STEPS } from '../../constants';
+import { DEMO_FIRST_NAME, HOST_COPY, HOST_ROUTES, REGISTER_FLOW_STEPS, isDemoMode } from '../../constants';
 import { firstIssue, firstNameSchema } from '../../dto';
 import { useHostApp } from '../../hooks';
 import type { HostAppState } from '../../interfaces';
@@ -18,6 +18,10 @@ export const FirstNamePage = () => {
   const router = useRouter();
   const firstName = useHostApp(selectFirstName);
   const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    if (isDemoMode && !firstName) hostAppStore.answerRegistration({ firstName: DEMO_FIRST_NAME });
+  }, [firstName]);
 
   const next = (): void => {
     const issue = firstIssue(firstNameSchema, firstName);

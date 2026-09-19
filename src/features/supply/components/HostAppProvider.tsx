@@ -4,7 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ToastProvider, useToast } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
-import { HOST_COPY, HOST_ROUTES } from '../constants';
+import { HOST_COPY, HOST_ROUTES, isDemoMode } from '../constants';
 import { useHostApp, useHostAppReady, useOnline } from '../hooks';
 import type { HostAppState, Payout } from '../interfaces';
 import { hostAppStore, selectIsSignedIn, selectPayouts } from '../services';
@@ -28,7 +28,8 @@ const useRedirectSignedOut = (): void => {
   const signedIn = useHostApp(selectIsSignedIn);
 
   useEffect(() => {
-    if (!ready || signedIn) return;
+    // Demo mode has no signed-in host by design; this is UI navigation, not authz, so it no-ops here.
+    if (!ready || signedIn || isDemoMode) return;
     if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return;
     router.replace(HOST_ROUTES.welcome);
   }, [ready, signedIn, pathname, router]);

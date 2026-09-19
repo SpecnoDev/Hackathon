@@ -1,8 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Button, OptionTile } from '@/shared/components';
 import { ChoiceList, HostScreen } from '../../components';
-import { HOST_COPY, HOST_ROUTES, LANGUAGES, REGISTER_FLOW_STEPS } from '../../constants';
+import { DEMO_LANGUAGE, HOST_COPY, HOST_ROUTES, LANGUAGES, REGISTER_FLOW_STEPS, isDemoMode } from '../../constants';
 import { useHostApp } from '../../hooks';
 import type { HostAppState, LanguageCode } from '../../interfaces';
 import { hostAppStore } from '../../services';
@@ -17,6 +18,10 @@ export const LanguageStepPage = () => {
   // Reached here already verified when a Sign in with no account chose "Join with this number":
   // the OTP already proved this phone, so continue straight to name instead of asking for it again.
   const codeConfirmed = useHostApp(selectCodeConfirmed);
+
+  useEffect(() => {
+    if (isDemoMode && !chosen) hostAppStore.answerRegistration({ language: DEMO_LANGUAGE });
+  }, [chosen]);
 
   return (
     <HostScreen

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, OptionTile } from '@/shared/components';
 import { ChoiceList, HostScreen } from '../../components';
-import { CREATE_FLOW_STEPS, HOST_COPY, HOST_ROUTES, NEW_DRAFT_KEY, OFFERING_KINDS } from '../../constants';
+import { CREATE_FLOW_STEPS, DEMO_LISTING_KIND, HOST_COPY, HOST_ROUTES, NEW_DRAFT_KEY, OFFERING_KINDS, isDemoMode } from '../../constants';
 import { useDraft } from '../../hooks';
 import type { OfferingKind } from '../../interfaces';
 import { hostAppStore } from '../../services';
@@ -14,7 +14,7 @@ const copy = HOST_COPY.create.category;
 export const OfferingCategoryPage = () => {
   const router = useRouter();
   const draft = useDraft(NEW_DRAFT_KEY);
-  const [picked, setPicked] = useState<OfferingKind>();
+  const [picked, setPicked] = useState<OfferingKind | undefined>(isDemoMode ? DEMO_LISTING_KIND : undefined);
   const kind = picked ?? draft?.fields.kind;
 
   const next = (): void => {
