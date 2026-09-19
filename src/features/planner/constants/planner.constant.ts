@@ -90,6 +90,7 @@ export const PLANNER_COPY = {
     closePanel: 'Close experiences',
     search: 'Search by name or town',
     noMatches: 'No experiences match. Try another word.',
+    scrollForMore: 'Scroll for more',
     allTypes: 'All',
     inPlan: 'In plan',
     add: 'Add',

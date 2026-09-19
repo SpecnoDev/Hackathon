@@ -1,6 +1,19 @@
+'use client';
+
+import type { SyntheticEvent } from 'react';
 import { PHONE_HEIGHT, PHONE_WIDTH } from '../constants';
 
-const BEZEL_PX = 10;
+const BEZEL_PX = 6;
+/** A phone has no scrollbar. The frame is same-origin, so the deck can put this inside it once the screen loads. */
+const HIDE_SCROLLBARS = '::-webkit-scrollbar{width:0;height:0}html{scrollbar-width:none}';
+
+const hideScrollbars = (event: SyntheticEvent<HTMLIFrameElement>): void => {
+  const doc = event.currentTarget.contentDocument;
+  if (!doc) return;
+  const style = doc.createElement('style');
+  style.textContent = HIDE_SCROLLBARS;
+  doc.head.append(style);
+};
 
 interface PhoneFrameProps {
   /** A route of the running app, shown live. */
@@ -22,8 +35,11 @@ export const PhoneFrame = ({ route, image, label, height }: PhoneFrameProps) => 
   const screenHeight = PHONE_HEIGHT * scale;
 
   return (
-    <div className="animate-deck-rise rounded-xl bg-ink shadow-lift motion-reduce:animate-none" style={{ padding: BEZEL_PX, animationDelay: '300ms' }}>
-      <div className="relative overflow-hidden rounded-lg bg-canvas" style={{ width: screenWidth, height: screenHeight }}>
+    <div
+      className="animate-deck-rise rounded-lg bg-canvas shadow-[0_2px_4px_rgba(0,0,0,0.06),0_12px_32px_rgba(0,0,0,0.18)] ring-1 ring-ink/10 motion-reduce:animate-none"
+      style={{ padding: BEZEL_PX, animationDelay: '300ms' }}
+    >
+      <div className="relative overflow-hidden rounded-sm bg-canvas" style={{ width: screenWidth, height: screenHeight }}>
         {image ? (
           // A screenshot is a plain file in /public; next/image would need its size up front and gains nothing here.
           <img src={image} alt={label} className="size-full object-cover object-top" />
@@ -32,6 +48,7 @@ export const PhoneFrame = ({ route, image, label, height }: PhoneFrameProps) => 
             src={route}
             title={label}
             loading="lazy"
+            onLoad={hideScrollbars}
             className="origin-top-left border-0"
             style={{ width: PHONE_WIDTH, height: PHONE_HEIGHT, transform: `scale(${scale})` }}
           />

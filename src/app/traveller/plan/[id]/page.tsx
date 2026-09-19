@@ -18,7 +18,7 @@ export default async function PlanBoardPage({ params }: { params: Promise<{ id: 
   const candidates = await listCandidateOfferings(trip.destination);
 
   return (
-    <TravellerShell topBar={<TopBar title={PLANNER_COPY.bar.board} backHref={ROUTES.plan} backLabel={PLANNER_COPY.bar.back} />}>
+    <TravellerShell topBar={<TopBar title={PLANNER_COPY.bar.board} backHref={ROUTES.trips} backLabel={PLANNER_COPY.bar.back} />}>
       <PlanBoard trip={trip} candidates={candidates} />
     </TravellerShell>
   );

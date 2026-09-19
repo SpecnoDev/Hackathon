@@ -4,7 +4,7 @@ export type FieldTone = 'onDark' | 'onLight';
 /** The hand-drawn tile is carried as a mask rather than a picture, so the marks take a brand colour and never bring their own. */
 const TILE = '/patterns/hosted-field.webp';
 const TILE_PX = 420;
-const OPACITY: Record<FieldTone, number> = { onDark: 0.03, onLight: 0.1 };
+const OPACITY: Record<FieldTone, number> = { onDark: 0.02, onLight: 0.08 };
 const INK: Record<FieldTone, string> = { onDark: 'bg-on-dark', onLight: 'bg-accent' };
 /** On light the field is a header treatment, so it thins out before it reaches what is written under it. */
 const FADE = 'linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%)';

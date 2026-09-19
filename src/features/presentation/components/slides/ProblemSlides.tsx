@@ -1,5 +1,4 @@
-import { HostedLogo, HostedMark, Icon, PatternField } from '@/shared/components';
-import { formatRand } from '@/shared/utils';
+import { HostedLogo, HostedMark, Icon } from '@/shared/components';
 import { DECK_COPY, DECK_FIGURES, DECK_SOURCES } from '../../constants';
 import { GrowthBars } from '../GrowthBars';
 import { ShareGrid } from '../ShareGrid';
@@ -9,11 +8,11 @@ import { StatCount } from '../StatCount';
 const copy = DECK_COPY;
 const figures = DECK_FIGURES;
 const SQUARES = figures.staysPer100.of / figures.staysPer100.stays;
+const LOCK_ICON_PX = 16;
 const FULL_PERCENT = 100;
 
 export const TitleSlide = () => (
   <Slide tone="green">
-    <PatternField />
     <div className="relative flex items-center justify-between">
       <HostedLogo name={copy.appName} onDark size="sm" />
       <p className="text-caption text-on-dark/60">{copy.event}</p>
@@ -94,12 +93,22 @@ export const NumbersSlide = () => (
           ]}
         />
       </Reveal>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
         <Reveal order={4}>
-          <StatCount value={figures.jobs.value} decimals={1} prefix="~" suffix={figures.jobs.unit} label={copy.numbers.jobs} note={copy.numbers.jobsNote(figures.jobs.gdpPercent)} delayMs={300} />
+          <StatCount size="md" value={figures.jobs.value} decimals={1} prefix="~" suffix={figures.jobs.unit} label={copy.numbers.jobs} note={copy.numbers.jobsNote(figures.jobs.gdpPercent)} delayMs={300} />
+        </Reveal>
+        <Reveal order={5}>
+          <StatCount
+            value={figures.unemployment.percent}
+            decimals={1}
+            suffix="%"
+            label={copy.numbers.unemployment}
+            note={copy.numbers.unemploymentNote(figures.unemployment.expandedPercent, figures.unemployment.quarter)}
+            accent
+          />
         </Reveal>
         <Reveal order={6}>
-          <StatCount value={figures.cashBusinesses.value} decimals={1} suffix={figures.cashBusinesses.unit} label={copy.numbers.cash} note={copy.numbers.cashNote} delayMs={600} accent />
+          <StatCount size="md" value={figures.cashBusinesses.value} decimals={1} suffix={figures.cashBusinesses.unit} label={copy.numbers.cash} note={copy.numbers.cashNote} delayMs={600} />
         </Reveal>
       </div>
     </div>
@@ -145,32 +154,22 @@ export const DoorsSlide = () => (
       <Reveal order={2}>
         <p className="text-body-md text-muted">{copy.doors.sub}</p>
       </Reveal>
-      <div className="grid flex-1 grid-cols-[1.4fr_1fr] gap-5">
-        <Reveal order={3} className="flex flex-col gap-3 rounded-lg bg-surface-soft p-5">
-          <p className="flex items-center gap-2 text-badge uppercase tracking-[0.22em] text-muted">
-            <Icon name="lock" size={16} />
-            {copy.doors.supply.title}
-          </p>
-          <ul className="flex flex-col gap-3">
-            {copy.doors.supply.items.map((item) => (
-              <li key={item.title} className="flex items-start gap-4">
-                <Icon name={item.icon} className="shrink-0 text-ink" />
-                <p className="text-body-md text-body">
-                  <span className="text-title-sm text-ink">{item.title}</span> {item.body}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </Reveal>
-        <Reveal order={5} className="flex flex-col gap-2 rounded-lg bg-surface-soft p-5">
-          <p className="flex items-center gap-2 text-badge uppercase tracking-[0.22em] text-muted">
-            <Icon name="lock" size={16} />
-            {copy.doors.demand.title}
-          </p>
-          <p className="font-display text-display-xl text-ink">{formatRand(copy.doors.demand.amountCents)}</p>
-          <p className="text-body-md text-body">{copy.doors.demand.body}</p>
-        </Reveal>
-      </div>
+      <ul className="grid flex-1 grid-cols-3 gap-4">
+        {copy.doors.supply.items.map((item, index) => (
+          <li key={item.title}>
+            <Reveal order={3 + index} className="flex h-full flex-col gap-3 rounded-lg bg-surface-soft p-6">
+              <span className="flex size-12 items-center justify-center rounded-sm bg-canvas text-ink">
+                <Icon name={item.icon} />
+              </span>
+              <p className="flex items-center gap-2 text-badge uppercase tracking-[0.22em] text-muted">
+                <Icon name="lock" size={LOCK_ICON_PX} />
+                {item.title}
+              </p>
+              <p className="text-body-md text-body">{item.body}</p>
+            </Reveal>
+          </li>
+        ))}
+      </ul>
       <Reveal order={7}>
         <p className="font-display text-display-md text-primary-text">{copy.doors.close}</p>
       </Reveal>

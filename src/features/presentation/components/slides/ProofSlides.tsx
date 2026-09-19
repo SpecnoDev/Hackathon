@@ -1,4 +1,4 @@
-import { HostedLogo, HostedMark, Icon } from '@/shared/components';
+import { Button, HostedLogo, HostedMark, Icon } from '@/shared/components';
 import { DECK_COPY, DECK_FIGURES, DECK_SCREENS, DECK_SOURCES } from '../../constants';
 import { BudgetBars } from '../BudgetBars';
 import { PhoneFrame } from '../PhoneFrame';
@@ -79,13 +79,46 @@ export const BuiltSlide = () => (
       <div className="flex flex-col items-center gap-2">
         <div className="flex items-end gap-4">
           <PhoneFrame route={DECK_SCREENS.hostBookings} label={copy.chrome.phoneLabel('host bookings')} height={SMALL_PHONE_PX} />
-          <PhoneFrame route={DECK_SCREENS.travellerListing} label={copy.chrome.phoneLabel('traveller listing')} height={SMALL_PHONE_PX} />
+          <PhoneFrame route={DECK_SCREENS.travellerHome} label={copy.chrome.phoneLabel('traveller home')} height={SMALL_PHONE_PX} />
         </div>
         <p className="text-[0.625rem] text-muted">{copy.chrome.livePhone}</p>
       </div>
     </div>
   </Slide>
 );
+
+const FEATURE_PHONE_PX = 360;
+
+/** One slide per feature, in the order the product is used: a host lists, a host is paid, a traveller browses, a group plans. */
+export const FeatureSlides = copy.features.items.map((feature) => {
+  const FeatureSlide = () => (
+    <Slide tone="light" eyebrow={copy.features.eyebrow} headline={feature.title} edge>
+      <div className="grid flex-1 grid-cols-[1.1fr_auto] gap-12">
+        <div className="flex flex-col gap-5 pt-1">
+          <Reveal order={1}>
+            <p className="text-body-host text-body">{feature.body}</p>
+          </Reveal>
+          <ul className="flex flex-col gap-3">
+            {feature.points.map((point, index) => (
+              <li key={point}>
+                <Reveal order={3 + index} className="flex items-start gap-3 text-body-md text-body">
+                  <Icon name="check" size={20} className="mt-0.5 shrink-0 text-primary-text" />
+                  {point}
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="flex flex-col items-center gap-2 self-end">
+          <PhoneFrame route={'route' in feature ? feature.route : ''} image={'image' in feature ? feature.image : undefined} label={copy.chrome.phoneLabel(feature.title)} height={FEATURE_PHONE_PX} />
+          <p className="text-[0.625rem] text-muted">{'image' in feature ? copy.features.shot : copy.features.tap}</p>
+        </div>
+      </div>
+    </Slide>
+  );
+  FeatureSlide.displayName = `FeatureSlide(${feature.title})`;
+  return FeatureSlide;
+});
 
 export const MeasureSlide = () => (
   <Slide tone="dark" eyebrow={copy.built.measureTitle}>
@@ -125,7 +158,12 @@ export const CloseSlide = () => (
       <Reveal order={8}>
         <h2 className="max-w-3xl font-display text-earnings-display text-on-dark">{copy.next.close}</h2>
       </Reveal>
-      <Reveal order={11} className="flex flex-col items-center gap-3">
+      <Reveal order={11}>
+        <Button href={DECK_SCREENS.landing} size="md" fullWidth={false}>
+          {copy.next.openApp}
+        </Button>
+      </Reveal>
+      <Reveal order={13} className="flex flex-col items-center gap-3">
         <HostedLogo name={copy.appName} onDark size="sm" />
         <p className="text-caption text-on-dark/60">{copy.repo}</p>
       </Reveal>

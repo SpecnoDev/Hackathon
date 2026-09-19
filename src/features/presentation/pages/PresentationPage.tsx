@@ -6,6 +6,7 @@ import {
   CloseSlide,
   DeckStage,
   DoorsSlide,
+  FeatureSlides,
   GroupSlide,
   HostSlide,
   MeasureSlide,
@@ -23,7 +24,7 @@ import { useDeckNavigation } from '../hooks';
 
 /**
  * The order of the pitch: the problem, the numbers that prove it, why nobody can get in, our one line, why now,
- * how it works on each side, what it is built on, what is real, and what comes next.
+ * how it works on each side, what it is built on, what is real, a slide per feature you can tap, and what comes next.
  */
 const SLIDES: ComponentType[] = [
   TitleSlide,
@@ -39,6 +40,7 @@ const SLIDES: ComponentType[] = [
   GroupSlide,
   PrinciplesSlide,
   BuiltSlide,
+  ...FeatureSlides,
   MeasureSlide,
   CloseSlide,
 ];

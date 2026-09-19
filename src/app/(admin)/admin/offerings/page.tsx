@@ -8,7 +8,9 @@ import {
   AdminRow,
   AdminTable,
   ConfirmDecision,
+  ListSurface,
   OfferingStatusPill,
+  PageHeader,
   StatusFilter,
 } from '@/features/admin/components';
 import {
@@ -33,34 +35,38 @@ const COPY = ADMIN_COPY.offerings;
 const COLUMNS = Object.values(COPY.columns);
 const FILTERS = statusFilterOptions(OFFERING_STATUSES, OFFERING_STATUS_LABEL);
 
-export default async function AdminOfferingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function AdminOfferingsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const query = await searchParams;
   const requested = query[STATUS_FILTER_PARAM];
   // A moderation queue opens on the work: everything else has to be asked for.
-  const status =
-    requested === ALL_STATUSES_FILTER
-      ? undefined
-      : (statusFromQuery(requested, OFFERING_STATUSES) ?? OfferingStatus.IN_REVIEW);
+  const status = requested === ALL_STATUSES_FILTER ? undefined : (statusFromQuery(requested, OFFERING_STATUSES) ?? OfferingStatus.IN_REVIEW);
   const pagination = readPagination(query);
   const { rows: offerings, total } = await listAdminOfferings(status, toPageRange(pagination));
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-display text-display-md text-ink">{COPY.title}</h1>
-        <p className="text-body-md text-muted">{COPY.subtitle}</p>
-      </header>
+    <>
+      <PageHeader title={COPY.title} subtitle={COPY.subtitle} />
 
-      <StatusFilter basePath={ROUTES.adminOfferings} options={FILTERS} active={status ?? ALL_STATUSES_FILTER} />
-
-      {total === 0 ? (
-        <EmptyState illustration="offerings" title={COPY.empty.title} message={COPY.empty.message} />
-      ) : (
-        <>
+      <ListSurface
+        toolbar={<StatusFilter basePath={ROUTES.adminOfferings} options={FILTERS} active={status ?? ALL_STATUSES_FILTER} />}
+        meta={COPY.count(total)}
+        footer={
+          total > 0 ? (
+            <Pagination
+              total={total}
+              page={pagination.page}
+              size={pagination.size}
+              basePath={ROUTES.adminOfferings}
+              query={{ [STATUS_FILTER_PARAM]: status ?? ALL_STATUSES_FILTER }}
+            />
+          ) : undefined
+        }
+      >
+        {total === 0 ? (
+          <div className="px-6">
+            <EmptyState illustration="offerings" title={COPY.empty.title} message={COPY.empty.message} />
+          </div>
+        ) : (
           <AdminTable columns={COLUMNS}>
             {offerings.map(({ id, title, host, town, category, priceCents, status: offeringStatus }) => {
               const decide = updateOfferingStatus.bind(null, id);
@@ -100,15 +106,8 @@ export default async function AdminOfferingsPage({
               );
             })}
           </AdminTable>
-          <Pagination
-            total={total}
-            page={pagination.page}
-            size={pagination.size}
-            basePath={ROUTES.adminOfferings}
-            query={{ [STATUS_FILTER_PARAM]: status ?? ALL_STATUSES_FILTER }}
-          />
-        </>
-      )}
-    </div>
+        )}
+      </ListSurface>
+    </>
   );
 }

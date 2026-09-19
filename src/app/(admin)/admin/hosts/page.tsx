@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ROUTES } from '@/core/constants';
-import { AccountStatusPill, AdminCell, AdminRow, AdminTable, StatusFilter } from '@/features/admin/components';
+import { AccountStatusPill, AdminCell, AdminRow, AdminTable, ListSurface, PageHeader, StatusFilter } from '@/features/admin/components';
 import {
   ACCOUNT_STATUS_LABEL,
   ADMIN_COPY,
@@ -20,29 +20,30 @@ const COPY = ADMIN_COPY.hosts;
 const COLUMNS = Object.values(COPY.columns);
 const FILTERS = statusFilterOptions(ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL);
 
-export default async function AdminHostsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function AdminHostsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const query = await searchParams;
   const status = statusFromQuery(query[STATUS_FILTER_PARAM], ACCOUNT_STATUSES);
   const pagination = readPagination(query);
   const { rows: hosts, total } = await listAdminHosts(status, toPageRange(pagination));
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-display text-display-md text-ink">{COPY.title}</h1>
-        <p className="text-body-md text-muted">{COPY.subtitle}</p>
-      </header>
+    <>
+      <PageHeader title={COPY.title} subtitle={COPY.subtitle} />
 
-      <StatusFilter basePath={ROUTES.adminHosts} options={FILTERS} active={status ?? ALL_STATUSES_FILTER} />
-
-      {total === 0 ? (
-        <EmptyState illustration="missing" title={COPY.empty.title} message={COPY.empty.message} />
-      ) : (
-        <>
+      <ListSurface
+        toolbar={<StatusFilter basePath={ROUTES.adminHosts} options={FILTERS} active={status ?? ALL_STATUSES_FILTER} />}
+        meta={COPY.count(total)}
+        footer={
+          total > 0 ? (
+            <Pagination total={total} page={pagination.page} size={pagination.size} basePath={ROUTES.adminHosts} query={{ [STATUS_FILTER_PARAM]: status }} />
+          ) : undefined
+        }
+      >
+        {total === 0 ? (
+          <div className="px-6">
+            <EmptyState illustration="missing" title={COPY.empty.title} message={COPY.empty.message} />
+          </div>
+        ) : (
           <AdminTable columns={COLUMNS}>
             {hosts.map(({ id, fullName, phone, serviceArea, tier, status: hostStatus, _count }) => (
               <AdminRow key={id}>
@@ -61,15 +62,8 @@ export default async function AdminHostsPage({
               </AdminRow>
             ))}
           </AdminTable>
-          <Pagination
-            total={total}
-            page={pagination.page}
-            size={pagination.size}
-            basePath={ROUTES.adminHosts}
-            query={{ [STATUS_FILTER_PARAM]: status }}
-          />
-        </>
-      )}
-    </div>
+        )}
+      </ListSurface>
+    </>
   );
 }

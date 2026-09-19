@@ -20,6 +20,8 @@ export const DECK_FIGURES = {
   /** Derived: 6.57m is 12.4% up, so the same months a year before were about 6.57 / 1.124. */
   arrivalsPriorYear: { value: 5.85, unit: 'm', period: 'Jan to Jul 2025' },
   jobs: { value: 1.8, unit: 'm', gdpPercent: 9 },
+  /** StatsSA QLFS official rate. TODO: confirm the latest quarter before this is presented. */
+  unemployment: { percent: 32.9, expandedPercent: 43.1, quarter: 'Q1 2025' },
   cashBusinesses: { value: 2.4, unit: 'm' },
   staysPer100: { stays: 5, of: 100 },
   leakage: { fromPercent: 40, toPercent: 50 },
@@ -34,7 +36,7 @@ export const DECK_FIGURES = {
 } as const;
 
 export const DECK_SOURCES = {
-  sa: 'International arrivals, jobs and share of GDP: StatsSA and WTTC via SAnews, 2026. Cash micro-businesses: FinScope. The 2025 bar is derived from the 12.4% rise. Check each before you quote it.',
+  sa: 'Unemployment: StatsSA Quarterly Labour Force Survey. International arrivals, jobs and share of GDP: StatsSA and WTTC via SAnews, 2026. Cash micro-businesses: FinScope. The 2025 bar is derived from the 12.4% rise. Check each before you quote it.',
   money: 'UNCTAD puts import leakage at 40 to 50% of gross tourism earnings for small developing economies. The $5 figure is widely cited from UNEP. Check each before you quote it.',
   market: 'Projected market size: Polaris Market Research and Market Intelo. Verify the exact figure before stage.',
   luxury: 'Synthesis of 2026 luxury travel trend coverage: Haute Retreats, AMT Travel, The Luxe Voyager and others.',
@@ -42,12 +44,23 @@ export const DECK_SOURCES = {
 } as const;
 
 /** The live app screens shown inside phones. Swap any of them for a screenshot by giving the slide an image instead. */
+/** A screenshot of something the deck cannot run live, saved in /public. */
+export const DECK_IMAGES = {
+  whatsAppOnboarding: '/presentation/whatsapp-onboarding.webp',
+  /** The drawn pattern that bleeds off the right edge of a slide carrying a mockup. */
+  slideEdge: '/presentation/slide-edge.webp',
+} as const;
+
 export const DECK_SCREENS = {
+  landing: '/',
+  hostWelcome: '/host/welcome',
   hostCreate: '/host/offerings/new',
   hostBookings: '/host/bookings',
   hostEarnings: '/host/earnings',
-  travellerHome: '/explore',
-  travellerListing: '/listings/off-langa-lunch',
+  travellerHome: '/traveller/explore',
+  travellerPlace: '/traveller/explore/places/cape-town',
+  travellerResults: '/traveller/explore/results',
+  travellerPlan: '/traveller/plan',
 } as const;
 
 export const DECK_COPY = {
@@ -78,8 +91,10 @@ export const DECK_COPY = {
   },
   numbers: {
     eyebrow: 'South Africa, right now',
-    headline: 'The country is winning.',
-    turn: 'The person is not.',
+    headline: 'The country is winning,',
+    turn: 'the people are not.',
+    unemployment: 'unemployed',
+    unemploymentNote: (expanded: number, quarter: string): string => `${expanded}% on the expanded definition, ${quarter}`,
     arrivals: 'international arrivals',
     arrivalsGrowth: (percent: number): string => `up ${percent}% year on year`,
     jobs: 'jobs supported by tourism',
@@ -101,7 +116,7 @@ export const DECK_COPY = {
   doors: {
     eyebrow: 'The gap',
     headline: 'The person who is the experience cannot get on the platform.',
-    sub: 'Two locked doors, one on each side of the same transaction.',
+    sub: 'Three locks on the same door, and the person with the most to offer is on the wrong side of it.',
     supply: {
       title: 'Supply cannot list',
       items: [
@@ -110,12 +125,7 @@ export const DECK_COPY = {
         { icon: 'shield-check', title: 'Trust', body: 'No reviews, no verification, no brand. A stranger has no reason to book.' },
       ],
     },
-    demand: {
-      title: 'Demand cannot pay',
-      amountCents: 240_000,
-      body: 'sits on one person’s card while they chase four friends for their share. Most groups downgrade the plan or never book it at all.',
-    },
-    close: 'Hosted opens both doors.',
+    close: 'Hosted unlocks all three.',
   },
   oneLiner: {
     eyebrow: 'Our answer',
@@ -224,8 +234,46 @@ export const DECK_COPY = {
       { value: 'First-timers', label: 'hosts who are unbanked, or have never sold on a platform' },
     ],
   },
+  features: {
+    eyebrow: 'Feature by feature',
+    tap: 'This is the real app. Tap it.',
+    shot: 'From the WhatsApp bot, running on the Meta Cloud API.',
+    items: [
+      {
+        title: 'A listing made by talking',
+        body: 'A host says what they offer in their own language. Claude writes the listing, translates it, and fills in what a traveller needs to know.',
+        points: ['One question a screen', 'Works on an entry-level Android', 'Nothing to type'],
+        route: DECK_SCREENS.hostCreate,
+      },
+      {
+        title: 'Onboarding that happens in WhatsApp',
+        body: 'A host does not download anything. They message the number they already use, answer in their own language, and the bot builds the account and the first listing with them.',
+        points: ['Meta Cloud API, no app install', 'Answers in isiZulu, isiXhosa, Afrikaans or English', 'SA ID validated in the conversation'],
+        image: DECK_IMAGES.whatsAppOnboarding,
+      },
+      {
+        title: 'Getting paid without a bank',
+        body: 'Earnings land on the phone. A host sees what is coming, what has cleared, and what it cost them, before they ever open a bank account.',
+        points: ['Cash-send and wallet payouts', 'The fee shown before the booking', 'No card, no bank, no branch'],
+        route: DECK_SCREENS.hostEarnings,
+      },
+      {
+        title: 'Browsing people, not products',
+        body: 'Every listing is one person, with their story, their place and their reviews. The traveller chooses a host, not a room.',
+        points: ['Photo-first, place by place', 'Verified and community-vouched hosts', 'Book and pay in rand'],
+        route: DECK_SCREENS.travellerPlace,
+      },
+      {
+        title: 'One itinerary, one group',
+        body: 'Friends build the trip together, drag experiences onto a day, and vote. The plan stops being one person chasing four others for money.',
+        points: ['A shared timeline', 'A vote per block', 'A pot that confirms when it fills'],
+        route: DECK_SCREENS.travellerPlan,
+      },
+    ],
+  },
   next: {
     eyebrow: 'Next',
+    openApp: 'Open the app',
     items: ['Tiered KYC with a payments partner', 'Real cash-send payouts', 'Escrow for pooled funds', 'Community Champions in every area', 'A recurring travel stokvel'],
     close: 'Travel that pays the people who make it worth the trip.',
   },

@@ -65,6 +65,7 @@ export const AUDIT_COPY = {
   allActions: 'Everything',
   filterLabel: 'Filter by action',
   columns: { when: 'When', who: 'Who', what: 'What happened' },
+  count: (total: number) => `${total} change${total === 1 ? '' : 's'}`,
   reasonSeparator: ' — ',
   metaSeparator: ' · ',
   noReason: 'No reason recorded',

@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useOptimistic, useState, useTransition } from 'react';
-import { Banner, Button, Icon } from '@/shared/components';
+import { Banner, Button, Icon, PatternField } from '@/shared/components';
 import { addBlockAction, planWithAiAction, removeBlockAction, setBlockTimeAction, voteAction } from '../actions';
 import { PLANNER_COPY, PLANNER_ERRORS } from '../constants';
 import type { VoteDto } from '../dto';
@@ -37,12 +37,13 @@ const applyVote = (blocks: PlannerBlock[], { blockId, up }: VoteDto): PlannerBlo
 const PANEL_CLOSED = 'hidden';
 const PANEL_OPEN = 'fixed inset-x-0 bottom-0 z-40 flex h-5/6 flex-col overflow-hidden rounded-t-xl shadow-lift';
 /*
- * A column container, so the panel's section is stretched to the panel's width instead of sizing to its
- * own content: the nowrap listing titles would otherwise push it past the border. The height leaves room
- * for the top bar above and the save bar below while the panel stays pinned during a long scroll.
+ * The deep green ground from the heroes, so the white cards read as the objects to pick up. A column
+ * container, so the panel's section is stretched to the panel's width instead of sizing to its own
+ * content: the nowrap listing titles would otherwise push it past the edge. The height leaves room for
+ * the top bar above and the save bar below while the panel stays pinned during a long scroll.
  */
 const PANEL_DESKTOP =
-  'bg-canvas desktop:sticky desktop:inset-x-auto desktop:bottom-auto desktop:top-20 desktop:flex desktop:h-auto desktop:max-h-[calc(100dvh-11rem)] desktop:w-96 desktop:shrink-0 desktop:flex-col desktop:overflow-hidden desktop:rounded-lg desktop:border desktop:border-hairline desktop:shadow-none';
+  'bg-primary-deep desktop:sticky desktop:inset-x-auto desktop:bottom-auto desktop:top-20 desktop:flex desktop:h-auto desktop:max-h-[calc(100dvh-11rem)] desktop:w-96 desktop:shrink-0 desktop:flex-col desktop:overflow-hidden desktop:rounded-lg desktop:shadow-none';
 
 interface PlanBoardProps {
   trip: PlannerTrip;
@@ -155,6 +156,7 @@ export const PlanBoard = ({ trip, candidates }: PlanBoardProps) => {
 
         {panelOpen ? <button type="button" aria-label={copy.closePanel} onClick={() => setPanelOpen(false)} className="fixed inset-0 z-30 bg-scrim/50 desktop:hidden" /> : null}
         <aside className={`${panelOpen ? PANEL_OPEN : PANEL_CLOSED} ${PANEL_DESKTOP}`}>
+          <PatternField />
           <ExperiencesPanel
             candidates={candidates}
             days={trip.days}
