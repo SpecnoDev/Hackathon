@@ -19,7 +19,8 @@ import type { CandidateOffering } from '../interfaces';
 import { formatDay, formatDuration } from '../utils';
 import { TypePill } from './TypePill';
 
-const THUMB_SIZES = '56px';
+/* A 240px plate on a phone, a 56px thumbnail beside the text on desktop. */
+const THUMB_SIZES = '(min-width: 70.5rem) 56px, 240px';
 const SEARCH_ICON_PX = 20;
 const CHECK_PX = 14;
 const HIDE_SCROLLBAR = '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
@@ -29,7 +30,13 @@ const PILL_OFF = 'bg-surface-soft text-ink';
 const SELECT = 'h-12 w-full rounded-md border border-ink bg-canvas px-4 text-button-sm text-ink';
 /* A sideways row on a phone, a column on desktop where it sits beside the timeline. */
 const LIST = `-mx-4 flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-1 ${HIDE_SCROLLBAR} desktop:mx-0 desktop:snap-none desktop:flex-col desktop:overflow-x-hidden desktop:overflow-y-auto desktop:px-0`;
-const CARD = 'flex w-60 shrink-0 snap-start flex-col gap-3 rounded-md border border-hairline bg-canvas p-3 desktop:w-auto desktop:shrink';
+/*
+ * The row stretches every card to its height, so on a phone the photo grows to fill the card and the
+ * button sits at the foot; on desktop the card is a compact row with the photo as a thumbnail.
+ */
+const CARD = 'flex w-60 shrink-0 snap-start flex-col overflow-hidden rounded-md border border-hairline bg-canvas desktop:w-auto desktop:shrink';
+const CARD_BODY = 'flex min-h-0 flex-1 flex-col desktop:flex-none desktop:flex-row desktop:gap-3 desktop:p-3 desktop:pb-0';
+const PLATE = 'relative min-h-28 w-full flex-1 bg-surface-soft desktop:size-14 desktop:min-h-0 desktop:w-14 desktop:flex-none desktop:shrink-0 desktop:overflow-hidden desktop:rounded-md';
 
 interface ExperiencesPanelProps {
   candidates: CandidateOffering[];
@@ -135,11 +142,17 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
       <ul ref={list} className={LIST}>
         {shown.map((candidate) => (
           <li key={candidate.id} draggable={!locked} onDragStart={(event) => startDrag(event, candidate.id)} className={`${CARD} ${locked ? '' : 'cursor-grab active:cursor-grabbing'}`}>
-            <div className="flex gap-3">
-              <span className="relative size-14 shrink-0 overflow-hidden rounded-md bg-surface-soft">
-                {candidate.photo ? <Image src={candidate.photo} alt="" fill sizes={THUMB_SIZES} className="object-cover" /> : null}
+            <div className={CARD_BODY}>
+              <span className={PLATE}>
+                {candidate.photo ? (
+                  <Image src={candidate.photo} alt="" fill sizes={THUMB_SIZES} className="object-cover" />
+                ) : (
+                  <span className="absolute inset-0 flex items-center justify-center text-muted-soft">
+                    <Icon name="image" />
+                  </span>
+                )}
               </span>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 p-3 desktop:p-0">
                 <p className="truncate text-title-sm text-ink">{candidate.title}</p>
                 <p className="truncate text-body-sm text-muted">{meta(candidate)}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -153,26 +166,30 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
                 </div>
               </div>
             </div>
-            {locked ? null : targetDay !== null ? (
-              <Button size="md" icon="plus" onClick={() => onAdd(candidate.id, targetDay)}>
-                {copy.add}
-              </Button>
-            ) : (
-              <select
-                aria-label={copy.addToDay}
-                value=""
-                onChange={(event) => {
-                  if (event.target.value) onAdd(candidate.id, Number(event.target.value));
-                }}
-                className={SELECT}
-              >
-                <option value="">{copy.addToDay}</option>
-                {days.map((day, index) => (
-                  <option key={day} value={index}>
-                    {copy.day(index + 1)}, {formatDay(day)}
-                  </option>
-                ))}
-              </select>
+            {locked ? null : (
+              <div className="p-3 pt-0">
+                {targetDay !== null ? (
+                  <Button size="md" icon="plus" onClick={() => onAdd(candidate.id, targetDay)}>
+                    {copy.add}
+                  </Button>
+                ) : (
+                  <select
+                    aria-label={copy.addToDay}
+                    value=""
+                    onChange={(event) => {
+                      if (event.target.value) onAdd(candidate.id, Number(event.target.value));
+                    }}
+                    className={SELECT}
+                  >
+                    <option value="">{copy.addToDay}</option>
+                    {days.map((day, index) => (
+                      <option key={day} value={index}>
+                        {copy.day(index + 1)}, {formatDay(day)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             )}
           </li>
         ))}

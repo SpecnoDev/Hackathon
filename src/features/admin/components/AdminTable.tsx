@@ -1,30 +1,25 @@
 import type { ReactNode } from 'react';
 
-/**
- * The back office is a desktop, traveller-density surface: the table sits in a hairline card, the
- * header on the soft surface, one hairline between rows, and a hover the host side never gets.
- */
+/** The rows of a `ListSurface`: a hairline under the header, one soft hairline between rows, a hover the host side never gets. */
 export const AdminTable = ({ columns, children }: { columns: readonly string[]; children: ReactNode }) => (
-  <div className="overflow-hidden rounded-lg border border-hairline bg-canvas">
+  <div className="overflow-x-auto">
     <table className="w-full border-collapse text-left">
-      <thead className="bg-surface-soft">
-        <tr>
+      <thead>
+        <tr className="border-b border-hairline">
           {columns.map((column) => (
-            <th key={column} scope="col" className="px-4 py-3 text-caption text-muted">
+            <th key={column} scope="col" className="whitespace-nowrap px-4 py-3 text-caption text-muted">
               {column}
             </th>
           ))}
         </tr>
       </thead>
-      <tbody className="text-body-sm text-ink">{children}</tbody>
+      <tbody className="divide-y divide-hairline-soft text-body-sm text-ink">{children}</tbody>
     </table>
   </div>
 );
 
 export const AdminRow = ({ children }: { children: ReactNode }) => (
-  <tr className="border-t border-hairline-soft transition-colors duration-150 hover:bg-surface-soft motion-reduce:transition-none">
-    {children}
-  </tr>
+  <tr className="transition-colors duration-150 hover:bg-sand motion-reduce:transition-none">{children}</tr>
 );
 
 export const AdminCell = ({ children, muted = false }: { children: ReactNode; muted?: boolean }) => (

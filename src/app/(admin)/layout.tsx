@@ -1,37 +1,37 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { APP_NAME, ROUTES } from '@/core/constants';
 import { requireAdminPage } from '@/core/guards';
-import { ROUTES } from '@/core/constants';
+import { AdminNav } from '@/features/admin/components';
+import { ADMIN_SHELL_COPY } from '@/features/admin/constants';
+import { HostedLogo } from '@/shared/components';
 
-export const metadata = { title: 'Backoffice' };
+export const metadata = { title: ADMIN_SHELL_COPY.title };
 
-const NAV = [
-  { href: ROUTES.admin, label: 'Overview' },
-  { href: ROUTES.adminHosts, label: 'Hosts' },
-  { href: ROUTES.adminTravellers, label: 'Travellers' },
-  { href: ROUTES.adminOfferings, label: 'Offerings' },
-  { href: ROUTES.adminAudit, label: 'Audit trail' },
-] as const;
-
+/** A sidebar from the desktop breakpoint, a bar above the content below it. The page floor is the sand, every surface on it the paper. */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const { email } = await requireAdminPage();
 
   return (
-    <div className="min-h-dvh bg-surface-soft">
-      <header className="border-b border-hairline bg-sand">
-        <div className="mx-auto flex h-14 max-w-page items-center gap-6 px-4">
-          <span className="text-title-sm text-ink">Backoffice</span>
-          <nav className="flex flex-1 gap-4">
-            {NAV.map(({ href, label }) => (
-              <Link key={href} href={href} className="text-body-sm text-muted hover:text-ink">
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <span className="text-body-sm text-muted">{email}</span>
+    <div className="flex min-h-dvh flex-col bg-sand desktop:flex-row">
+      <aside className="flex flex-col gap-4 border-b border-hairline bg-canvas px-4 py-3 desktop:sticky desktop:top-0 desktop:h-dvh desktop:w-64 desktop:shrink-0 desktop:border-b-0 desktop:border-r desktop:py-6">
+        <div className="flex items-center justify-between gap-3 desktop:flex-col desktop:items-start desktop:gap-2 desktop:px-3">
+          <Link href={ROUTES.admin} className="inline-flex items-center">
+            <HostedLogo name={APP_NAME} size="sm" />
+          </Link>
+          <span className="rounded-xs bg-surface-soft px-2 py-1 text-badge text-muted">{ADMIN_SHELL_COPY.title}</span>
         </div>
-      </header>
-      <main className="mx-auto max-w-page px-4 py-8">{children}</main>
+        <AdminNav />
+        <div className="hidden border-t border-hairline px-3 pt-4 desktop:mt-auto desktop:flex desktop:flex-col desktop:gap-0.5">
+          <span className="text-caption text-muted">{ADMIN_SHELL_COPY.signedInAs}</span>
+          <span title={email} className="truncate text-body-sm text-ink">
+            {email}
+          </span>
+        </div>
+      </aside>
+      <main className="min-w-0 flex-1">
+        <div className="mx-auto flex w-full max-w-page flex-col gap-8 px-4 py-6 tablet:px-8 tablet:py-10">{children}</div>
+      </main>
     </div>
   );
 }

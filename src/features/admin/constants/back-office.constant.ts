@@ -1,10 +1,36 @@
 import type { AccountStatus, OfferingCategory, OfferingStatus, PayoutChannel, VerificationTier } from '@prisma/client';
 import { ROUTES, SA_LOCALE } from '@/core/constants';
-import type { StatusTone } from '@/shared/components';
+import type { IconName, StatusTone } from '@/shared/components';
 
 /** The back office reads one screenful at a time; no list here is allowed to grow unbounded. */
 export const ADMIN_LIST_LIMIT = 100;
 export const ADMIN_HISTORY_LIMIT = 8;
+export const RECENT_CHANGES_LIMIT = 6;
+
+export const ADMIN_NAV = [
+  { href: ROUTES.admin, label: 'Overview', icon: 'compass' },
+  { href: ROUTES.adminHosts, label: 'Hosts', icon: 'users' },
+  { href: ROUTES.adminTravellers, label: 'Travellers', icon: 'backpack' },
+  { href: ROUTES.adminOfferings, label: 'Offerings', icon: 'tag' },
+  { href: ROUTES.adminAudit, label: 'Audit trail', icon: 'shield-check' },
+] as const satisfies readonly { href: string; label: string; icon: IconName }[];
+
+export const ADMIN_SHELL_COPY = {
+  title: 'Back office',
+  navLabel: 'Back office sections',
+  signedInAs: 'Signed in as',
+} as const;
+
+/** The bar and legend colours for a status, agreeing with the pill tones; the word is always beside them. */
+export const STATUS_BAR_TONE: Record<StatusTone, string> = {
+  draft: 'bg-surface-strong',
+  review: 'bg-accent',
+  live: 'bg-primary',
+  paused: 'bg-border-strong',
+  rejected: 'bg-error',
+};
+
+const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
 export const STATUS_FILTER_PARAM = 'status';
 /** The moderation queue opens on what needs an operator, so "everything" has to be asked for by name. */
@@ -93,22 +119,46 @@ export const ADMIN_COPY = {
   },
   overview: {
     title: 'Overview',
-    subtitle: 'Where Hosted stands right now. Every tile opens the list behind it.',
-    hosts: 'Hosts',
-    travellers: 'Travellers',
-    offerings: 'Offerings',
-    work: 'Work in flight',
-    paidOut: 'Paid out to hosts',
-    paidOutNote: 'Everything marked sent',
-    bookingsInFlight: 'Bookings in flight',
-    bookingsNote: 'Requested or confirmed, not finished',
-    payoutsPending: 'Payouts pending',
-    payoutsSent: 'Payouts sent',
-    amountNote: (amount: string) => `${amount} in total`,
+    subtitle: 'What needs an operator first, then where Hosted stands.',
+    queue: {
+      title: 'Needs you',
+      note: 'Open a row to work through it.',
+      clear: 'The queue is clear. Nothing is waiting on an operator.',
+      offeringsInReview: 'Offerings waiting for review',
+      hostsInReview: 'Hosts waiting for approval',
+      travellersInReview: 'Travellers waiting for approval',
+      hostsSuspended: 'Suspended hosts',
+      travellersSuspended: 'Suspended travellers',
+    },
+    glance: {
+      title: 'At a glance',
+      hosts: 'Hosts',
+      travellers: 'Travellers',
+      offerings: 'Offerings',
+      active: 'active',
+      live: 'live',
+      total: (count: number) => `${count} in total`,
+      none: 'None yet.',
+    },
+    money: {
+      title: 'Bookings and money',
+      bookingsInFlight: 'Bookings in flight',
+      bookingsNote: 'Requested or confirmed, not finished',
+      payoutsPending: 'Payouts pending',
+      paidOut: 'Paid out to hosts',
+      paidOutNote: (count: number) => `${plural(count, 'payout')} marked sent`,
+      amountNote: (amount: string) => `${amount} in total`,
+    },
+    recent: {
+      title: 'Recent changes',
+      all: 'See the whole trail',
+      empty: 'No admin has changed anything yet. Suspend a host or publish a listing and it lands here.',
+    },
   },
   hosts: {
     title: 'Hosts',
     subtitle: 'Everyone who lists on Hosted. Open a host to approve, suspend or verify them.',
+    count: (total: number) => plural(total, 'host'),
     columns: {
       name: 'Name',
       phone: 'Phone',
@@ -132,7 +182,9 @@ export const ADMIN_COPY = {
     tierNote: 'Override what KYC decided. The host keeps this tier until you change it again.',
     tierSave: 'Save tier',
     offerings: 'Their offerings',
+    offeringCount: (total: number) => plural(total, 'listing'),
     history: 'Recent admin history',
+    joined: (date: string) => `Joined ${date}`,
     reasonOnRecord: (reason: string) => `Reason on record: ${reason}`,
     changedAt: (when: string) => `Status changed ${when}`,
     fields: { phone: 'Phone', area: 'Area', joined: 'Joined', payout: 'Gets paid by' },
@@ -145,6 +197,7 @@ export const ADMIN_COPY = {
   travellers: {
     title: 'Travellers',
     subtitle: 'Everyone booking on Hosted. Suspend an account here and their bookings stop.',
+    count: (total: number) => plural(total, 'traveller'),
     columns: { name: 'Name', email: 'Email', bookings: 'Bookings', status: 'Status', actions: 'Actions' },
     empty: {
       title: 'Your travellers show here',
@@ -154,6 +207,7 @@ export const ADMIN_COPY = {
   offerings: {
     title: 'Offerings',
     subtitle: 'What hosts have sent for review. Approve it to take it live, or reject it with a reason.',
+    count: (total: number) => plural(total, 'offering'),
     columns: {
       title: 'Title',
       host: 'Host',
