@@ -15,12 +15,14 @@ interface OtpInputProps {
   /** Read out for each box, e.g. "Number 2 of 4". */
   digitLabel: (position: number) => string;
   invalid?: boolean;
+  disabled?: boolean;
 }
 
-export const OtpInput = ({ length, value, onChange, onComplete, digitLabel, invalid = false }: OtpInputProps) => {
+export const OtpInput = ({ length, value, onChange, onComplete, digitLabel, invalid = false, disabled = false }: OtpInputProps) => {
   const boxes = useRef<Array<HTMLInputElement | null>>([]);
 
   const commit = (next: string): void => {
+    if (disabled) return;
     const digits = next.replace(NON_DIGITS, '').slice(0, length);
     onChange(digits);
     boxes.current[Math.min(digits.length, length - 1)]?.focus();
@@ -53,10 +55,11 @@ export const OtpInput = ({ length, value, onChange, onComplete, digitLabel, inva
           aria-label={digitLabel(index + 1)}
           aria-invalid={invalid}
           autoFocus={index === 0}
+          disabled={disabled}
           onChange={(event) => commit(value.slice(0, index) + event.target.value)}
           onKeyDown={(event) => handleKeyDown(event, index)}
           onPaste={handlePaste}
-          className={`${BOX} ${invalid ? BOX_ERROR : BOX_OK}`}
+          className={`${BOX} ${invalid ? BOX_ERROR : BOX_OK} disabled:opacity-60`}
         />
       ))}
     </div>

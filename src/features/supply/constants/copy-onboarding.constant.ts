@@ -64,6 +64,7 @@ export const COPY_WELCOME = {
 
 export const COPY_REGISTER = {
   flowTitle: 'Join',
+  signInFlowTitle: 'Sign in',
   useDifferentNumber: 'Use a different number',
   alreadyRegistered: {
     title: 'This number already has a Hosted account',
@@ -96,6 +97,7 @@ export const COPY_REGISTER = {
     resendIn: (seconds: number): string => `You can ask for a new code in ${seconds} seconds.`,
     resend: 'Send again',
     resent: 'We sent you a new code.',
+    verifying: 'Checking your code…',
     whatsapp: 'Get the code on WhatsApp instead',
     whatsappSent: 'We sent the code to your WhatsApp.',
   },

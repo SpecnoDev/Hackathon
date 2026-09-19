@@ -19,6 +19,7 @@ export * from './PriceSummary';
 export * from './RatingRow';
 export * from './Sheet';
 export * from './Skeleton';
+export * from './Spinner';
 export * from './StatusPill';
 export * from './StepIndicator';
 export * from './Stepper';

@@ -21,6 +21,8 @@ export const ROUTES = {
   hostEarnings: '/host/earnings',
   hostProfile: '/host/profile',
   flows: '/flows',
+  /** The hackathon pitch deck; public so a judge's device opens it with no sign-in. */
+  presentation: '/presentation',
   admin: '/admin',
   adminHosts: '/admin/hosts',
   adminTravellers: '/admin/travellers',
@@ -40,6 +42,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.hostLink,
   ROUTES.explore,
   ROUTES.listings,
+  ROUTES.presentation,
 ] as const;
 
 /**

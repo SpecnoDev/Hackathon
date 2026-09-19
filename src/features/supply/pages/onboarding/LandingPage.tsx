@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { APP_NAME } from '@/core/constants';
+import { APP_NAME, ROUTES } from '@/core/constants';
 import { Button, Icon, type IconName } from '@/shared/components';
 import { platformFeePercent } from '@/shared/utils';
 import { HostScreen } from '../../components';
@@ -58,11 +59,22 @@ export const LandingPage = () => {
       }
     >
       <div className="flex flex-col gap-8">
-        <header className="flex items-center justify-between">
-          <p className="font-display text-display-md text-primary">{APP_NAME}</p>
-          <Button size="md" fullWidth={false} onClick={join}>
-            {copy.joinShort}
-          </Button>
+        <header className="flex flex-col gap-4">
+          <Link
+            href={ROUTES.home}
+            className="inline-flex w-fit items-center gap-1 text-link text-primary-text underline"
+          >
+            <Icon name="chevron-left" />
+            {HOST_COPY.common.back}
+          </Link>
+          <div className="flex items-center justify-between">
+            <Link href={ROUTES.home} className="font-display text-display-md text-primary">
+              {APP_NAME}
+            </Link>
+            <Button size="md" fullWidth={false} onClick={join}>
+              {copy.joinShort}
+            </Button>
+          </div>
         </header>
 
         <div className="flex flex-col gap-4 py-4">
