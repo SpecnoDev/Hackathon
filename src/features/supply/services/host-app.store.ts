@@ -109,6 +109,12 @@ class HostAppStore {
   private readonly listeners = new Set<Listener>();
   private syncing: Promise<void> | undefined;
   /**
+   * Writes `enqueue` fired straight at the network (online path) rather than queuing in the outbox.
+   * Added when the send starts, removed once it settles — `signOut` awaits whatever's left so a
+   * write started a moment before "Sign out" is clicked still lands before the session is torn down.
+   */
+  private readonly inFlightSends = new Set<Promise<unknown>>();
+  /**
    * F4: bumped on confirmCode success and on sign-out, the two moments the `host_session` cookie
    * changes whose it is. `runSync` captures this at start and re-checks it after each await, so a
    * sync started under the old identity discards its result instead of writing state (including
@@ -277,11 +283,13 @@ class HostAppStore {
       this.update((state) => ({ ...state, outbox: [...state.outbox, entry] }));
       return true;
     }
-    void hostApiService.send(entry).then((result) => {
+    const send = hostApiService.send(entry).then((result) => {
       if (result.outcome === 'SYNCED') onSuccess?.(result.data);
       else if (result.outcome === 'RETRY') this.update((state) => ({ ...state, outbox: [...state.outbox, entry] }));
       else this.clearPendingSync(entry);
     });
+    this.inFlightSends.add(send);
+    void send.finally(() => this.inFlightSends.delete(send));
     return false;
   }
 
@@ -767,20 +775,28 @@ class HostAppStore {
   }
 
   /**
-   * Flushes the outbox first so unsynced host work is never wiped: `flushOutbox()` only fires the
-   * replay and returns immediately, so we drive `replayOutbox` directly here and wait for it. Local
-   * data is only wiped once the server has actually expired the `host_session` cookie — otherwise a
-   * shared phone would keep a live session after "signing out" offline — so this needs the network.
-   * Only the signed-in host's own entries count towards "still pending" (F4): a dormant entry left
+   * Tries to flush unsynced host work first, but neither wait below gates the session DELETE: F4
+   * bounds every `hostApiService.request` to HOST_API_TIMEOUT_MS (host-api.service.ts), so a stalled
+   * network can no longer hang this method and hold the `host_session` cookie (and the session) alive
+   * on a shared phone — it now just fails the wait within that bound and sign-out proceeds regardless.
+   * The DELETE itself is idempotent, so sending it whether or not the flush succeeded is safe. Local
+   * data is still only wiped once the server has actually expired the cookie (`response.ok`) —
+   * otherwise a shared phone would keep a live session after "signing out" offline — so `OFFLINE` now
+   * means only that the DELETE itself failed (network down, or timed out), not that the outbox was
+   * still pending. Only the signed-in host's own entries are attempted (F4): a dormant entry left
    * behind by an earlier host switch (see switchActiveHost) is never this host's to wait on.
    */
   async signOut(): Promise<'SIGNED_OUT' | 'OFFLINE'> {
     const activeHostId = this.state.activeHostId;
+    // Writes `enqueue` sent straight at the network (online path, never queued) are still in flight
+    // the moment Sign out is tapped — e.g. completeRegistration's PATCH, moments before the done
+    // screen's header renders the Sign out button. Wait for them too, or the session DELETE below can
+    // land first and the write is lost or rejected under a session that's already gone.
+    if (this.inFlightSends.size > 0) await Promise.allSettled(this.inFlightSends);
     const ownOutbox = this.state.outbox.filter((entry) => entry.hostId === activeHostId);
-    if (ownOutbox.length > 0) {
-      await this.replayOutbox(ownOutbox);
-      if (this.state.outbox.some((entry) => entry.hostId === activeHostId)) return 'OFFLINE';
-    }
+    if (ownOutbox.length > 0) await this.replayOutbox(ownOutbox);
+    // Unconditional and idempotent: a failed or timed-out flush above no longer blocks this, so a
+    // stalled network can only ever delay sign-out by HOST_API_TIMEOUT_MS per wait, never hang it.
     const response = await hostApiService.request('DELETE', `${API}/auth/host/session`);
     if (!response.ok) return 'OFFLINE';
     // F4/2: the session cookie is now gone, so any sync still in flight is answering for a host

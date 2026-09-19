@@ -1,4 +1,5 @@
 import { HTTP_STATUS } from '@/core/constants';
+import { HOST_API_TIMEOUT_MS } from '../constants';
 import type { OutboxEntry } from '../interfaces';
 
 const JSON_CONTENT_TYPE = { 'content-type': 'application/json' } as const;
@@ -10,10 +11,22 @@ export interface HostApiResponse<T = unknown> {
   errorCode?: string;
 }
 
-/** Same-origin fetch: the server reads its session from the `host_session` cookie automatically. */
+/**
+ * Same-origin fetch: the server reads its session from the `host_session` cookie automatically.
+ * F4: bounded by HOST_API_TIMEOUT_MS — plain `fetch` has no timeout of its own, so a stalled network
+ * (or a hung server) would otherwise wait forever. `AbortSignal.timeout` throws a `TimeoutError`
+ * (a `DOMException`), caught below and folded into the same `status: 0` shape as an offline/network
+ * failure, which `send()` already maps to the RETRY outcome — a timeout is just another form of
+ * "couldn't reach the server", not a new case callers need to know about.
+ */
 const request = async <T = unknown>(method: string, path: string, body?: unknown): Promise<HostApiResponse<T>> => {
   try {
-    const response = await fetch(path, { method, headers: JSON_CONTENT_TYPE, body: body === undefined ? undefined : JSON.stringify(body) });
+    const response = await fetch(path, {
+      method,
+      headers: JSON_CONTENT_TYPE,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: AbortSignal.timeout(HOST_API_TIMEOUT_MS),
+    });
     const json = (await response.json().catch(() => undefined)) as { data?: T; error?: { code?: string } } | undefined;
     return { ok: response.ok, status: response.status, data: json?.data, errorCode: json?.error?.code };
   } catch {
