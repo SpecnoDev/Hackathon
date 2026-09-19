@@ -15,7 +15,7 @@ export const DocumentTypePage = () => {
   const chosen = useHostApp(selectDocumentType);
 
   useEffect(() => {
-    if (isDemoMode && !chosen) hostAppStore.setVerification({ documentType: DEMO_DOCUMENT_TYPE });
+    if (isDemoMode() && !chosen) hostAppStore.setVerification({ documentType: DEMO_DOCUMENT_TYPE });
   }, [chosen]);
 
   return (

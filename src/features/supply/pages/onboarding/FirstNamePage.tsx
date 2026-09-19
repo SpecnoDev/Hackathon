@@ -20,7 +20,7 @@ export const FirstNamePage = () => {
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (isDemoMode && !firstName) hostAppStore.answerRegistration({ firstName: DEMO_FIRST_NAME });
+    if (isDemoMode() && !firstName) hostAppStore.answerRegistration({ firstName: DEMO_FIRST_NAME });
   }, [firstName]);
 
   const next = (): void => {

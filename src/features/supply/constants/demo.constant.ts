@@ -1,31 +1,29 @@
+import { DEMO_MODE_COOKIE, DEMO_MODE_ON } from '@/core/constants';
 import type { CaptureKind, ContactChannel, DocumentType, LanguageCode, OfferingKind } from '../interfaces';
 
 /**
- * Hackathon pitch-mode flag. `NEXT_PUBLIC_DEMO_MODE=true` drives the host happy path — Welcome →
- * Join → language → phone → OTP → name → contact → done → verify → create listing → published —
- * with no typing, recording, camera or choice screens for every step but the OTP: every other
- * screen it touches prefills a canned answer instead of waiting for input, so a presenter can click
- * straight through with one tap per screen's primary CTA. The OTP step is the one exception — the
- * presenter types any 4 digits and submits on the 4th, same as the non-demo path.
+ * Hackathon pitch-mode flag. On, it drives the host happy path — Welcome → Join → language → phone →
+ * OTP → name → contact → done → verify → create listing → published — with no typing, recording,
+ * camera or choice screens for every step but the OTP: every other screen it touches prefills a
+ * canned answer instead of waiting for input, so a presenter can click straight through with one tap
+ * per screen's primary CTA. Every prefill fills only an empty answer, so a judge who types wins.
+ *
+ * Switched from the back office (Demo mode in the sidebar), not a build-time variable, so it turns on
+ * and off without a deploy. It lives in a cookie on the presenter's browser: on any other device every
+ * prefill effect is a no-op and the flow behaves exactly as it does today. Read at call time, so the
+ * toggle takes effect on the next screen. On the server there is no document, and the host screens
+ * decide after the store is ready, so nothing is prefilled during server rendering.
  *
  * Requires `ALLOW_MOCK_AUTH=true` (see `core/constants/auth.constant.ts`, `isMockAuthEnabled`) so
  * any 4-digit code but `MOCK_OTP_REJECTED_CODE` ('0000') is accepted by `/api/v1/auth/host/verify`.
- * Off by default — whenever the var is absent (including production), every prefill effect below is
- * a no-op and the flow behaves exactly as it does today. Removal target: after judging, 2026-09-19
- * (matches `isMockAuthEnabled`).
- *
- * Read as a static literal, not through `optionalEnv`: Next.js only inlines a `NEXT_PUBLIC_` value
- * into the browser bundle when it sees the full `process.env.NEXT_PUBLIC_X` literal (same pattern as
- * `core/services/client/supabase-browser.service.ts`).
- *
- * The server-side page-auth redirect bypass lives in `isDemoBypassEnabled` (ALLOW_DEMO_BYPASS,
- * `core/constants/auth.constant.ts`), not this flag.
+ * The server-side page-auth redirect bypass lives in `isDemoBypassEnabled` (ALLOW_DEMO_BYPASS), not here.
  *
  * `EnterCodePage`, on Join, routes a `RETURNING` result the same as `NEW_HOST` — the canned phone
  * number is reused on every run, so by run two it is a real, existing host, and Join must not
  * dead-end on "already registered".
  */
-export const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+export const isDemoMode = (): boolean =>
+  typeof document !== 'undefined' && document.cookie.split('; ').includes(`${DEMO_MODE_COOKIE}=${DEMO_MODE_ON}`);
 
 /** A local SA mobile number that passes `phoneNumberSchema` (`isSaMobile`). Never sent to a real host. */
 export const DEMO_PHONE_LOCAL = '0821234567';

@@ -409,7 +409,7 @@ class HostAppStore {
     // canned host — fire it and return immediately; EnterCodePage's own demo check routes a Join the
     // same way regardless of what this would have resolved to. Sign-in keeps the awaited, accurate
     // read below since its RETURNING/NEW_HOST split still drives real routing.
-    if (isDemoMode && this.state.registration.intent === 'JOIN') {
+    if (isDemoMode() && this.state.registration.intent === 'JOIN') {
       void this.syncFromServer();
       return 'NEW_HOST';
     }
@@ -511,7 +511,7 @@ class HostAppStore {
       const tier = (data as { tier?: Host['tier'] } | undefined)?.tier;
       if (tier) this.patchHost({ tier });
     });
-    this.setVerification({ state: 'CHECKING', resolveAt: inMs(isDemoMode ? DEMO_CHECKING_DELAY_MS : DEMO_VERIFICATION_DELAY_MS) });
+    this.setVerification({ state: 'CHECKING', resolveAt: inMs(isDemoMode() ? DEMO_CHECKING_DELAY_MS : DEMO_VERIFICATION_DELAY_MS) });
   }
 
   /** Demo only: stands in for the KYC provider calling back. */

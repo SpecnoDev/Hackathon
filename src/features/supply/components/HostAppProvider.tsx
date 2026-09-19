@@ -29,7 +29,7 @@ const useRedirectSignedOut = (): void => {
 
   useEffect(() => {
     // Demo mode has no signed-in host by design; this is UI navigation, not authz, so it no-ops here.
-    if (!ready || signedIn || isDemoMode) return;
+    if (!ready || signedIn || isDemoMode()) return;
     if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return;
     router.replace(HOST_ROUTES.welcome);
   }, [ready, signedIn, pathname, router]);

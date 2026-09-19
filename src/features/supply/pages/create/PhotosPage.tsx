@@ -22,7 +22,7 @@ export const PhotosPage = () => {
   // Demo pitch mode: loads the three sample photos so the listing already qualifies to go LIVE
   // (PHOTOS_TO_GO_LIVE) and the presenter's only tap is the existing Continue button.
   useEffect(() => {
-    if (!isDemoMode || !draft || photoCount > 0 || demoLoaded.current) return;
+    if (!isDemoMode() || !draft || photoCount > 0 || demoLoaded.current) return;
     demoLoaded.current = true;
     void (async () => {
       for (const src of DEMO_LISTING_PHOTOS) {

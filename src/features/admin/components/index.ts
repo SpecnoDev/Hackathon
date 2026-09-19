@@ -3,6 +3,7 @@ export * from './AdminStatusPill';
 export * from './AdminTable';
 export * from './AuditTable';
 export * from './ConfirmDecision';
+export * from './DemoModeToggle';
 export * from './Figure';
 export * from './FilterChips';
 export * from './ListSurface';

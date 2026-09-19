@@ -70,5 +70,13 @@ export const isDemoBypassEnabled = (): boolean =>
 /** Stamped on audit rows written while the demo bypass is on, so they are never mistaken for a real admin. */
 export const DEMO_ADMIN_EMAIL = 'demo-operator@hosted.local';
 
+/**
+ * Pitch mode is switched from the back office and lives in this cookie, so it follows the browser the
+ * presenter toggled it in and never a judge's. Not httpOnly: the host app reads it client-side.
+ */
+export const DEMO_MODE_COOKIE = 'hosted_demo';
+export const DEMO_MODE_ON = '1';
+export const DEMO_MODE_COOKIE_MAX_AGE_SECONDS = 30 * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
+
 export const otpMessage = (code: string): string =>
   `${code} is your sign-in code. It expires in ${OTP_TTL_MINUTES} minutes. Never share it.`;
