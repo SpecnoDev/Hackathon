@@ -23,37 +23,46 @@ interface PhoneFrameProps {
   label: string;
   /** How tall the phone is on the slide; the screen is scaled to fit. */
   height: number;
+  /** A line under the phone, held to the width of the screen so long copy wraps instead of widening the column. */
+  caption?: string;
 }
 
 /**
  * A phone on a slide. By default the screen is the real app in an iframe, so the deck never shows a stale picture
  * and the presenter can tap through it. Hand it an image to freeze a moment instead.
  */
-export const PhoneFrame = ({ route, image, label, height }: PhoneFrameProps) => {
+export const PhoneFrame = ({ route, image, label, height, caption }: PhoneFrameProps) => {
   const scale = (height - BEZEL_PX * 2) / PHONE_HEIGHT;
   const screenWidth = PHONE_WIDTH * scale;
   const screenHeight = PHONE_HEIGHT * scale;
 
   return (
-    <div
-      className="animate-deck-rise rounded-lg bg-canvas shadow-[0_2px_4px_rgba(0,0,0,0.06),0_12px_32px_rgba(0,0,0,0.18)] ring-1 ring-ink/10 motion-reduce:animate-none"
-      style={{ padding: BEZEL_PX, animationDelay: '300ms' }}
-    >
-      <div className="relative overflow-hidden rounded-sm bg-canvas" style={{ width: screenWidth, height: screenHeight }}>
-        {image ? (
-          // A screenshot is a plain file in /public; next/image would need its size up front and gains nothing here.
-          <img src={image} alt={label} className="size-full object-cover object-top" />
-        ) : (
-          <iframe
-            src={route}
-            title={label}
-            loading="lazy"
-            onLoad={hideScrollbars}
-            className="origin-top-left border-0"
-            style={{ width: PHONE_WIDTH, height: PHONE_HEIGHT, transform: `scale(${scale})` }}
-          />
-        )}
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className="animate-deck-rise rounded-lg bg-canvas shadow-[0_2px_4px_rgba(0,0,0,0.06),0_12px_32px_rgba(0,0,0,0.18)] ring-1 ring-ink/10 motion-reduce:animate-none"
+        style={{ padding: BEZEL_PX, animationDelay: '300ms' }}
+      >
+        <div className="relative overflow-hidden rounded-sm bg-canvas" style={{ width: screenWidth, height: screenHeight }}>
+          {image ? (
+            // A screenshot is a plain file in /public; next/image would need its size up front and gains nothing here.
+            <img src={image} alt={label} className="size-full object-cover object-top" />
+          ) : (
+            <iframe
+              src={route}
+              title={label}
+              loading="lazy"
+              onLoad={hideScrollbars}
+              className="origin-top-left border-0"
+              style={{ width: PHONE_WIDTH, height: PHONE_HEIGHT, transform: `scale(${scale})` }}
+            />
+          )}
+        </div>
       </div>
+      {caption ? (
+        <p className="text-center text-[0.625rem] leading-snug text-muted" style={{ width: screenWidth }}>
+          {caption}
+        </p>
+      ) : null}
     </div>
   );
 };

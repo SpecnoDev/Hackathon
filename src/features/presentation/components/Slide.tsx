@@ -65,24 +65,30 @@ interface SlideProps {
   children: ReactNode;
 }
 
+/**
+ * The eyebrow and the headline. Normally the slide draws it across the top; a slide whose right half is a mockup
+ * puts it at the head of its text column instead, so the phone gets the full height of the slide.
+ */
+export const SlideHeading = ({ tone, eyebrow, headline }: { tone: SlideTone; eyebrow?: string; headline?: ReactNode }) => (
+  <header className="flex flex-col gap-3">
+    {eyebrow ? (
+      <Reveal>
+        <p className={`text-badge uppercase tracking-[0.22em] ${EYEBROW[tone]}`}>{eyebrow}</p>
+      </Reveal>
+    ) : null}
+    {headline ? (
+      <Reveal order={1}>
+        <h2 className="max-w-3xl font-display text-display-xl">{headline}</h2>
+      </Reveal>
+    ) : null}
+  </header>
+);
+
 export const Slide = ({ tone, eyebrow, headline, source, edge = false, children }: SlideProps) => (
   <section className={`relative flex size-full flex-col gap-5 overflow-hidden px-14 pb-6 pt-10 ${TONE[tone]}`}>
     {tone === 'green' || tone === 'brand' ? <PatternField /> : null}
     {edge ? <EdgePattern /> : null}
-    {eyebrow || headline ? (
-      <header className="flex flex-col gap-3">
-        {eyebrow ? (
-          <Reveal>
-            <p className={`text-badge uppercase tracking-[0.22em] ${EYEBROW[tone]}`}>{eyebrow}</p>
-          </Reveal>
-        ) : null}
-        {headline ? (
-          <Reveal order={1}>
-            <h2 className="max-w-3xl font-display text-display-xl">{headline}</h2>
-          </Reveal>
-        ) : null}
-      </header>
-    ) : null}
+    {eyebrow || headline ? <SlideHeading tone={tone} eyebrow={eyebrow} headline={headline} /> : null}
     <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     {source ? <p className={`text-[0.625rem] leading-snug ${SOURCE[tone]}`}>{source}</p> : null}
   </section>

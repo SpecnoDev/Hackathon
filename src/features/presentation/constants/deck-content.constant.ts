@@ -242,12 +242,25 @@ export const DECK_COPY = {
       'Group itinerary with voting, and a stokvel-style pot that confirms on fill',
       'Supabase and Prisma behind one API, seeded across real South African places',
     ],
-    measureTitle: 'What we promise to measure',
-    measures: [
-      { value: '15 min', label: 'from sign-up to a first live listing, by voice' },
-      { value: 'R paid out', label: 'to hosts, and the share paid without a bank' },
-      { value: 'First-timers', label: 'hosts who are unbanked, or have never sold on a platform' },
+    impactTitle: 'What changes if this works',
+    impacts: [
+      {
+        icon: 'banknote',
+        title: 'Work that pays',
+        body: 'Every booking is income for a guide, a driver or a cook, in an economy tourism touches but rarely pays.',
+      },
+      {
+        icon: 'users',
+        title: 'A seat in the economy',
+        body: 'No bank account, no website, no English web form. List what you offer, get booked, get paid.',
+      },
+      {
+        icon: 'compass',
+        title: 'Travel worth the trip',
+        body: 'The day inside local life that no hotel can sell, from the person whose place it is.',
+      },
     ],
+    impactMeasure: 'We will know it is working when a host goes from sign-up to a live listing in 15 minutes by voice, when rands land without a bank, and when most hosts are people who have never sold on a platform before.',
   },
   features: {
     eyebrow: 'Feature by feature',
