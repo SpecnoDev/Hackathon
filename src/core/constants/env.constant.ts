@@ -15,6 +15,7 @@ export const ENV_KEYS = {
   adminEmails: 'ADMIN_EMAILS',
   appUrl: 'NEXT_PUBLIC_APP_URL',
   allowMockAuth: 'ALLOW_MOCK_AUTH',
+  allowDemoBypass: 'ALLOW_DEMO_BYPASS',
 } as const;
 
 export const DEFAULT_GRAPH_VERSION = 'v21.0';
