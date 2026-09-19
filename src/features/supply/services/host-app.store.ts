@@ -106,6 +106,13 @@ class HostAppStore {
   private syncing: Promise<void> | undefined;
   /** Hosts the demo ledger graft has already run for, this session. See graftDemoLedgerOnto. */
   private readonly ledgerGraftedHostIds = new Set<string>();
+  /**
+   * F4: bumped on confirmCode success and on sign-out, the two moments the `host_session` cookie
+   * changes whose it is. `runSync` captures this at start and re-checks it after each await, so a
+   * sync started under the old identity discards its result instead of writing state (including
+   * `activeHostId`) for a host that is no longer the one signed in.
+   */
+  private syncGeneration = 0;
 
   subscribe = (listener: Listener): (() => void) => {
     this.listeners.add(listener);
@@ -118,13 +125,26 @@ class HostAppStore {
 
   hydrate(): Promise<void> {
     this.hydration ??= hostAppStorage.loadSnapshot().then((saved) => {
-      if (saved?.schemaVersion === HOST_APP_SCHEMA_VERSION) this.state = saved;
+      if (saved?.schemaVersion === HOST_APP_SCHEMA_VERSION) this.state = this.withOutboxMigrated(saved);
       this.ready = true;
       this.emit();
       // Best-effort and never awaited: ready stays IndexedDB-driven so venue Wi-Fi never white-screens.
       if (connectivityService.isOnline()) void this.syncFromServer();
     });
     return this.hydration;
+  }
+
+  /**
+   * F4 migration: an outbox entry saved before `hostId` existed on `OutboxEntry` carries no proof
+   * of whose write it was. Guessing "whoever is active now" would recreate the exact bug this
+   * closes if the active host has changed since, so a legacy entry is dropped rather than
+   * guessed at — the write was queued once and the host can redo it once signed back in.
+   */
+  private withOutboxMigrated(saved: HostAppState): HostAppState {
+    const legacy = saved.outbox.filter((entry) => !entry.hostId);
+    if (legacy.length === 0) return saved;
+    console.warn(`host-app.store: dropping ${legacy.length} outbox entr${legacy.length === 1 ? 'y' : 'ies'} saved before per-host tracking existed`);
+    return { ...saved, outbox: saved.outbox.filter((entry) => entry.hostId) };
   }
 
   /**
@@ -140,8 +160,9 @@ class HostAppStore {
   }
 
   private async runSync(): Promise<void> {
+    const generation = this.syncGeneration;
     const profileResponse = await hostApiService.request<HostProfileRow>('GET', `${API}/hosts/me`);
-    if (!profileResponse.ok || !profileResponse.data) return;
+    if (generation !== this.syncGeneration || !profileResponse.ok || !profileResponse.data) return;
     const profile = profileResponse.data;
     const hostId = profile.id;
     const existingHost = this.state.hosts.find((item) => item.id === hostId);
@@ -156,7 +177,7 @@ class HostAppStore {
 
     const syncStartedAt = now();
     const offeringsResponse = await hostApiService.request<OfferingRow[]>('GET', `${API}/hosts/me/offerings`);
-    if (!offeringsResponse.ok || !offeringsResponse.data) return;
+    if (generation !== this.syncGeneration || !offeringsResponse.ok || !offeringsResponse.data) return;
     const rows = offeringsResponse.data;
     this.update((state) => {
       const localById = new Map(state.offerings.map((item) => [item.id, item]));
@@ -238,7 +259,7 @@ class HostAppStore {
    * Returns true when the write is (at least optimistically) still waiting to upload.
    */
   private enqueue(method: OutboxEntry['method'], path: string, body?: unknown, onSuccess?: (data: unknown) => void): boolean {
-    const entry: OutboxEntry = { id: createId(), method, path: `${API}${path}`, body, attempts: 0 };
+    const entry: OutboxEntry = { id: createId(), hostId: this.host.id, method, path: `${API}${path}`, body, attempts: 0 };
     if (!connectivityService.isOnline()) {
       this.update((state) => ({ ...state, outbox: [...state.outbox, entry] }));
       return true;
@@ -296,8 +317,10 @@ class HostAppStore {
     }));
   }
 
+  /** F4: never sends a write for a host that isn't the one currently signed in, even if a caller hands it a mixed list. */
   private async replayOutbox(entries: OutboxEntry[]): Promise<void> {
     for (const entry of entries) {
+      if (entry.hostId !== this.state.activeHostId) continue;
       const result = await hostApiService.send(entry);
       this.settleOutboxEntry(entry, result.outcome);
     }
@@ -305,7 +328,7 @@ class HostAppStore {
 
   /** Called when signal returns. Returns how many writes were waiting; the replay itself finishes asynchronously. */
   flushOutbox(): number {
-    const entries = this.state.outbox;
+    const entries = this.state.outbox.filter((entry) => entry.hostId === this.state.activeHostId);
     if (entries.length > 0) void this.replayOutbox(entries);
     return entries.length;
   }
@@ -335,7 +358,20 @@ class HostAppStore {
     const phone = this.state.registration.phone ?? '';
     const response = await hostApiService.request<{ id: string }>('POST', `${API}/auth/host/verify`, { phone, code });
     if (!response.ok) return 'WRONG_CODE';
+    // F4/2: the verify route already set the host_session cookie to this host server-side before
+    // this response landed, so the browser is no longer the outgoing host's from this point on —
+    // bump the generation so an in-flight runSync from before this call discards its result
+    // instead of writing the outgoing host's activeHostId/offerings over this one.
+    this.syncGeneration++;
     const hostId = response.data?.id;
+    // F4: activeHostId flips to the verified host the moment the cookie does — switchActiveHost
+    // sets it in the same update as the local-state wipe, so from this line on no outbox entry
+    // with a different hostId can ever match `activeHostId` and be replayed under this cookie,
+    // even if the sync below never finishes (offline right after verifying). This device may still
+    // be holding another host's local data (outbox, drafts, verification, registration); the wipe
+    // only clears local state, so its ordering relative to the cookie doesn't matter — it just has
+    // to happen before this device is treated as this host's from here on.
+    if (hostId) this.switchActiveHost(hostId);
     this.answerRegistration({ codeConfirmed: true, hostId });
     // The host_session cookie was just set: any sync already in flight started before it existed
     // and is answering a different question, so don't coalesce onto it.
@@ -343,6 +379,36 @@ class HostAppStore {
     await this.syncFromServer();
     const host = this.state.hosts.find((item) => item.id === hostId);
     return host?.firstName.trim() ? 'RETURNING' : 'NEW_HOST';
+  }
+
+  /**
+   * F4: activeHostId flips to the verified host the moment the cookie does — this sets it in the
+   * same update as the wipe below, so the two can never be observed apart. The outgoing host's
+   * outbox must NOT be replayed here — by the time this runs, the `host_session` cookie is already
+   * the new host's (the verify route sets it before responding, see confirmCode), so any write sent
+   * now would land under the new host's session. Instead, when actually switching identity, this
+   * only drops local device state that belongs to the outgoing host: drafts, verification progress,
+   * the last publish, and the identity half of `registration` (name, contact channel, completed-at).
+   * `language`/`phone`/`codeSentAt` survive — they belong to whoever is signing in right now, not
+   * the host being replaced. Re-verifying the same phone (hostId already active) skips the wipe
+   * entirely, so a retry never blows away that host's own in-progress local state.
+   * The outgoing host's outbox entries stay put, still tagged with their hostId; `flushOutbox`/
+   * `replayOutbox` both filter by `activeHostId`, so they simply wait, untouched, until that host
+   * is active again (signs back in on this device) and matches the filter once more.
+   */
+  private switchActiveHost(hostId: string): void {
+    this.update((state) =>
+      state.activeHostId === hostId
+        ? { ...state, activeHostId: hostId }
+        : {
+            ...state,
+            activeHostId: hostId,
+            drafts: {},
+            verification: { state: 'IDLE' },
+            lastPublished: undefined,
+            registration: { language: state.registration.language, phone: state.registration.phone, codeSentAt: state.registration.codeSentAt },
+          },
+    );
   }
 
   /** The last step. Creates the host and signs them in. */
@@ -674,14 +740,21 @@ class HostAppStore {
    * replay and returns immediately, so we drive `replayOutbox` directly here and wait for it. Local
    * data is only wiped once the server has actually expired the `host_session` cookie — otherwise a
    * shared phone would keep a live session after "signing out" offline — so this needs the network.
+   * Only the signed-in host's own entries count towards "still pending" (F4): a dormant entry left
+   * behind by an earlier host switch (see switchActiveHost) is never this host's to wait on.
    */
   async signOut(): Promise<'SIGNED_OUT' | 'OFFLINE'> {
-    if (this.state.outbox.length > 0) {
-      await this.replayOutbox(this.state.outbox);
-      if (this.state.outbox.length > 0) return 'OFFLINE';
+    const activeHostId = this.state.activeHostId;
+    const ownOutbox = this.state.outbox.filter((entry) => entry.hostId === activeHostId);
+    if (ownOutbox.length > 0) {
+      await this.replayOutbox(ownOutbox);
+      if (this.state.outbox.some((entry) => entry.hostId === activeHostId)) return 'OFFLINE';
     }
     const response = await hostApiService.request('DELETE', `${API}/auth/host/session`);
     if (!response.ok) return 'OFFLINE';
+    // F4/2: the session cookie is now gone, so any sync still in flight is answering for a host
+    // who is no longer signed in — bump the generation so it discards its result.
+    this.syncGeneration++;
     await this.resetToSeed();
     return 'SIGNED_OUT';
   }

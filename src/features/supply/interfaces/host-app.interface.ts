@@ -217,6 +217,8 @@ export interface VerificationProgress {
 /** Shape from docs/TECH_STACK.md ("outbox"): a write waiting for signal, replayed against /api/v1. */
 export interface OutboxEntry {
   id: string;
+  /** F4: whoever was signed in when the write was queued — `replayOutbox` only sends a match for `activeHostId`. */
+  hostId: string;
   method: 'POST' | 'PATCH' | 'DELETE';
   path: string;
   body?: unknown;
