@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ToastProvider, useToast } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
@@ -31,11 +31,22 @@ const useRedirectSignedOut = (): void => {
   const pathname = usePathname();
   const ready = useHostAppReady();
   const signedIn = useHostApp(selectIsSignedIn);
+  // Tracks the previous render's signedIn value so a sign-out (signed in -> signed out) can be told
+  // apart from a genuine cold start (never signed in this session). usePathname() lags the
+  // ProfilePage-initiated router.replace(welcome) that follows a sign-out by a render or two — without
+  // this, this effect fires on that stale, still-signed-out-route render and re-provisions the demo
+  // host mid-sign-out, undoing it (host-app.store.ts:299, ensureDemoHost).
+  const wasSignedIn = useRef(signedIn);
 
   useEffect(() => {
+    const previouslySignedIn = wasSignedIn.current;
+    wasSignedIn.current = signedIn;
     if (!ready || signedIn) return undefined;
     if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return undefined;
     if (isDemoMode()) {
+      // Just signed out (still on the old route, mid-navigation to Welcome) — ProfilePage's own
+      // redirect is already underway; don't race it with a fresh auto-provision.
+      if (previouslySignedIn) return undefined;
       void hostAppStore.ensureDemoHost();
       return undefined;
     }

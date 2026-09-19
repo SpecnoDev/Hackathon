@@ -1,3 +1,5 @@
+'use client';
+
 import type { ButtonHTMLAttributes, PointerEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { Icon, type IconName } from './Icon';
