@@ -45,6 +45,8 @@ export const DECK_SOURCES = {
 
 /** The live app screens shown inside phones. Swap any of them for a screenshot by giving the slide an image instead. */
 /** A screenshot of something the deck cannot run live, saved in /public. */
+const portrait = (id: string): string => `https://images.unsplash.com/photo-${id}?w=240&h=240&fit=crop&crop=faces&q=80`;
+
 export const DECK_IMAGES = {
   whatsAppOnboarding: '/presentation/whatsapp-onboarding.webp',
   /** The drawn pattern that bleeds off the right edge of a slide carrying a mockup. */
@@ -54,13 +56,20 @@ export const DECK_IMAGES = {
 export const DECK_SCREENS = {
   landing: '/',
   hostWelcome: '/host/welcome',
-  hostCreate: '/host/offerings/new',
+  /** The draft Claude wrote back, which is the moment the slide is about. The flow's first step is just a category picker. */
+  hostCreate: '/host/offerings/new/draft',
   hostBookings: '/host/bookings',
-  hostEarnings: '/host/earnings',
+  /** Where a host picks how the money reaches them, which is the claim the slide makes. */
+  hostEarnings: '/host/earnings/payout-method',
   travellerHome: '/traveller/explore',
   travellerPlace: '/traveller/explore/places/cape-town',
   travellerResults: '/traveller/explore/results',
-  travellerPlan: '/traveller/plan',
+  /**
+   * The demo plan the group slide shows: "Food & culture in Cape Town", three experiences over four days, two
+   * travellers in. The planner index would open on a list or an empty state, which is not the feature.
+   * It needs a signed-in traveller who is a member of it, and a new id if the demo data is ever rebuilt.
+   */
+  travellerPlan: '/traveller/plan/ab447da4-9e4d-4e29-aee9-89afbd25ccec',
 } as const;
 
 export const DECK_COPY = {
@@ -85,9 +94,18 @@ export const DECK_COPY = {
   },
   problem: {
     eyebrow: 'The problem',
+    peopleLabel: 'The people this is about',
     headline: 'Money flows past the people who make a place worth visiting.',
     body: 'Tourism is one of South Africa’s biggest job creators. Its benefits pool in hotels, franchises and established operators. The guide, the taxi driver, the home cook and the person who knows who to call are shut out of the platforms where travellers spend.',
-    people: ['The local guide', 'The taxi driver', 'The home cook', 'The crafter', 'The fixer who knows who to call'],
+    /* The five faces are the app's own host portraits, chosen to read as South Africa: majority Black African,
+       with the Karoo farmer who is also part of it. TODO: replace stock with photographs of real hosts. */
+    people: [
+      { role: 'The local guide', portrait: portrait('1531384441138-2736e62e0919') },
+      { role: 'The home cook', portrait: portrait('1507152832244-10d45c7eda57') },
+      { role: 'The crafter', portrait: portrait('1531123897727-8f129e1688ce') },
+      { role: 'The taxi driver', portrait: portrait('1507003211169-0a1dd7228f2d') },
+      { role: 'The farmer', portrait: portrait('1472099645785-5658abf4ff4e') },
+    ],
   },
   numbers: {
     eyebrow: 'South Africa, right now',
@@ -129,11 +147,8 @@ export const DECK_COPY = {
   },
   oneLiner: {
     eyebrow: 'Our answer',
-    statement: [
-      'A marketplace that removes the technological and financial barriers keeping local South Africans out of the tourism economy,',
-      'so anyone with something authentic to offer can list it, get booked and get paid,',
-      'even without a bank account or reliable data.',
-    ],
+    lead: 'A marketplace that removes the technological and financial barriers keeping local South Africans out of the tourism economy,',
+    statement: 'so anyone with something authentic to offer can list it, get booked and get paid, even without a bank account or reliable data.',
     tagline: 'Hosted by locals. Hosted all the way.',
   },
   trendOne: {
@@ -227,12 +242,25 @@ export const DECK_COPY = {
       'Group itinerary with voting, and a stokvel-style pot that confirms on fill',
       'Supabase and Prisma behind one API, seeded across real South African places',
     ],
-    measureTitle: 'What we promise to measure',
-    measures: [
-      { value: '15 min', label: 'from sign-up to a first live listing, by voice' },
-      { value: 'R paid out', label: 'to hosts, and the share paid without a bank' },
-      { value: 'First-timers', label: 'hosts who are unbanked, or have never sold on a platform' },
+    impactTitle: 'What changes if this works',
+    impacts: [
+      {
+        icon: 'banknote',
+        title: 'Work that pays',
+        body: 'Every booking is income for a guide, a driver or a cook, in an economy tourism touches but rarely pays.',
+      },
+      {
+        icon: 'users',
+        title: 'A seat in the economy',
+        body: 'No bank account, no website, no English web form. List what you offer, get booked, get paid.',
+      },
+      {
+        icon: 'compass',
+        title: 'Travel worth the trip',
+        body: 'The day inside local life that no hotel can sell, from the person whose place it is.',
+      },
     ],
+    impactMeasure: 'We will know it is working when a host goes from sign-up to a live listing in 15 minutes by voice, when rands land without a bank, and when most hosts are people who have never sold on a platform before.',
   },
   features: {
     eyebrow: 'Feature by feature',

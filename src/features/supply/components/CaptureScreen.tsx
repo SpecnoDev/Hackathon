@@ -67,7 +67,7 @@ export const CaptureScreen = ({ kind, step, backHref, nextHref }: CaptureScreenP
   // Demo pitch mode: opens the screen already showing the sample photo so the presenter's only tap
   // is the existing Use button, same as a real capture.
   useEffect(() => {
-    if (!isDemoMode || photoKey || demoLoaded.current) return;
+    if (!isDemoMode() || photoKey || demoLoaded.current) return;
     demoLoaded.current = true;
     void (async () => {
       try {

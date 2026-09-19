@@ -16,15 +16,16 @@ export const OneLinerSlide = () => (
           <HostedLogo name={copy.appName} size="sm" />
         </span>
       </Reveal>
-      <h2 className="flex max-w-4xl flex-col gap-2 font-display text-display-xl text-on-primary">
-        {copy.oneLiner.statement.map((line, index) => (
-          <Reveal key={line} order={2 + index * 3}>
-            <span className={index === copy.oneLiner.statement.length - 1 ? 'text-ink' : ''}>{line}</span>
-          </Reveal>
-        ))}
-      </h2>
+      <div className="flex max-w-4xl flex-col gap-5">
+        <Reveal order={2}>
+          <h2 className="font-display text-earnings-display text-ink">{copy.oneLiner.lead}</h2>
+        </Reveal>
+        <Reveal order={5} className="border-l-2 border-ink/25 pl-5">
+          <p className="max-w-3xl text-title-lg text-ink/80">{copy.oneLiner.statement}</p>
+        </Reveal>
+      </div>
       <Reveal order={12}>
-        <p className="text-title-md text-on-primary">{copy.oneLiner.tagline}</p>
+        <p className="text-body-md text-ink/70">{copy.oneLiner.tagline}</p>
       </Reveal>
     </div>
   </Slide>
@@ -47,11 +48,10 @@ export const TrendOneSlide = () => (
           <p className="text-caption text-muted">{copy.trendOne.caption}</p>
         </Reveal>
       </div>
-      <Reveal order={4} className="flex flex-col gap-4 rounded-lg bg-surface-soft p-6">
-        <div className="flex items-center gap-5">
-          <Donut percent={figures.adventureSharePercent} label={`${figures.adventureSharePercent}% ${copy.trendOne.share}`} />
-          <p className="font-display text-earnings-display text-primary-text">{figures.adventureSharePercent}%</p>
-        </div>
+      <Reveal order={4} className="flex flex-col items-center gap-4 rounded-lg bg-surface-soft p-6 text-center">
+        <Donut percent={figures.adventureSharePercent} label={`${figures.adventureSharePercent}% ${copy.trendOne.share}`}>
+          <span className="font-display text-display-lg text-primary-text">{`${figures.adventureSharePercent}%`}</span>
+        </Donut>
         <p className="text-body-md text-body">{copy.trendOne.share}</p>
         <p className="text-caption text-muted">{copy.trendOne.shareNote}</p>
       </Reveal>
@@ -70,14 +70,14 @@ export const TrendTwoSlide = () => (
           <p className="text-badge uppercase tracking-[0.22em] text-muted">{copy.trendTwo.was.label}</p>
           <ul className="flex flex-col gap-3">
             {copy.trendTwo.was.items.map((item) => (
-              <li key={item} className="text-title-md text-muted line-through decoration-border-strong">
+              <li key={item} className="text-title-md text-muted-soft line-through decoration-muted-soft/60 decoration-1">
                 {item}
               </li>
             ))}
           </ul>
         </Reveal>
         <Reveal order={5} className="flex items-center">
-          <span className="flex size-12 items-center justify-center rounded-sm bg-ink text-on-dark">
+          <span className="flex size-10 items-center justify-center text-muted-soft">
             <Icon name="chevron-right" />
           </span>
         </Reveal>

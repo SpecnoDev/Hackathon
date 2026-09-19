@@ -60,7 +60,9 @@ export const isMockAuthEnabled = (): boolean => optionalEnv(ENV_KEYS.allowMockAu
  * Gated on `!isProduction()` so a production build never inherits this even if
  * `ALLOW_DEMO_BYPASS` leaks into that environment. Its own var, distinct from
  * `ALLOW_MOCK_AUTH` (`isMockAuthEnabled`) — this does NOT imply mock auth is on; the pitch
- * run sets `ALLOW_MOCK_AUTH`, `ALLOW_DEMO_BYPASS` and `NEXT_PUBLIC_DEMO_MODE` together.
+ * run sets `ALLOW_MOCK_AUTH=true` and `ALLOW_DEMO_BYPASS=true` in `.env`, then flips the
+ * Demo mode toggle in `/admin` per browser (see `DEMO_MODE_COOKIE` below) — that toggle is
+ * `isDemoMode()`, a separate, session-scoped concern from this build-time env bypass.
  * This disables page redirects only — API guards (`requireHost`, `requireTraveller`,
  * `requireAdmin`, `requireService`) still 401.
  */
@@ -69,6 +71,14 @@ export const isDemoBypassEnabled = (): boolean =>
 
 /** Stamped on audit rows written while the demo bypass is on, so they are never mistaken for a real admin. */
 export const DEMO_ADMIN_EMAIL = 'demo-operator@hosted.local';
+
+/**
+ * Pitch mode is switched from the back office and lives in this cookie, so it follows the browser the
+ * presenter toggled it in and never a judge's. Not httpOnly: the host app reads it client-side.
+ */
+export const DEMO_MODE_COOKIE = 'hosted_demo';
+export const DEMO_MODE_ON = '1';
+export const DEMO_MODE_COOKIE_MAX_AGE_SECONDS = 30 * HOURS_PER_DAY * MINUTES_PER_HOUR * SECONDS_PER_MINUTE;
 
 export const otpMessage = (code: string): string =>
   `${code} is your sign-in code. It expires in ${OTP_TTL_MINUTES} minutes. Never share it.`;

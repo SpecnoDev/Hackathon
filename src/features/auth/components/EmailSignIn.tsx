@@ -5,6 +5,7 @@ import { FormEvent, useState } from 'react';
 import { OTP_CODE_LENGTH, ROUTES, withReturnTo } from '@/core/constants';
 import { createSupabaseBrowserClient } from '@/core/services/client';
 import { useToast } from '@/shared/components';
+import { requestSignInEmailAction } from '../actions';
 
 type Stage = 'email' | 'code';
 
@@ -51,14 +52,11 @@ export function EmailSignIn({ returnTo }: { returnTo: string | null }) {
   return stage === 'email' ? (
     <form
       onSubmit={(event) =>
-        run(event, () =>
-          createSupabaseBrowserClient().auth.signInWithOtp({
-            email,
-            options: {
-              emailRedirectTo: `${window.location.origin}${ROUTES.loginComplete}`,
-            },
-          }),
-        )
+        run(event, async () => {
+          // Sent through our own provider: Supabase only mints the code, so its email rate limit never applies.
+          const { error: message } = await requestSignInEmailAction(email, returnTo);
+          return { error: message ? { message } : null };
+        })
       }
       className="mt-8"
     >

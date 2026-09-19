@@ -50,9 +50,13 @@ export const findLiveOffering = (id: string) =>
 
 const toJsonInput = (value: Record<string, unknown>): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
 
-/** PRD: Tier 0 drafts but cannot go live; transport needs its credential at Tier 2 before going live. */
-export const goLiveStatus = (tier: VerificationTier, category: OfferingCategory): OfferingStatus => {
-  if (tier === 'REGISTERED') return 'DRAFT';
+/**
+ * PRD: Tier 0 drafts but cannot go live; transport needs its credential at Tier 2 before going live.
+ * A listing with no photo stays a draft whatever the tier: the bot cannot collect photos, so what it
+ * creates waits in the app until the host adds one.
+ */
+export const goLiveStatus = (tier: VerificationTier, category: OfferingCategory, photos: readonly string[]): OfferingStatus => {
+  if (tier === 'REGISTERED' || photos.length === 0) return 'DRAFT';
   if (category === 'TRANSPORT' && tier !== 'COMMUNITY') return 'IN_REVIEW';
   return 'LIVE';
 };
@@ -80,7 +84,7 @@ export const createHostOffering = async (
     ...fields,
     availability: toJsonInput(availability),
     hostId,
-    status: goLiveStatus(host.tier, input.category),
+    status: goLiveStatus(host.tier, input.category, input.photos ?? []),
   };
 
   return prisma.offering.upsert({
@@ -100,7 +104,7 @@ export const updateHostOfferingFields = async (
   offeringId: string,
   patch: OfferingFieldsPatchDto,
 ): Promise<{ id: string; status: OfferingStatus }> => {
-  const existing = await prisma.offering.findFirst({ where: { id: offeringId, hostId }, select: { status: true } });
+  const existing = await prisma.offering.findFirst({ where: { id: offeringId, hostId }, select: { status: true, photos: true } });
   if (!existing) throw new ApiError(API_ERROR_CODES.notFound, HTTP_STATUS.notFound, 'Offering not found');
 
   const { availability, ...fields } = patch;
@@ -111,7 +115,7 @@ export const updateHostOfferingFields = async (
   if (patch.category && REVIEW_GATED_STATUSES.includes(existing.status)) {
     const host = await prisma.host.findUnique({ where: { id: hostId }, select: { tier: true } });
     if (!host) throw new ApiError(API_ERROR_CODES.notFound, HTTP_STATUS.notFound, 'Host not found');
-    statusPatch = { status: goLiveStatus(host.tier, patch.category) };
+    statusPatch = { status: goLiveStatus(host.tier, patch.category, patch.photos ?? existing.photos) };
   }
 
   return prisma.offering.update({
@@ -127,7 +131,7 @@ export const setHostOfferingStatus = async (
   offeringId: string,
   status: 'PAUSED' | 'LIVE',
 ): Promise<{ id: string; status: OfferingStatus }> => {
-  const offering = await prisma.offering.findFirst({ where: { id: offeringId, hostId }, select: { category: true } });
+  const offering = await prisma.offering.findFirst({ where: { id: offeringId, hostId }, select: { category: true, photos: true } });
   if (!offering) throw new ApiError(API_ERROR_CODES.notFound, HTTP_STATUS.notFound, 'Offering not found');
 
   if (status === 'PAUSED') {
@@ -143,7 +147,7 @@ export const setHostOfferingStatus = async (
 
   return prisma.offering.update({
     where: { id: offeringId },
-    data: { status: goLiveStatus(host.tier, offering.category) },
+    data: { status: goLiveStatus(host.tier, offering.category, offering.photos) },
     select: { id: true, status: true },
   });
 };

@@ -58,7 +58,7 @@ export const VoiceNotePage = () => {
   // as if it had already been heard and transcribed. Region is filled too — LISTING_SAMPLES omits it,
   // and applyDraftedListing() needs it to clear missingDraftFields()'s region gate.
   useEffect(() => {
-    if (!isDemoMode || !kind || hasNote || transcript) return;
+    if (!isDemoMode() || !kind || hasNote || transcript) return;
     hostAppStore.patchDraftFields(NEW_DRAFT_KEY, { transcript: LISTING_SAMPLES[kind].transcript.EN, region: DEMO_REGION });
   }, [kind, hasNote, transcript]);
 

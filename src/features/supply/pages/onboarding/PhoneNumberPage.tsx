@@ -26,7 +26,7 @@ export const PhoneNumberPage = () => {
   const [blockedOffline, setBlockedOffline] = useState(false);
 
   useEffect(() => {
-    if (isDemoMode && !phone) hostAppStore.answerRegistration({ phone: DEMO_PHONE_LOCAL });
+    if (isDemoMode() && !phone) hostAppStore.answerRegistration({ phone: DEMO_PHONE_LOCAL });
   }, [phone]);
 
   const sendCode = (): void => {

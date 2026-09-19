@@ -65,7 +65,7 @@ export const EnterCodePage = () => {
       // Demo pitch mode: the canned phone number is reused on every run, so by the second run the
       // host already exists — routed the same as NEW_HOST so Join never dead-ends on "already
       // registered". Sign-in above is untouched: RETURNING still means "sign in", correctly.
-      else router.push(result === 'RETURNING' && !isDemoMode ? HOST_ROUTES.register.alreadyRegistered : HOST_ROUTES.register.name);
+      else router.push(result === 'RETURNING' && !isDemoMode() ? HOST_ROUTES.register.alreadyRegistered : HOST_ROUTES.register.name);
     } finally {
       pending.current = false;
       setVerifying(false);

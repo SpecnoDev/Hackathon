@@ -14,6 +14,7 @@ import {
 } from '../constants';
 import { HostIntakeDto, HostProfilePatchDto, OfferingDraftDto } from '@/shared/dto';
 import { ApiError } from '../utils';
+import { goLiveStatus } from './offering.service';
 import { prisma } from './prisma.service';
 
 const sha256 = (value: string): string => createHash('sha256').update(value).digest('hex');
@@ -30,10 +31,12 @@ const categoryFor = (label: string): OfferingCategory => {
 /** Derived, not random, so a retried submission updates the same rows instead of duplicating them. */
 const offeringId = (hostId: string, title: string): string => sha256(`${hostId}:${title.toLowerCase()}`);
 
+/** The bot collects no photos, so what it creates is always a draft until the host adds one in the app. */
 const toOfferingRow = (draft: OfferingDraftDto, host: Host): Prisma.OfferingCreateManyInput => ({
   id: offeringId(host.id, draft.title),
   hostId: host.id,
   category: categoryFor(draft.category),
+  status: goLiveStatus(host.tier, categoryFor(draft.category), []),
   title: draft.title,
   description: draft.description,
   sourceLanguage: host.language,

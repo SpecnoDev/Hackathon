@@ -14,7 +14,7 @@ const copy = HOST_COPY.create.category;
 export const OfferingCategoryPage = () => {
   const router = useRouter();
   const draft = useDraft(NEW_DRAFT_KEY);
-  const [picked, setPicked] = useState<OfferingKind | undefined>(isDemoMode ? DEMO_LISTING_KIND : undefined);
+  const [picked, setPicked] = useState<OfferingKind | undefined>(isDemoMode() ? DEMO_LISTING_KIND : undefined);
   const kind = picked ?? draft?.fields.kind;
 
   const next = (): void => {

@@ -63,6 +63,14 @@ export const MyOfferingsPage = () => {
             </Button>
           </Banner>
         ) : null}
+        {withoutPhotos ? (
+          <Banner tone="warning" icon="image">
+            <p>{copy.photosNote}</p>
+            <Button variant="tertiary" href={HOST_ROUTES.offerings.editField(withoutPhotos.id, 'photos')}>
+              {copy.addPhotos}
+            </Button>
+          </Banner>
+        ) : null}
         {isEmpty ? (
           nextSteps
         ) : (

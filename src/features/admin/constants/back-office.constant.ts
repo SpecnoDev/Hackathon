@@ -19,7 +19,17 @@ export const ADMIN_SHELL_COPY = {
   title: 'Back office',
   navLabel: 'Back office sections',
   signedInAs: 'Signed in as',
+  demo: {
+    title: 'Demo mode',
+    on: 'On',
+    off: 'Off',
+    turnOn: 'Turn on demo mode',
+    turnOff: 'Turn off demo mode',
+    note: 'Prefills the host app in this browser so the pitch runs without typing. Judges on their own devices see the real flow, and anything typed over a prefill wins.',
+  },
 } as const;
+
+export const DEMO_MODE_FIELD = 'demoMode';
 
 /** The bar and legend colours for a status, agreeing with the pill tones; the word is always beside them. */
 export const STATUS_BAR_TONE: Record<StatusTone, string> = {

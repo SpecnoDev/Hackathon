@@ -1,8 +1,9 @@
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { APP_NAME, ROUTES } from '@/core/constants';
+import { APP_NAME, DEMO_MODE_COOKIE, DEMO_MODE_ON, ROUTES } from '@/core/constants';
 import { requireAdminPage } from '@/core/guards';
-import { AdminNav } from '@/features/admin/components';
+import { AdminNav, DemoModeToggle } from '@/features/admin/components';
 import { ADMIN_SHELL_COPY } from '@/features/admin/constants';
 import { HostedLogo } from '@/shared/components';
 
@@ -10,7 +11,8 @@ export const metadata = { title: ADMIN_SHELL_COPY.title };
 
 /** A sidebar from the desktop breakpoint, a bar above the content below it. The page floor is the sand, every surface on it the paper. */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const { email } = await requireAdminPage();
+  const [{ email }, jar] = await Promise.all([requireAdminPage(), cookies()]);
+  const demoMode = jar.get(DEMO_MODE_COOKIE)?.value === DEMO_MODE_ON;
 
   return (
     <div className="flex min-h-dvh flex-col bg-sand desktop:flex-row">
@@ -22,7 +24,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <span className="rounded-xs bg-surface-soft px-2 py-1 text-badge text-muted">{ADMIN_SHELL_COPY.title}</span>
         </div>
         <AdminNav />
-        <div className="hidden border-t border-hairline px-3 pt-4 desktop:mt-auto desktop:flex desktop:flex-col desktop:gap-0.5">
+        <div className="desktop:mt-auto">
+          <DemoModeToggle enabled={demoMode} />
+        </div>
+        <div className="hidden border-t border-hairline px-3 pt-4 desktop:flex desktop:flex-col desktop:gap-0.5">
           <span className="text-caption text-muted">{ADMIN_SHELL_COPY.signedInAs}</span>
           <span title={email} className="truncate text-body-sm text-ink">
             {email}

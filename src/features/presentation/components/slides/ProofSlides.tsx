@@ -2,11 +2,11 @@ import { Button, HostedLogo, HostedMark, Icon } from '@/shared/components';
 import { DECK_COPY, DECK_FIGURES, DECK_SCREENS, DECK_SOURCES } from '../../constants';
 import { BudgetBars } from '../BudgetBars';
 import { PhoneFrame } from '../PhoneFrame';
-import { Reveal, Slide } from '../Slide';
+import { Reveal, Slide, SlideHeading } from '../Slide';
 
 const copy = DECK_COPY;
 const figures = DECK_FIGURES;
-const SMALL_PHONE_PX = 330;
+const SMALL_PHONE_PX = 344;
 const TIER_BASE_PX = 26;
 const TIER_STEP_PX = 14;
 const TIER_DELAY_MS = 900;
@@ -64,8 +64,8 @@ export const PrinciplesSlide = () => (
 );
 
 export const BuiltSlide = () => (
-  <Slide tone="light" eyebrow={copy.built.eyebrow} headline={copy.built.headline}>
-    <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-10">
+  <Slide tone="light" eyebrow={copy.built.eyebrow} headline={copy.built.headline} edge>
+    <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-14">
       <ul className="flex flex-col gap-4">
         {copy.built.items.map((item, index) => (
           <li key={item}>
@@ -87,15 +87,17 @@ export const BuiltSlide = () => (
   </Slide>
 );
 
-const FEATURE_PHONE_PX = 360;
+/** The phone takes the full height of the slide here, which it can because the headline sits in the left column. */
+const FEATURE_PHONE_PX = 420;
 
 /** One slide per feature, in the order the product is used: a host lists, a host is paid, a traveller browses, a group plans. */
 export const FeatureSlides = copy.features.items.map((feature) => {
   const FeatureSlide = () => (
-    <Slide tone="light" eyebrow={copy.features.eyebrow} headline={feature.title} edge>
-      <div className="grid flex-1 grid-cols-[1.1fr_auto] gap-12">
-        <div className="flex flex-col gap-5 pt-1">
-          <Reveal order={1}>
+    <Slide tone="light" edge>
+      <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-14">
+        <div className="flex max-w-xl flex-col gap-5 self-start">
+          <SlideHeading tone="light" eyebrow={copy.features.eyebrow} headline={feature.title} />
+          <Reveal order={2}>
             <p className="text-body-host text-body">{feature.body}</p>
           </Reveal>
           <ul className="flex flex-col gap-3">
@@ -109,10 +111,13 @@ export const FeatureSlides = copy.features.items.map((feature) => {
             ))}
           </ul>
         </div>
-        <div className="flex flex-col items-center gap-2 self-end">
-          <PhoneFrame route={'route' in feature ? feature.route : ''} image={'image' in feature ? feature.image : undefined} label={copy.chrome.phoneLabel(feature.title)} height={FEATURE_PHONE_PX} />
-          <p className="text-[0.625rem] text-muted">{'image' in feature ? copy.features.shot : copy.features.tap}</p>
-        </div>
+        <PhoneFrame
+          route={'route' in feature ? feature.route : ''}
+          image={'image' in feature ? feature.image : undefined}
+          label={copy.chrome.phoneLabel(feature.title)}
+          height={FEATURE_PHONE_PX}
+          caption={'image' in feature ? copy.features.shot : copy.features.tap}
+        />
       </div>
     </Slide>
   );
@@ -121,26 +126,32 @@ export const FeatureSlides = copy.features.items.map((feature) => {
 });
 
 export const MeasureSlide = () => (
-  <Slide tone="dark" eyebrow={copy.built.measureTitle}>
-    <div className="flex flex-1 flex-col justify-center gap-10">
+  <Slide tone="dark" eyebrow={copy.built.impactTitle}>
+    <div className="flex flex-1 flex-col justify-center gap-6">
       <ul className="grid grid-cols-3 gap-4">
-        {copy.built.measures.map((measure, index) => (
-          <li key={measure.value}>
-            <Reveal order={1 + index * 2} className="flex h-full flex-col gap-3 rounded-lg border border-on-dark/10 bg-on-dark/5 p-6">
-              <p className={`font-display text-display-xl ${index === 0 ? 'text-accent' : 'text-on-dark'}`}>{measure.value}</p>
-              <p className="text-body-md text-on-dark/70">{measure.label}</p>
+        {copy.built.impacts.map((impact, index) => (
+          <li key={impact.title}>
+            <Reveal order={1 + index * 2} className="flex h-full flex-col gap-2.5 rounded-lg border border-on-dark/10 bg-on-dark/5 p-5">
+              <span className="flex size-9 items-center justify-center rounded-sm bg-on-dark/10 text-accent">
+                <Icon name={impact.icon} size={20} />
+              </span>
+              <p className="font-display text-title-lg text-on-dark">{impact.title}</p>
+              <p className="text-body-sm text-on-dark/70">{impact.body}</p>
             </Reveal>
           </li>
         ))}
       </ul>
+      <Reveal order={7}>
+        <p className="max-w-4xl text-body-sm text-on-dark/60">{copy.built.impactMeasure}</p>
+      </Reveal>
       <div className="flex flex-col gap-3">
-        <Reveal order={7}>
+        <Reveal order={8}>
           <p className="text-badge uppercase tracking-[0.22em] text-accent">{copy.next.eyebrow}</p>
         </Reveal>
         <ul className="flex flex-wrap gap-2">
           {copy.next.items.map((item, index) => (
             <li key={item}>
-              <Reveal order={8 + index}>
+              <Reveal order={9 + index}>
                 <span className="flex h-10 items-center rounded-sm border border-on-dark/20 px-4 text-button-sm text-on-dark">{item}</span>
               </Reveal>
             </li>

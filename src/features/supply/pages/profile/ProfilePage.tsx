@@ -37,7 +37,7 @@ export const ProfilePage = () => {
     if (result === 'OFFLINE') toast(copy.signOutOffline);
     // useRedirectSignedOut (HostAppProvider) no-ops in demo mode so the auth bypass can open any
     // host route — this replaces the welcome redirect it would otherwise have done.
-    else if (isDemoMode) router.replace(HOST_ROUTES.welcome);
+    else if (isDemoMode()) router.replace(HOST_ROUTES.welcome);
   };
 
   return (

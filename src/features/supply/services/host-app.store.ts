@@ -215,7 +215,7 @@ class HostAppStore {
         (item) =>
           item.hostId === hostId &&
           !serverIds.has(item.id) &&
-          (item.pendingSync || item.createdAt > syncStartedAt || (isDemoMode && item.id.startsWith(DEMO_FIXTURE_PREFIX))),
+          (item.pendingSync || item.createdAt > syncStartedAt || (isDemoMode() && item.id.startsWith(DEMO_FIXTURE_PREFIX))),
       );
       const otherHosts = state.offerings.filter((item) => item.hostId !== hostId);
       return { ...state, offerings: [...serverOfferings, ...keptLocalOnly, ...otherHosts] };
@@ -240,7 +240,7 @@ class HostAppStore {
         (item) =>
           item.hostId === hostId &&
           !serverIds.has(item.id) &&
-          (item.pendingSync || item.createdAt > syncStartedAt || (isDemoMode && item.id.startsWith(DEMO_FIXTURE_PREFIX))),
+          (item.pendingSync || item.createdAt > syncStartedAt || (isDemoMode() && item.id.startsWith(DEMO_FIXTURE_PREFIX))),
       );
       const otherHosts = state.bookings.filter((item) => item.hostId !== hostId);
       return { ...state, bookings: [...serverBookings, ...keptLocalOnly, ...otherHosts] };
@@ -278,7 +278,7 @@ class HostAppStore {
    * mock API; runSync's bookings merge above is what keeps the result alive across a later sync.
    */
   private seedDemoFixturesIfNeeded(hostId: string): void {
-    if (!isDemoMode) return;
+    if (!isDemoMode()) return;
     const offerings = this.state.offerings.filter((item) => item.hostId === hostId);
     const hasBookings = this.state.bookings.some((item) => item.hostId === hostId);
     if (offerings.length === 0 || hasBookings) return;
@@ -297,7 +297,7 @@ class HostAppStore {
    * mount only ever provisions once.
    */
   ensureDemoHost(): Promise<void> {
-    if (!isDemoMode || this.state.activeHostId) return Promise.resolve();
+    if (!isDemoMode() || this.state.activeHostId) return Promise.resolve();
     this.demoProvisioning ??= this.provisionDemoHost().finally(() => {
       this.demoProvisioning = undefined;
     });
@@ -529,7 +529,7 @@ class HostAppStore {
     // canned host — fire it and return immediately; EnterCodePage's own demo check routes a Join the
     // same way regardless of what this would have resolved to. Sign-in keeps the awaited, accurate
     // read below since its RETURNING/NEW_HOST split still drives real routing.
-    if (isDemoMode && this.state.registration.intent === 'JOIN') {
+    if (isDemoMode() && this.state.registration.intent === 'JOIN') {
       void this.syncFromServer();
       return 'NEW_HOST';
     }
@@ -631,7 +631,7 @@ class HostAppStore {
       const tier = (data as { tier?: Host['tier'] } | undefined)?.tier;
       if (tier) this.patchHost({ tier });
     });
-    this.setVerification({ state: 'CHECKING', resolveAt: inMs(isDemoMode ? DEMO_CHECKING_DELAY_MS : DEMO_VERIFICATION_DELAY_MS) });
+    this.setVerification({ state: 'CHECKING', resolveAt: inMs(isDemoMode() ? DEMO_CHECKING_DELAY_MS : DEMO_VERIFICATION_DELAY_MS) });
   }
 
   /** Demo only: stands in for the KYC provider calling back. */
@@ -813,7 +813,7 @@ class HostAppStore {
 
   /** A `demo-` id (demo-fixtures.constant.ts) is local-only and unknown to the mock API — any write about one stays local instead of enqueuing a PATCH/POST that can only 404. */
   private isDemoBooking(id: string): boolean {
-    return isDemoMode && id.startsWith(DEMO_FIXTURE_PREFIX);
+    return isDemoMode() && id.startsWith(DEMO_FIXTURE_PREFIX);
   }
 
   acceptBooking(id: string): void {

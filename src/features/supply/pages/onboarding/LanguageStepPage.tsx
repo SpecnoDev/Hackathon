@@ -20,7 +20,7 @@ export const LanguageStepPage = () => {
   const codeConfirmed = useHostApp(selectCodeConfirmed);
 
   useEffect(() => {
-    if (isDemoMode && !chosen) hostAppStore.answerRegistration({ language: DEMO_LANGUAGE });
+    if (isDemoMode() && !chosen) hostAppStore.answerRegistration({ language: DEMO_LANGUAGE });
   }, [chosen]);
 
   return (

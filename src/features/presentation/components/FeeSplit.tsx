@@ -36,10 +36,13 @@ export const FeeSplit = ({ startCents }: { startCents: number }) => {
       </div>
       <div className="flex justify-between text-caption text-muted">
         <span className="flex items-center gap-2">
-          <span aria-hidden className="size-2.5 rounded-full bg-accent" />
+          <span aria-hidden className="size-2.5 rounded-xs bg-primary" />
           {copy.split.host}
         </span>
-        <span>{copy.split.fee}</span>
+        <span className="flex items-center gap-2">
+          <span aria-hidden className="size-2.5 rounded-xs bg-surface-strong" />
+          {copy.split.fee}
+        </span>
       </div>
       <label htmlFor={sliderId} className="text-caption text-muted">
         {copy.tryIt}
@@ -53,7 +56,7 @@ export const FeeSplit = ({ startCents }: { startCents: number }) => {
         value={priceCents / CENTS_PER_RAND}
         onChange={(event) => setPriceCents(Number(event.target.value) * CENTS_PER_RAND)}
         aria-label={copy.priceLabel}
-        className="h-10 w-full accent-primary"
+        className="h-10 w-full accent-primary [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-surface-strong"
       />
     </div>
   );

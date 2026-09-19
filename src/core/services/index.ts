@@ -10,3 +10,4 @@ export * from './supabase-server.service';
 export * from './current-user.service';
 export * from './supabase-admin.service';
 export * from './demo-traveller.service';
+export * from './email.service';

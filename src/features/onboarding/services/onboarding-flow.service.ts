@@ -252,7 +252,8 @@ export class OnboardingFlowService {
       await this.store.save({ ...session, stage: 'done' });
       await this.whatsapp.sendText(
         session.waId,
-        `You are in. 🎉 Travellers can find you now.\n\nOpen your listings here:\n${issueHostLink(hostId)}\n\n` +
+        `You are in. 🎉 Your listings are saved as drafts: add a photo to each one in the app and it goes live for travellers.\n\n` +
+          `Open your listings here:\n${issueHostLink(hostId)}\n\n` +
           `The link signs you in for ${MAGIC_LINK_TTL_MINUTES} minutes. Send *restart* to list someone else.`,
       );
     } catch (error) {
