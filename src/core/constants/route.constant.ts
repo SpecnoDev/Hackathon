@@ -8,6 +8,9 @@ export const ROUTES = {
   loginComplete: '/login/complete',
   /** Where a WhatsApp sign-in link lands, before it swaps itself for a session cookie. */
   hostLink: '/h',
+  privacy: '/privacy',
+  plan: '/traveller/plan',
+  planJoin: '/traveller/plan/join',
   traveller: '/traveller',
   explore: '/traveller/explore',
   listings: '/traveller/listings',
@@ -38,6 +41,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.login,
   ROUTES.signup,
   ROUTES.hostLink,
+  ROUTES.privacy,
   ROUTES.explore,
   ROUTES.listings,
 ] as const;
