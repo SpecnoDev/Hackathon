@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ROLE_HOME_ROUTE, ROUTES } from '@/core/constants';
+import { ROLE_HOME_ROUTE, ROUTES, isMockAuthEnabled } from '@/core/constants';
 import { getCurrentUser } from '@/core/services';
-import { EmailSignIn, SessionFromUrl } from '@/features/auth/components';
+import { DemoSignIn, EmailSignIn, SessionFromUrl } from '@/features/auth/components';
+import { listDemoTravellers } from '@/features/auth/services';
 
 export const metadata = { title: 'Sign in' };
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function LoginPage() {
   const user = await getCurrentUser();
   if (user) redirect(ROLE_HOME_ROUTE[user.role]);
+  const demoTravellers = isMockAuthEnabled() ? await listDemoTravellers() : [];
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col justify-center px-6 py-12">
@@ -17,6 +19,7 @@ export default async function LoginPage() {
       <p className="mt-2 text-body-md text-muted">Travellers sign in with their email.</p>
 
       <SessionFromUrl />
+      <DemoSignIn travellers={demoTravellers} />
       <EmailSignIn />
 
       <div className="mt-10 rounded-lg border border-hairline p-6">

@@ -1,7 +1,8 @@
 import { LANGUAGE_LABELS } from '@/core/constants';
 import { requireTravellerPage } from '@/core/guards';
+import { signOutTraveller } from '@/features/auth/actions';
 import { TravellerScreen } from '@/features/demand/components';
-import { DetailFact } from '@/shared/components';
+import { Button, DetailFact } from '@/shared/components';
 
 export const metadata = { title: 'Profile' };
 
@@ -31,6 +32,12 @@ export default async function ProfilePage() {
             </DetailFact>
           ) : null}
         </ul>
+
+        <form action={signOutTraveller}>
+          <Button type="submit" variant="secondary" size="md">
+            Sign out
+          </Button>
+        </form>
       </div>
     </TravellerScreen>
   );
