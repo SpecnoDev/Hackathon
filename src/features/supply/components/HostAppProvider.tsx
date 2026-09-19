@@ -20,7 +20,12 @@ const msUntil = (iso: string): number => Math.max(0, Date.parse(iso) - Date.now(
 /** Routes a visitor with no active host must still be able to reach: landing, registration, and the demo persona switcher. */
 const SIGNED_OUT_PREFIXES = [HOST_ROUTES.welcome, `${HOST_ROUTES.home}/register`, HOST_ROUTES.flows];
 
-/** A fresh device (or one just reset) has no active host until registration or /flows switches a demo persona in. */
+/**
+ * A fresh device (or one just reset) has no active host until registration or /flows switches a
+ * demo persona in. Demo mode is the one exception: a cold deep link outside Welcome/Join/flows is
+ * provisioned in place (ensureDemoHost, host-app.store.ts) instead of redirected — this is UI
+ * navigation, not authz, either way.
+ */
 const useRedirectSignedOut = (): void => {
   const router = useRouter();
   const pathname = usePathname();
@@ -28,10 +33,10 @@ const useRedirectSignedOut = (): void => {
   const signedIn = useHostApp(selectIsSignedIn);
 
   useEffect(() => {
-    // Demo mode has no signed-in host by design; this is UI navigation, not authz, so it no-ops here.
-    if (!ready || signedIn || isDemoMode) return;
+    if (!ready || signedIn) return;
     if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return;
-    router.replace(HOST_ROUTES.welcome);
+    if (isDemoMode) void hostAppStore.ensureDemoHost();
+    else router.replace(HOST_ROUTES.welcome);
   }, [ready, signedIn, pathname, router]);
 };
 

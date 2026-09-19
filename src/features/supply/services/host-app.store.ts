@@ -1,9 +1,15 @@
 import { connectivityService } from '@/core/services/client';
-import { hostReceivesCents, maskPhone, toE164 } from '@/shared/utils';
+import { compressImage, hostReceivesCents, maskPhone, toE164 } from '@/shared/utils';
 import {
   DEFAULT_GROUP_MAX,
   DEMO_CHECKING_DELAY_MS,
+  DEMO_CONTACT_CHANNEL,
+  DEMO_FIRST_NAME,
+  DEMO_FIXTURE_PREFIX,
+  DEMO_LANGUAGE,
+  DEMO_LISTING_PHOTOS,
   DEMO_PAYOUT_DELAY_MS,
+  DEMO_PHONE_LOCAL,
   DEMO_VERIFICATION_DELAY_MS,
   GROUP_SIZE_MIN,
   HOST_APP_SCHEMA_VERSION,
@@ -14,6 +20,9 @@ import {
   OUTBOX_MAX_ATTEMPTS,
   PAYOUT_WINDOW_HOURS,
   TITLE_MIN_LENGTH,
+  buildDemoBookings,
+  buildDemoOffering,
+  buildDemoPayouts,
   createSeedState,
   isDemoMode,
   kindOption,
@@ -31,6 +40,7 @@ import type {
   OfferingDraft,
   OfferingFields,
   OfferingKind,
+  OfferingPhoto,
   OfferingStatus,
   OutboxEntry,
   Payout,
@@ -57,6 +67,8 @@ type Listener = () => void;
 const SAVE_DEBOUNCE_MS = 150;
 const API = '/api/v1';
 const CAPTURE_KEY: Record<CaptureKind, string> = { document: 'verify-document', selfie: 'verify-selfie' };
+/** Any 4 digits but MOCK_OTP_REJECTED_CODE ('0000') pass the mock verify route — a cold deep link has no OTP screen to type one into, so this stands in for whatever the presenter would have typed. */
+const DEMO_OTP_CODE = '1234';
 
 const now = (): string => new Date().toISOString();
 const inMs = (ms: number): string => new Date(Date.now() + ms).toISOString();
@@ -110,6 +122,8 @@ class HostAppStore {
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly listeners = new Set<Listener>();
   private syncing: Promise<void> | undefined;
+  /** Single in-flight promise for ensureDemoHost, so more than one HostAppProvider mount (or a pathname change mid-provisioning) only ever provisions once. */
+  private demoProvisioning: Promise<void> | undefined;
   /**
    * Writes `enqueue` fired straight at the network (online path) rather than queuing in the outbox.
    * Added when the send starts, removed once it settles — `signOut` awaits whatever's left so a
@@ -195,9 +209,13 @@ class HostAppStore {
       const serverIds = new Set(serverOfferings.map((item) => item.id));
       // Everything for this host that isn't on the server is kept only if it's still queued in the
       // outbox, or was created locally after this sync's GET started (published mid-flight, so this
-      // response predates it) — anything else is stale and dropped.
+      // response predates it) — anything else is stale and dropped. Same demo-fixture exception as
+      // the bookings merge below: the mock API has never heard of a `demo-` offering id.
       const keptLocalOnly = state.offerings.filter(
-        (item) => item.hostId === hostId && !serverIds.has(item.id) && (item.pendingSync || item.createdAt > syncStartedAt),
+        (item) =>
+          item.hostId === hostId &&
+          !serverIds.has(item.id) &&
+          (item.pendingSync || item.createdAt > syncStartedAt || (isDemoMode && item.id.startsWith(DEMO_FIXTURE_PREFIX))),
       );
       const otherHosts = state.offerings.filter((item) => item.hostId !== hostId);
       return { ...state, offerings: [...serverOfferings, ...keptLocalOnly, ...otherHosts] };
@@ -215,8 +233,14 @@ class HostAppStore {
       // (SEED_HOST_IDS.nomsa and the seeded DB host both use 'host-nomsa'): this always replaces the
       // whole list for this hostId with the server's, so a seed booking with no server row and an old
       // createdAt is dropped outright rather than merely hidden by a selector filter.
+      // Demo fixtures (demo-fixtures.constant.ts) are the one deliberate exception: the mock API has
+      // never heard of a `demo-` id and never will, so without this clause they'd fail both tests
+      // above on every sync after the one that seeded them and vanish on a reload.
       const keptLocalOnly = state.bookings.filter(
-        (item) => item.hostId === hostId && !serverIds.has(item.id) && (item.pendingSync || item.createdAt > syncStartedAt),
+        (item) =>
+          item.hostId === hostId &&
+          !serverIds.has(item.id) &&
+          (item.pendingSync || item.createdAt > syncStartedAt || (isDemoMode && item.id.startsWith(DEMO_FIXTURE_PREFIX))),
       );
       const otherHosts = state.bookings.filter((item) => item.hostId !== hostId);
       return { ...state, bookings: [...serverBookings, ...keptLocalOnly, ...otherHosts] };
@@ -239,6 +263,102 @@ class HostAppStore {
       const otherHosts = state.payouts.filter((item) => item.hostId !== hostId);
       return { ...state, payouts: [...serverPayouts, ...keptLocalOnly, ...otherHosts] };
     });
+    // Covers a returning demo host who already had an offering before this sync ran; the more common
+    // case — publishing the first offering mid-session — is covered by publishDraft() itself below.
+    this.seedDemoFixturesIfNeeded(hostId);
+  }
+
+  /**
+   * Demo pitch mode only (demo.constant.ts): a fresh host registered via OTP has no bookings or
+   * payouts, so Bookings and Earnings stay empty on stage until a real traveller books them. Seeds
+   * canned ones (demo-fixtures.constant.ts) onto the host's own offerings the moment they have one.
+   * Guarded on "no bookings for this host yet" rather than a separate flag, so this can only ever
+   * seed once per host: the moment it runs, state.bookings for hostId stops being empty for good.
+   * Never enqueued — this writes local state only, so it can never be sent to (or overwritten by) the
+   * mock API; runSync's bookings merge above is what keeps the result alive across a later sync.
+   */
+  private seedDemoFixturesIfNeeded(hostId: string): void {
+    if (!isDemoMode) return;
+    const offerings = this.state.offerings.filter((item) => item.hostId === hostId);
+    const hasBookings = this.state.bookings.some((item) => item.hostId === hostId);
+    if (offerings.length === 0 || hasBookings) return;
+    const bookings = buildDemoBookings(hostId, offerings);
+    const payouts = buildDemoPayouts(hostId, bookings);
+    this.update((state) => ({ ...state, bookings: [...bookings, ...state.bookings], payouts: [...payouts, ...state.payouts] }));
+  }
+
+  /**
+   * Demo pitch mode only: a cold deep link straight into a host screen (HostAppProvider, in the
+   * branch that would otherwise have redirected to Welcome) has been through no OTP and has no
+   * `host_session` cookie at all. Does what a finished Join would have — confirmCode's own post-verify
+   * handling, then completeRegistration's local "signed in + onboarded" shape — then the fixture
+   * listing/bookings/payouts a stage demo needs. A no-op once any host is signed in, so this can never
+   * fight a real Join/Sign-in on the same device, and a single in-flight promise, so more than one
+   * mount only ever provisions once.
+   */
+  ensureDemoHost(): Promise<void> {
+    if (!isDemoMode || this.state.activeHostId) return Promise.resolve();
+    this.demoProvisioning ??= this.provisionDemoHost().finally(() => {
+      this.demoProvisioning = undefined;
+    });
+    return this.demoProvisioning;
+  }
+
+  private async provisionDemoHost(): Promise<void> {
+    const response = await hostApiService.request<{ id: string }>('POST', `${API}/auth/host/verify`, {
+      phone: DEMO_PHONE_LOCAL,
+      code: DEMO_OTP_CODE,
+    });
+    const hostId = response.data?.id;
+    // A real Join/Sign-in may have won the race while this was in flight; never override it.
+    if (!response.ok || !hostId || this.state.activeHostId) return;
+    // Same ordering as confirmCode: bump first (the cookie is already this host's from here on), then
+    // switch before any write can be attributed to whoever wasn't signed in a moment ago.
+    this.syncGeneration++;
+    const generation = this.syncGeneration;
+    this.switchActiveHost(hostId);
+    this.syncing = undefined;
+    // A fresh server row has no fullName yet (findOrCreateHostByPhone) — backfilled here, and
+    // awaited, so the sync below reads back what a finished Join would have saved instead of racing
+    // it and overwriting this host's local name with the empty one the GET would otherwise still see.
+    await hostApiService.request('PATCH', `${API}/hosts/me`, {
+      fullName: DEMO_FIRST_NAME,
+      language: DEMO_LANGUAGE,
+      contactChannel: DEMO_CONTACT_CHANNEL,
+    });
+    if (generation !== this.syncGeneration) return;
+    await this.syncFromServer();
+    if (generation !== this.syncGeneration) return;
+    await this.seedDemoOfferingIfNeeded(hostId);
+  }
+
+  /**
+   * Deliberately separate from seedDemoFixturesIfNeeded above: that one is also called from
+   * runSync/publishDraft on every demo host, and a real Join → Create → Publish run must still start
+   * from zero offerings, exactly as it does outside demo mode. This is only ever called from
+   * ensureDemoHost's own provisioning. Once the fixture offering exists, seedDemoFixturesIfNeeded's
+   * own "has an offering, has no bookings yet" gate picks it up the normal way.
+   */
+  private async seedDemoOfferingIfNeeded(hostId: string): Promise<void> {
+    if (this.state.offerings.some((item) => item.hostId === hostId)) return;
+    const generation = this.syncGeneration;
+    const photos = await this.loadDemoOfferingPhotos();
+    // Signed out, or switched to a different host, while the photos were loading.
+    if (generation !== this.syncGeneration || this.state.offerings.some((item) => item.hostId === hostId)) return;
+    this.update((state) => ({ ...state, offerings: [buildDemoOffering(hostId, photos), ...state.offerings] }));
+    this.seedDemoFixturesIfNeeded(hostId);
+  }
+
+  /** Same prefill PhotosPage.tsx does for a drafted listing's own photos, so the fixture offering's card and detail page show real images instead of a blob-store miss for a bare URL key. */
+  private async loadDemoOfferingPhotos(): Promise<OfferingPhoto[]> {
+    const photos: OfferingPhoto[] = [];
+    for (const src of DEMO_LISTING_PHOTOS) {
+      const blob = await compressImage(await (await fetch(src)).blob());
+      const key = `photo-${createId()}`;
+      await hostAppStorage.putBlob(key, blob);
+      photos.push({ key, bytes: blob.size });
+    }
+    return photos;
   }
 
   private emit(): void {
@@ -656,6 +776,9 @@ class HostAppStore {
       ),
       lastPublished: result,
     }));
+    // The moment a demo host's offering count goes 0 -> 1 (the common case: OTP -> Create -> Publish
+    // in one sitting, well before any sync could fire this from runSync above).
+    this.seedDemoFixturesIfNeeded(host.id);
     // The draft stays until PublishedPage discards it on mount: discarding here races useRequireDraft's
     // own redirect on this screen and sends the host back to category before Published ever renders.
     return result;
@@ -688,20 +811,30 @@ class HostAppStore {
 
   // Bookings
 
+  /** A `demo-` id (demo-fixtures.constant.ts) is local-only and unknown to the mock API — any write about one stays local instead of enqueuing a PATCH/POST that can only 404. */
+  private isDemoBooking(id: string): boolean {
+    return isDemoMode && id.startsWith(DEMO_FIXTURE_PREFIX);
+  }
+
   acceptBooking(id: string): void {
-    const pendingSync = this.enqueue('PATCH', `/hosts/me/bookings/${id}`, { status: 'CONFIRMED' }, (data) => this.applyBookingStatus(id, data));
+    const pendingSync = this.isDemoBooking(id)
+      ? false
+      : this.enqueue('PATCH', `/hosts/me/bookings/${id}`, { status: 'CONFIRMED' }, (data) => this.applyBookingStatus(id, data));
     this.patchBooking(id, { status: 'CONFIRMED', pendingSync });
   }
 
   /** The reason is host-side only — the server's PATCH schema only accepts `status` — so it's kept in local state and never sent. */
   declineBooking(id: string, reason: ResponseReason): void {
-    const pendingSync = this.enqueue('PATCH', `/hosts/me/bookings/${id}`, { status: 'DECLINED' }, (data) => this.applyBookingStatus(id, data));
+    const pendingSync = this.isDemoBooking(id)
+      ? false
+      : this.enqueue('PATCH', `/hosts/me/bookings/${id}`, { status: 'DECLINED' }, (data) => this.applyBookingStatus(id, data));
     this.patchBooking(id, { status: 'DECLINED', responseReason: reason, pendingSync });
   }
 
   cancelBooking(id: string, reason: ResponseReason): void {
     // TODO: the /api/v1 table has accept, decline and complete but no host cancel yet.
-    this.patchBooking(id, { status: 'CANCELLED', responseReason: reason, pendingSync: this.enqueue('POST', `/bookings/${id}/cancel`, { reason }) });
+    const pendingSync = this.isDemoBooking(id) ? false : this.enqueue('POST', `/bookings/${id}/cancel`, { reason });
+    this.patchBooking(id, { status: 'CANCELLED', responseReason: reason, pendingSync });
   }
 
   completeBooking(id: string): Payout | undefined {
@@ -720,7 +853,7 @@ class HostAppStore {
       autoSendAt: inMs(DEMO_PAYOUT_DELAY_MS),
     };
     // TODO: no POST /hosts/me/bookings/:id/complete endpoint yet — this enqueue 404s and drops; the payout above stays local-only until it exists.
-    const pendingSync = this.enqueue('POST', `/bookings/${id}/complete`);
+    const pendingSync = this.isDemoBooking(id) ? false : this.enqueue('POST', `/bookings/${id}/complete`);
     this.update((state) => ({
       ...state,
       bookings: state.bookings.map((item) => (item.id === id ? { ...item, status: 'COMPLETED', pendingSync } : item)),
