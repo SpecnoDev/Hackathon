@@ -56,13 +56,20 @@ export const DECK_IMAGES = {
 export const DECK_SCREENS = {
   landing: '/',
   hostWelcome: '/host/welcome',
-  hostCreate: '/host/offerings/new',
+  /** The draft Claude wrote back, which is the moment the slide is about. The flow's first step is just a category picker. */
+  hostCreate: '/host/offerings/new/draft',
   hostBookings: '/host/bookings',
-  hostEarnings: '/host/earnings',
+  /** Where a host picks how the money reaches them, which is the claim the slide makes. */
+  hostEarnings: '/host/earnings/payout-method',
   travellerHome: '/traveller/explore',
   travellerPlace: '/traveller/explore/places/cape-town',
   travellerResults: '/traveller/explore/results',
-  travellerPlan: '/traveller/plan',
+  /**
+   * The demo plan the group slide shows: "Food & culture in Cape Town", three experiences over four days, two
+   * travellers in. The planner index would open on a list or an empty state, which is not the feature.
+   * It needs a signed-in traveller who is a member of it, and a new id if the demo data is ever rebuilt.
+   */
+  travellerPlan: '/traveller/plan/ab447da4-9e4d-4e29-aee9-89afbd25ccec',
 } as const;
 
 export const DECK_COPY = {
