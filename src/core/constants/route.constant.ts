@@ -33,6 +33,16 @@ export const ROUTES = {
   adminAudit: '/admin/audit',
 } as const;
 
+/** Where sign-in should land the visitor once done; the page they were sent to /login from. */
+export const RETURN_TO_PARAM = 'next';
+
+/** Only a same-origin path is honoured: `//evil.com` or an absolute URL here would be an open redirect. */
+export const safeReturnPath = (raw: string | null | undefined): string | null =>
+  raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : null;
+
+export const withReturnTo = (route: string, returnTo: string | null): string =>
+  returnTo ? `${route}?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}` : route;
+
 /**
  * Browsing is public: a traveller compares experiences before creating an account, and the
  * landing page links straight into it. A signed-in host is still redirected away by the role

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ROLE_HOME_ROUTE, ROUTES } from '@/core/constants';
+import { RETURN_TO_PARAM, ROLE_HOME_ROUTE, ROUTES, safeReturnPath } from '@/core/constants';
 import { createSupabaseServerClient, getCurrentUser } from '@/core/services';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +20,7 @@ export const GET = async (request: NextRequest): Promise<NextResponse> => {
   }
 
   const user = await getCurrentUser();
+  const returnTo = safeReturnPath(request.nextUrl.searchParams.get(RETURN_TO_PARAM));
 
-  return NextResponse.redirect(new URL(user ? ROLE_HOME_ROUTE[user.role] : ROUTES.login, request.url));
+  return NextResponse.redirect(new URL(user ? (returnTo ?? ROLE_HOME_ROUTE[user.role]) : ROUTES.login, request.url));
 };

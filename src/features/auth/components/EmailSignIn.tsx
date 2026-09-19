@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { OTP_CODE_LENGTH, ROUTES } from '@/core/constants';
+import { OTP_CODE_LENGTH, ROUTES, withReturnTo } from '@/core/constants';
 import { createSupabaseBrowserClient } from '@/core/services/client';
 
 type Stage = 'email' | 'code';
@@ -21,7 +21,7 @@ const COPY = {
   failed: 'That did not work. Check it and try again.',
 };
 
-export function EmailSignIn() {
+export function EmailSignIn({ returnTo }: { returnTo: string | null }) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>('email');
   const [email, setEmail] = useState('');
@@ -39,15 +39,21 @@ export function EmailSignIn() {
     if (failure) return setError(failure.message || COPY.failed);
 
     if (stage === 'email') return setStage('code');
-    router.replace(ROUTES.loginComplete);
+    router.replace(withReturnTo(ROUTES.loginComplete, returnTo));
   };
 
   return stage === 'email' ? (
     <form
-      onSubmit={(event) => run(event, () => createSupabaseBrowserClient().auth.signInWithOtp({
+      onSubmit={(event) =>
+        run(event, () =>
+          createSupabaseBrowserClient().auth.signInWithOtp({
             email,
-            options: { emailRedirectTo: `${window.location.origin}${ROUTES.loginComplete}` },
-          }))}
+            options: {
+              emailRedirectTo: `${window.location.origin}${ROUTES.loginComplete}`,
+            },
+          }),
+        )
+      }
       className="mt-8"
     >
       <label htmlFor="email" className="block text-caption text-ink">
@@ -75,7 +81,13 @@ export function EmailSignIn() {
   ) : (
     <form
       onSubmit={(event) =>
-        run(event, () => createSupabaseBrowserClient().auth.verifyOtp({ email, token: code, type: 'email' }))
+        run(event, () =>
+          createSupabaseBrowserClient().auth.verifyOtp({
+            email,
+            token: code,
+            type: 'email',
+          }),
+        )
       }
       className="mt-8"
     >

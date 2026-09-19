@@ -14,6 +14,7 @@ import {
   USER_ROLES,
   isMockAuthEnabled,
   requireEnv,
+  withReturnTo,
 } from '@/core/constants';
 
 /**
@@ -107,7 +108,10 @@ export const middleware = async (request: NextRequest): Promise<NextResponse> =>
     return redirected;
   };
 
-  if (!session) return GUEST_ROUTES.some((route) => isWithin(pathname, route)) ? response : redirect(ROUTES.login);
+  if (!session)
+    return GUEST_ROUTES.some((route) => isWithin(pathname, route))
+      ? response
+      : redirect(withReturnTo(ROUTES.login, `${pathname}${request.nextUrl.search}`));
 
   // A Supabase session could be an admin or a traveller, and only the database knows which, so
   // both trees are let through here and their layouts turn the wrong one away.

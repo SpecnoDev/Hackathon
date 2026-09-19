@@ -1,3 +1,4 @@
+import { RETURN_TO_PARAM } from '@/core/constants';
 import { Button } from '@/shared/components';
 import { DEMO_SIGN_IN_FIELD, DEMO_SIGN_IN_PATH } from '../constants';
 import type { DemoTraveller } from '../services';
@@ -8,7 +9,7 @@ const COPY = {
   continueAs: (name: string) => `Continue as ${name}`,
 };
 
-export function DemoSignIn({ travellers }: { travellers: DemoTraveller[] }) {
+export function DemoSignIn({ travellers, returnTo }: { travellers: DemoTraveller[]; returnTo: string | null }) {
   if (travellers.length === 0) return null;
 
   return (
@@ -20,6 +21,7 @@ export function DemoSignIn({ travellers }: { travellers: DemoTraveller[] }) {
           <li key={email}>
             <form method="post" action={DEMO_SIGN_IN_PATH}>
               <input type="hidden" name={DEMO_SIGN_IN_FIELD} value={email} />
+              {returnTo ? <input type="hidden" name={RETURN_TO_PARAM} value={returnTo} /> : null}
               <Button type="submit" variant="secondary" size="md">
                 {COPY.continueAs(name)}
               </Button>

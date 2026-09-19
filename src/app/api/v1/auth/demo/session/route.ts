@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ROUTES } from '@/core/constants';
+import { RETURN_TO_PARAM, ROUTES, safeReturnPath, withReturnTo } from '@/core/constants';
 import { fail } from '@/core/utils';
 import { DEMO_SIGN_IN_FIELD } from '@/features/auth/constants';
 import { signInDemoTraveller } from '@/features/auth/services';
@@ -13,8 +13,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const form = await request.formData();
     await signInDemoTraveller(form.get(DEMO_SIGN_IN_FIELD));
+    const returnTo = form.get(RETURN_TO_PARAM);
 
-    return NextResponse.redirect(new URL(ROUTES.loginComplete, request.url), SEE_OTHER);
+    return NextResponse.redirect(
+      new URL(withReturnTo(ROUTES.loginComplete, safeReturnPath(typeof returnTo === 'string' ? returnTo : null)), request.url),
+      SEE_OTHER,
+    );
   } catch (error) {
     return fail(error);
   }
