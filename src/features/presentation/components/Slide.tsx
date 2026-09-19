@@ -1,0 +1,63 @@
+import type { CSSProperties, ReactNode } from 'react';
+import { STAGGER_MS } from '../constants';
+
+export type SlideTone = 'dark' | 'green' | 'light' | 'brand';
+
+/** DESIGN.md: the dark surface, the app's green hero, the warm canvas, and the one bright green. Nothing else is a slide background. */
+const TONE: Record<SlideTone, string> = {
+  dark: 'bg-surface-dark text-on-dark',
+  green: 'bg-primary-deep text-on-dark',
+  light: 'bg-canvas text-ink',
+  brand: 'bg-primary text-on-primary',
+};
+
+const EYEBROW: Record<SlideTone, string> = {
+  dark: 'text-accent',
+  green: 'text-accent',
+  light: 'text-primary-text',
+  brand: 'text-on-primary/80',
+};
+
+const SOURCE: Record<SlideTone, string> = {
+  dark: 'text-on-dark/50',
+  green: 'text-on-dark/60',
+  light: 'text-muted',
+  brand: 'text-on-primary/70',
+};
+
+/** One step of the entrance: each element rises in a beat after the one before it. Still with reduced motion. */
+export const Reveal = ({ order = 0, className = '', children }: { order?: number; className?: string; children: ReactNode }) => (
+  <div className={`animate-deck-rise motion-reduce:animate-none ${className}`} style={{ animationDelay: `${order * STAGGER_MS}ms` } satisfies CSSProperties}>
+    {children}
+  </div>
+);
+
+interface SlideProps {
+  tone: SlideTone;
+  eyebrow?: string;
+  headline?: ReactNode;
+  /** Where the figures on this slide came from. Small, but always there. */
+  source?: string;
+  children: ReactNode;
+}
+
+export const Slide = ({ tone, eyebrow, headline, source, children }: SlideProps) => (
+  <section className={`relative flex size-full flex-col gap-5 overflow-hidden px-14 pb-6 pt-10 ${TONE[tone]}`}>
+    {eyebrow || headline ? (
+      <header className="flex flex-col gap-3">
+        {eyebrow ? (
+          <Reveal>
+            <p className={`text-badge uppercase tracking-[0.22em] ${EYEBROW[tone]}`}>{eyebrow}</p>
+          </Reveal>
+        ) : null}
+        {headline ? (
+          <Reveal order={1}>
+            <h2 className="max-w-3xl font-display text-display-xl">{headline}</h2>
+          </Reveal>
+        ) : null}
+      </header>
+    ) : null}
+    <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+    {source ? <p className={`text-[0.625rem] leading-snug ${SOURCE[tone]}`}>{source}</p> : null}
+  </section>
+);
