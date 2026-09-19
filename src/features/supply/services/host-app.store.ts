@@ -35,6 +35,7 @@ import type {
   PayoutChannel,
   PayoutDetails,
   PublishResult,
+  RegistrationIntent,
   RegistrationProgress,
   ResponseReason,
   VerificationOutcome,
@@ -352,9 +353,9 @@ class HostAppStore {
 
   // Registration
 
-  /** A fresh start from the landing page. */
-  startRegistration(): void {
-    this.update((state) => ({ ...state, registration: {} }));
+  /** A fresh start from the landing page: JOIN for a new host, SIGN_IN for a returning one. */
+  startRegistration(intent: RegistrationIntent = 'JOIN'): void {
+    this.update((state) => ({ ...state, registration: { intent } }));
   }
 
   answerRegistration(patch: Partial<RegistrationProgress>): void {
@@ -406,8 +407,8 @@ class HostAppStore {
    * now would land under the new host's session. Instead, when actually switching identity, this
    * only drops local device state that belongs to the outgoing host: drafts, verification progress,
    * the last publish, and the identity half of `registration` (name, contact channel, completed-at).
-   * `language`/`phone`/`codeSentAt` survive — they belong to whoever is signing in right now, not
-   * the host being replaced. Re-verifying the same phone (hostId already active) skips the wipe
+   * `intent`/`language`/`phone`/`codeSentAt` survive — they belong to whoever is signing in right
+   * now, not the host being replaced. Re-verifying the same phone (hostId already active) skips the wipe
    * entirely, so a retry never blows away that host's own in-progress local state.
    * The outgoing host's outbox entries stay put, still tagged with their hostId; `flushOutbox`/
    * `replayOutbox` both filter by `activeHostId`, so they simply wait, untouched, until that host
@@ -423,7 +424,12 @@ class HostAppStore {
             drafts: {},
             verification: { state: 'IDLE' },
             lastPublished: undefined,
-            registration: { language: state.registration.language, phone: state.registration.phone, codeSentAt: state.registration.codeSentAt },
+            registration: {
+              intent: state.registration.intent,
+              language: state.registration.language,
+              phone: state.registration.phone,
+              codeSentAt: state.registration.codeSentAt,
+            },
           },
     );
   }
@@ -455,7 +461,11 @@ class HostAppStore {
       // upsert by id rather than always pushing, or a NEW_HOST registration would duplicate the row.
       hosts: state.hosts.some((item) => item.id === host.id) ? state.hosts.map((item) => (item.id === host.id ? host : item)) : [...state.hosts, host],
       activeHostId: host.id,
-      registration: { ...state.registration, contactChannel, completedAt: now() },
+      // F5: codeConfirmed/hostId only mean "this OTP verify still stands, skip re-proving it" for the
+      // registration flow that is finishing right now — carrying them past this point would let a
+      // later, unrelated registration (e.g. this device signs out and a different phone starts Join)
+      // skip OTP on stale say-so. The host row itself keeps its id; registration doesn't need to.
+      registration: { ...state.registration, contactChannel, completedAt: now(), codeConfirmed: undefined, hostId: undefined },
       verification: { state: 'IDLE' },
       drafts: {},
       lastPublished: undefined,

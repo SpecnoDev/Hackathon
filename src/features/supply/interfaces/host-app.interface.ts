@@ -195,8 +195,15 @@ export interface Host {
   communityProof?: CommunityProof;
 }
 
+/**
+ * JOIN is the Welcome page's "Join" path (new host, starts at language); SIGN_IN is its "Sign in"
+ * path (returning host, starts at phone — their language comes from their profile on sync).
+ */
+export type RegistrationIntent = 'JOIN' | 'SIGN_IN';
+
 /** Saved as the host goes, so registration can be resumed. An unset field is a question not answered yet. */
 export interface RegistrationProgress {
+  intent?: RegistrationIntent;
   language?: LanguageCode;
   phone?: string;
   codeSentAt?: string;
