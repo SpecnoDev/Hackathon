@@ -21,6 +21,10 @@ import type { CaptureKind, ContactChannel, DocumentType, LanguageCode, OfferingK
  * `EnterCodePage`, on Join, routes a `RETURNING` result the same as `NEW_HOST` — the canned phone
  * number is reused on every run, so by run two it is a real, existing host, and Join must not
  * dead-end on "already registered".
+ *
+ * A cold deep link straight into a host screen (no Join ever run) is provisioned once on mount by
+ * `hostAppStore.ensureDemoHost()` (host-app.store.ts), called from `HostAppProvider` in the branch
+ * that would otherwise have redirected it to Welcome.
  */
 export const isDemoMode = (): boolean =>
   typeof document !== 'undefined' && document.cookie.split('; ').includes(`${DEMO_MODE_COOKIE}=${DEMO_MODE_ON}`);
@@ -48,11 +52,25 @@ export const DEMO_LISTING_KIND: OfferingKind = 'experience';
 /** Must exist in `DOCUMENT_TYPES` (host-options.constant.ts). */
 export const DEMO_DOCUMENT_TYPE: DocumentType = 'SA_ID';
 
-/** Bundled stand-ins for the ID-document and selfie captures, served from `public/demo/`. */
+/**
+ * Bundled stand-ins for the ID-document and selfie captures, served from `public/demo/`. Both are
+ * Pillow-generated compositions (rounded card / silhouette + brand palette from `globals.css`), not
+ * photos of a person — clearly fake by design, each captioned "SAMPLE" / "not a real ID".
+ */
 export const DEMO_SAMPLE_PHOTO: Record<CaptureKind, string> = {
   document: '/demo/sample-id.jpg',
   selfie: '/demo/sample-selfie.jpg',
 };
 
-/** Bundled stand-ins for the three listing photos, served from `public/demo/`. Length must equal `PHOTOS_TO_GO_LIVE`. */
+/**
+ * Bundled stand-ins for the three listing photos, served from `public/demo/`. Length must equal
+ * `PHOTOS_TO_GO_LIVE`. Sourced from images.unsplash.com — the same host already used for every
+ * traveller-facing listing photo in `prisma/seed.ts` (see the `PHOTO` map there) — under the
+ * Unsplash License (free to use, no attribution required, commercial use permitted). Downloaded,
+ * centre-cropped to 1200x800 and re-encoded here rather than hot-linked, so the demo has no runtime
+ * dependency on Unsplash: sample-listing-1.jpg (photo-1466978913421-dad2ebd01d17, `PHOTO.sharedTable`
+ * — a shared table, home-cooked-meal vibe), sample-listing-2.jpg
+ * (photo-1580060839134-75a5edca2e99, `PHOTO.capeTownAerial`), sample-listing-3.jpg
+ * (photo-1498837167922-ddd27525d352, `PHOTO.market`).
+ */
 export const DEMO_LISTING_PHOTOS: readonly string[] = ['/demo/sample-listing-1.jpg', '/demo/sample-listing-2.jpg', '/demo/sample-listing-3.jpg'];

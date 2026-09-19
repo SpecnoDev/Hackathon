@@ -1,4 +1,6 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+'use client';
+
+import type { ButtonHTMLAttributes, PointerEvent, ReactNode } from 'react';
 import Link from 'next/link';
 import { Icon, type IconName } from './Icon';
 
@@ -41,9 +43,16 @@ export const Button = ({
   children,
   disabled,
   type = 'button',
+  onPointerDown,
   ...rest
 }: ButtonProps) => {
   const isText = variant === 'tertiary';
+  // A focused input must not blur before the click fires, or the soft keyboard closes,
+  // the layout shifts, and the tap lands on nothing (real-device sticky-footer bug).
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>): void => {
+    event.preventDefault();
+    onPointerDown?.(event);
+  };
   const className = [BASE, VARIANT[variant], isText ? '' : SIZE[size], fullWidth && !isText ? 'w-full' : '']
     .filter(Boolean)
     .join(' ');
@@ -59,7 +68,7 @@ export const Button = ({
       {content}
     </Link>
   ) : (
-    <button type={type} disabled={disabled} className={className} {...rest}>
+    <button type={type} disabled={disabled} className={className} onPointerDown={handlePointerDown} {...rest}>
       {content}
     </button>
   );

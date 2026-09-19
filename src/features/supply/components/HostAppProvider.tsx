@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ToastProvider, useToast } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
@@ -20,17 +20,36 @@ const msUntil = (iso: string): number => Math.max(0, Date.parse(iso) - Date.now(
 /** Routes a visitor with no active host must still be able to reach: landing, registration, and the demo persona switcher. */
 const SIGNED_OUT_PREFIXES = [HOST_ROUTES.welcome, `${HOST_ROUTES.home}/register`, HOST_ROUTES.flows];
 
-/** A fresh device (or one just reset) has no active host until registration or /flows switches a demo persona in. */
+/**
+ * A fresh device (or one just reset) has no active host until registration or /flows switches a
+ * demo persona in. Demo mode is the one exception: a cold deep link outside Welcome/Join/flows is
+ * provisioned in place (ensureDemoHost, host-app.store.ts) instead of redirected — this is UI
+ * navigation, not authz, either way.
+ */
 const useRedirectSignedOut = (): void => {
   const router = useRouter();
   const pathname = usePathname();
   const ready = useHostAppReady();
   const signedIn = useHostApp(selectIsSignedIn);
+  // Tracks the previous render's signedIn value so a sign-out (signed in -> signed out) can be told
+  // apart from a genuine cold start (never signed in this session). usePathname() lags the
+  // ProfilePage-initiated router.replace(welcome) that follows a sign-out by a render or two — without
+  // this, this effect fires on that stale, still-signed-out-route render and re-provisions the demo
+  // host mid-sign-out, undoing it (host-app.store.ts:299, ensureDemoHost).
+  const wasSignedIn = useRef(signedIn);
 
   useEffect(() => {
-    // Demo mode has no signed-in host by design; this is UI navigation, not authz, so it no-ops here.
-    if (!ready || signedIn || isDemoMode()) return undefined;
+    const previouslySignedIn = wasSignedIn.current;
+    wasSignedIn.current = signedIn;
+    if (!ready || signedIn) return undefined;
     if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return undefined;
+    if (isDemoMode()) {
+      // Just signed out (still on the old route, mid-navigation to Welcome) — ProfilePage's own
+      // redirect is already underway; don't race it with a fresh auto-provision.
+      if (previouslySignedIn) return undefined;
+      void hostAppStore.ensureDemoHost();
+      return undefined;
+    }
     // The host_session cookie can be ahead of this device: a WhatsApp sign-in link sets it before the
     // store has ever synced, so the first pull from /hosts/me decides, not an empty IndexedDB.
     let stale = false;

@@ -9,6 +9,7 @@ import {
   HTTP_STATUS,
   OFFERING_CATEGORY_KEYWORDS,
   isAccountActive,
+  isMockAuthEnabled,
   requireEnv,
 } from '../constants';
 import { HostIntakeDto, HostProfilePatchDto, OfferingDraftDto } from '@/shared/dto';
@@ -93,14 +94,42 @@ export const upsertHostFromIntake = async ({ whatsappId, kyc, offerings }: HostI
   return { id: host.id };
 };
 
+/**
+ * Hackathon-only: while `ALLOW_MOCK_AUTH` is on, memoises `phone -> hostId` so the pitch demo's
+ * repeated verify calls for the same phone skip the upsert round trip after the first. Caches
+ * only `id` — the verify route never reads `tier`, so there is nothing here that can go stale
+ * mid-demo. Process-local and lost on restart; capped so a long-running demo can't grow it
+ * unbounded, evicting the oldest entry first. A host deleted from the DB while cached keeps
+ * issuing sessions for its dead id until the process restarts — acceptable for the pitch.
+ * Removal target: after judging, 2026-09-19 (see `isMockAuthEnabled`).
+ */
+const MOCK_HOST_ID_CACHE_LIMIT = 100;
+const mockHostIdByPhone = new Map<string, string>();
+
 /** Idempotent: a replayed OTP verify for the same phone must not create a second host. */
-export const findOrCreateHostByPhone = (phone: string): Promise<Pick<Host, 'id' | 'tier'>> =>
-  prisma.host.upsert({
+export const findOrCreateHostByPhone = async (phone: string): Promise<{ id: string }> => {
+  if (isMockAuthEnabled()) {
+    const cachedId = mockHostIdByPhone.get(phone);
+    if (cachedId) return { id: cachedId };
+  }
+
+  const host = await prisma.host.upsert({
     where: { phone },
     create: { phone, fullName: '', serviceArea: '' },
     update: {},
-    select: { id: true, tier: true },
+    select: { id: true },
   });
+
+  if (isMockAuthEnabled()) {
+    if (mockHostIdByPhone.size >= MOCK_HOST_ID_CACHE_LIMIT) {
+      const oldestPhone = mockHostIdByPhone.keys().next().value;
+      if (oldestPhone) mockHostIdByPhone.delete(oldestPhone);
+    }
+    mockHostIdByPhone.set(phone, host.id);
+  }
+
+  return host;
+};
 
 const SAFE_HOST_SELECT = {
   id: true,

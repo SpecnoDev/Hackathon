@@ -60,7 +60,9 @@ export const isMockAuthEnabled = (): boolean => optionalEnv(ENV_KEYS.allowMockAu
  * Gated on `!isProduction()` so a production build never inherits this even if
  * `ALLOW_DEMO_BYPASS` leaks into that environment. Its own var, distinct from
  * `ALLOW_MOCK_AUTH` (`isMockAuthEnabled`) — this does NOT imply mock auth is on; the pitch
- * run sets `ALLOW_MOCK_AUTH`, `ALLOW_DEMO_BYPASS` and `NEXT_PUBLIC_DEMO_MODE` together.
+ * run sets `ALLOW_MOCK_AUTH=true` and `ALLOW_DEMO_BYPASS=true` in `.env`, then flips the
+ * Demo mode toggle in `/admin` per browser (see `DEMO_MODE_COOKIE` below) — that toggle is
+ * `isDemoMode()`, a separate, session-scoped concern from this build-time env bypass.
  * This disables page redirects only — API guards (`requireHost`, `requireTraveller`,
  * `requireAdmin`, `requireService`) still 401.
  */
