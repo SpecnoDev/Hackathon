@@ -8,5 +8,5 @@ import { createSupabaseServerClient } from '@/core/services';
 export const signOutTraveller = async (): Promise<void> => {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  redirect(ROUTES.login);
+  redirect(ROUTES.home);
 };

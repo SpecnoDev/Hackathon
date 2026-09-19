@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { ROLE_HOME_ROUTE, ROUTES, isMockAuthEnabled } from '@/core/constants';
 import { getCurrentUser } from '@/core/services';
 import { DemoSignIn, EmailSignIn, SessionFromUrl } from '@/features/auth/components';
+import { TravellerScreen } from '@/features/demand/components';
 import { listDemoTravellers } from '@/features/auth/services';
 
 export const metadata = { title: 'Sign in' };
@@ -14,9 +15,8 @@ export default async function LoginPage() {
   const demoTravellers = isMockAuthEnabled() ? await listDemoTravellers() : [];
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col justify-center px-6 py-12">
-      <h1 className="font-display text-display-lg text-ink">Sign in</h1>
-      <p className="mt-2 text-body-md text-muted">Travellers sign in with their email.</p>
+    <TravellerScreen pageTitle="Sign in" showNav width="column">
+      <p className="-mt-4 text-body-md text-muted">Travellers sign in with their email.</p>
 
       <SessionFromUrl />
       <DemoSignIn travellers={demoTravellers} />
@@ -38,6 +38,6 @@ export default async function LoginPage() {
       <Link href={ROUTES.explore} className="mt-8 text-center text-link text-primary-text underline">
         Just looking? Browse experiences
       </Link>
-    </main>
+    </TravellerScreen>
   );
 }
