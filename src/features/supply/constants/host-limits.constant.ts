@@ -5,6 +5,8 @@ export const HOST_APP_SCHEMA_VERSION = 4;
 export const NEW_DRAFT_KEY = 'new';
 
 export const REGISTER_FLOW_STEPS = 5;
+/** Sign in skips language (a returning host's language comes from their profile on sync) and stops at code. */
+export const SIGN_IN_FLOW_STEPS = 2;
 export const VERIFY_FLOW_STEPS = 3;
 export const CREATE_FLOW_STEPS = 6;
 
@@ -20,6 +22,7 @@ export const VOICE_NOTE_MAX_SECONDS = 90;
 export const VOICE_NOTE_MIN_SECONDS = 2;
 
 export const GROUP_SIZE_MIN = 1;
+export const DEFAULT_GROUP_MAX = 4;
 export const GROUP_SIZE_MAX = 20;
 export const SEATS_MIN = 1;
 export const SEATS_MAX = 22;
@@ -39,6 +42,11 @@ export const STEPS_SHOWN_ON_ROW = 3;
 
 /** F-06: a queued write past this many failed replays is dropped instead of retried forever. */
 export const OUTBOX_MAX_ATTEMPTS = 5;
+
+/** F4: bounds every host-API request (fetch has no built-in timeout) so a stalled network can't hold
+ *  the `host_session` cookie alive indefinitely — 10s comfortably covers a slow mobile connection
+ *  (the target device per docs/TECH_STACK.md) without stalling the UI on a call that's truly dead. */
+export const HOST_API_TIMEOUT_MS = 10_000;
 
 /** Demo only: how long the mocked services take, so pending states are visible on stage. */
 export const DEMO_AI_DELAY_MS = 1200;

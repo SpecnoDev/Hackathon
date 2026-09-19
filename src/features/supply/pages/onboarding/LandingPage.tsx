@@ -37,8 +37,13 @@ export const LandingPage = () => {
   const router = useRouter();
 
   const join = (): void => {
-    hostAppStore.startRegistration();
+    hostAppStore.startRegistration('JOIN');
     router.push(HOST_ROUTES.register.language);
+  };
+
+  const signIn = (): void => {
+    hostAppStore.startRegistration('SIGN_IN');
+    router.push(HOST_ROUTES.register.phone);
   };
 
   return (
@@ -46,8 +51,8 @@ export const LandingPage = () => {
       footer={
         <>
           <Button onClick={join}>{copy.join}</Button>
-          <Button variant="tertiary" href={HOST_ROUTES.offerings.list}>
-            {copy.returning}
+          <Button variant="tertiary" onClick={signIn}>
+            {copy.signIn}
           </Button>
         </>
       }

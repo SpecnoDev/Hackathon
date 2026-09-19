@@ -38,7 +38,6 @@ export const listLiveOfferings = ({ region, category, q, take }: OfferingQueryDt
 export const listHostOfferings = (hostId: string) =>
   prisma.offering.findMany({
     where: { hostId },
-    select: { id: true, title: true, status: true, priceCents: true },
     orderBy: { updatedAt: 'desc' },
     take: OFFERING_LIST_DEFAULT_TAKE,
   });

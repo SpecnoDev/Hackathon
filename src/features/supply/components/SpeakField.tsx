@@ -38,7 +38,7 @@ export const SpeakField = ({ label, value, onChange, example, multiline = false,
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex w-full flex-col gap-6 tablet:max-w-form">
       <div className="flex items-center gap-4">
         <VoiceRecordButton
           size="md"

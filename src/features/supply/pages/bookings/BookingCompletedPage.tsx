@@ -49,7 +49,9 @@ export const BookingCompletedPage = ({ bookingId }: { bookingId: string }) => {
         </span>
         <h1 className="text-title-lg text-ink">{copy.title}</h1>
         <p className="font-display text-display-xl text-ink">{formatRand(payout.amountCents)}</p>
-        <p className="text-body-host text-ink">{copy.timing(payout.destination, formatDayAndTime(payout.expectedBy))}</p>
+        <p className="text-body-host text-ink">
+          {payout.expectedBy ? copy.timing(payout.destination, formatDayAndTime(payout.expectedBy)) : copy.timingNoEta(payout.destination)}
+        </p>
       </div>
     </HostScreen>
   );

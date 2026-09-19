@@ -133,7 +133,8 @@ export interface Booking {
   offeringId: string;
   hostId: string;
   travellerName: string;
-  travellerPhone: string;
+  /** The server's booking read model does not carry the traveller's number yet — only set for locally seeded/demo bookings. */
+  travellerPhone?: string;
   status: BookingStatus;
   date: string;
   groupSize: number;
@@ -157,7 +158,8 @@ export interface Payout {
   /** Already masked, e.g. "082 *** 4471". */
   destination: string;
   status: PayoutStatus;
-  expectedBy: string;
+  /** The server's payout read model does not track an ETA yet — set for locally seeded/demo payouts and the local mark-completed flow. */
+  expectedBy?: string;
   sentAt?: string;
   /** Demo only: when the mocked payout flips to SENT. */
   autoSendAt?: string;
@@ -193,8 +195,15 @@ export interface Host {
   communityProof?: CommunityProof;
 }
 
+/**
+ * JOIN is the Welcome page's "Join" path (new host, starts at language); SIGN_IN is its "Sign in"
+ * path (returning host, starts at phone — their language comes from their profile on sync).
+ */
+export type RegistrationIntent = 'JOIN' | 'SIGN_IN';
+
 /** Saved as the host goes, so registration can be resumed. An unset field is a question not answered yet. */
 export interface RegistrationProgress {
+  intent?: RegistrationIntent;
   language?: LanguageCode;
   phone?: string;
   codeSentAt?: string;
@@ -217,6 +226,8 @@ export interface VerificationProgress {
 /** Shape from docs/TECH_STACK.md ("outbox"): a write waiting for signal, replayed against /api/v1. */
 export interface OutboxEntry {
   id: string;
+  /** F4: whoever was signed in when the write was queued — `replayOutbox` only sends a match for `activeHostId`. */
+  hostId: string;
   method: 'POST' | 'PATCH' | 'DELETE';
   path: string;
   body?: unknown;

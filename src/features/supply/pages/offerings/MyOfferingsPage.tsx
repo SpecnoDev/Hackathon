@@ -66,7 +66,7 @@ export const MyOfferingsPage = () => {
         {isEmpty ? (
           nextSteps
         ) : (
-          <ul className="flex flex-col gap-8">
+          <ul className="grid grid-cols-1 gap-8 tablet:grid-cols-2 desktop:grid-cols-3">
             {offerings.map((offering) => (
               <li key={offering.id}>
                 <OfferingCard offering={offering} />

@@ -32,7 +32,7 @@ export const COPY_COMMON = {
 export const COPY_WELCOME = {
   join: 'Join as a host',
   joinShort: 'Join',
-  returning: 'I have already joined',
+  signIn: 'Sign in',
   hero: {
     title: 'Get paid for what you know about your place.',
     body: 'Hosted puts local guides, drivers and home cooks in front of travellers. You get booked, and you get paid to your phone.',
@@ -64,6 +64,17 @@ export const COPY_WELCOME = {
 
 export const COPY_REGISTER = {
   flowTitle: 'Join',
+  useDifferentNumber: 'Use a different number',
+  alreadyRegistered: {
+    title: 'This number already has a Hosted account',
+    helper: (phone: string): string => `${phone} is already signed up. Sign in to carry on.`,
+    signIn: 'Sign in to my account',
+  },
+  noAccount: {
+    title: 'No account for this number yet',
+    helper: (phone: string): string => `We could not find a Hosted account for ${phone}.`,
+    join: 'Join with this number',
+  },
   language: {
     title: 'Which language do you want to use?',
     helper: 'You can change this later.',

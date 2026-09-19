@@ -25,7 +25,7 @@ const Section = ({ title, empty, bookings, titles, onAccept }: SectionProps) => 
     {bookings.length === 0 ? (
       <p className="text-body-host text-muted">{empty}</p>
     ) : (
-      <ul className="flex flex-col gap-3">
+      <ul className="grid grid-cols-1 gap-3 tablet:grid-cols-2 desktop:grid-cols-3">
         {bookings.map((booking) => (
           <li key={booking.id}>
             <BookingCard booking={booking} offeringTitle={titles[booking.offeringId] ?? ''} onAccept={onAccept ? () => onAccept(booking) : undefined} />

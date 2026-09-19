@@ -115,6 +115,13 @@ const SAFE_HOST_SELECT = {
 export const updateHostProfile = (hostId: string, patch: HostProfilePatchDto) =>
   prisma.host.update({ where: { id: hostId }, data: patch, select: SAFE_HOST_SELECT });
 
+/** Never selects idNumberHash or idDocumentPath — those never leave the server. */
+export const findHostProfile = async (hostId: string) => {
+  const host = await prisma.host.findUnique({ where: { id: hostId }, select: { ...SAFE_HOST_SELECT, story: true } });
+  if (!host) throw new ApiError(API_ERROR_CODES.notFound, HTTP_STATUS.notFound, 'Host not found');
+  return host;
+};
+
 /** Mock KYC (PRD Phase 2 wires a real provider). A COMMUNITY host is never downgraded by re-verifying. */
 export const verifyHostIdentity = async (hostId: string): Promise<{ tier: VerificationTier }> => {
   const host = await prisma.host.findUnique({ where: { id: hostId }, select: { tier: true } });

@@ -4,6 +4,7 @@ export * from './booking-policy.constant';
 export * from './env.constant';
 export * from './api.constant';
 export * from './auth.constant';
+export * from './booking.constant';
 export * from './language.constant';
 export * from './offering.constant';
 export * from './phone.constant';

@@ -3,6 +3,7 @@ export const HTTP_STATUS = {
   created: 201,
   unauthorized: 401,
   notFound: 404,
+  conflict: 409,
   unprocessable: 422,
   tooManyRequests: 429,
   serverError: 500,
@@ -16,6 +17,7 @@ export const API_ERROR_CODES = {
   otpExpired: 'OTP_EXPIRED',
   otpAttemptsExceeded: 'OTP_ATTEMPTS_EXCEEDED',
   otpResendTooSoon: 'OTP_RESEND_TOO_SOON',
+  bookingStatusConflict: 'BOOKING_STATUS_CONFLICT',
   internal: 'INTERNAL_ERROR',
 } as const;
 
