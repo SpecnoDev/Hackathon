@@ -13,10 +13,11 @@ import { formatDay } from '../../utils';
 const copy = HOST_COPY.earnings;
 const goThere = <Icon name="chevron-right" className="shrink-0 text-muted" />;
 
+// Not resorted here: the server already returns payouts newest-first, and a freshly completed local
+// payout is prepended in the store (see completeBooking) — `expectedBy` isn't reliable for sorting
+// since a synced payout doesn't carry one.
 const selectRows = (state: HostAppState): Array<{ payout: Payout; booking?: Booking }> =>
-  selectPayouts(state)
-    .map((payout) => ({ payout, booking: state.bookings.find((booking) => booking.id === payout.bookingId) }))
-    .sort((a, b) => b.payout.expectedBy.localeCompare(a.payout.expectedBy));
+  selectPayouts(state).map((payout) => ({ payout, booking: state.bookings.find((booking) => booking.id === payout.bookingId) }));
 
 export const EarningsPage = () => {
   const summary = useHostApp(selectEarnings);

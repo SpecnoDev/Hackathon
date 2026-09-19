@@ -66,12 +66,14 @@ export const ProfilePage = () => {
           </Row>
         </ul>
 
-        <Button variant="secondary" icon="message" href={whatsAppLink(SUPPORT_WHATSAPP_NUMBER, HOST_COPY.common.helpMessage)}>
-          {copy.help}
-        </Button>
-        <Button variant="destructive" size="lg" onClick={() => void handleSignOut()}>
-          {copy.signOut}
-        </Button>
+        <div className="flex flex-col gap-8 tablet:flex-row tablet:gap-3 tablet:[&>*]:w-auto">
+          <Button variant="secondary" icon="message" href={whatsAppLink(SUPPORT_WHATSAPP_NUMBER, HOST_COPY.common.helpMessage)}>
+            {copy.help}
+          </Button>
+          <Button variant="destructive" size="lg" onClick={() => void handleSignOut()}>
+            {copy.signOut}
+          </Button>
+        </div>
       </div>
     </HostScreen>
   );

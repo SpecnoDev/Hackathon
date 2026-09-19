@@ -30,6 +30,8 @@ export const HOST_ROUTES = {
     name: `${REGISTER}/name`,
     contact: `${REGISTER}/contact`,
     done: `${REGISTER}/done`,
+    alreadyRegistered: `${REGISTER}/already-registered`,
+    noAccount: `${REGISTER}/no-account`,
   },
   verify: {
     why: VERIFY,

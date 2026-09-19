@@ -9,10 +9,14 @@ import { hostAppStore } from '../../services';
 
 const copy = HOST_COPY.register.language;
 const selectLanguage = (state: HostAppState): LanguageCode | undefined => state.registration.language;
+const selectCodeConfirmed = (state: HostAppState): boolean => Boolean(state.registration.codeConfirmed);
 
 /** PRD: "Choose language first, before anything else." */
 export const LanguageStepPage = () => {
   const chosen = useHostApp(selectLanguage);
+  // Reached here already verified when a Sign in with no account chose "Join with this number":
+  // the OTP already proved this phone, so continue straight to name instead of asking for it again.
+  const codeConfirmed = useHostApp(selectCodeConfirmed);
 
   return (
     <HostScreen
@@ -22,7 +26,7 @@ export const LanguageStepPage = () => {
       heading={copy.title}
       helper={copy.helper}
       footer={
-        <Button href={HOST_ROUTES.register.phone} disabled={!chosen}>
+        <Button href={codeConfirmed ? HOST_ROUTES.register.name : HOST_ROUTES.register.phone} disabled={!chosen}>
           {HOST_COPY.common.continue}
         </Button>
       }

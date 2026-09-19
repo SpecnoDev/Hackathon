@@ -56,7 +56,7 @@ export const TextInput = ({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex w-full flex-col gap-2 tablet:max-w-form">
       <label htmlFor={id} className="text-caption text-ink">
         {label}
       </label>

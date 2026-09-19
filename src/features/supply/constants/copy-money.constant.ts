@@ -65,6 +65,8 @@ export const COPY_BOOKINGS = {
     title: 'Well done. Your money is on its way.',
     amount: (amount: string): string => `You will receive ${amount}`,
     timing: (destination: string, when: string): string => `We send it to ${destination} by ${when}.`,
+    /** Used when the payout has no known ETA yet (a synced payout with no local completion timer). */
+    timingNoEta: (destination: string): string => `We send it to ${destination} soon.`,
     cta: 'See my earnings',
     back: 'Back to my bookings',
   },
@@ -112,6 +114,8 @@ export const COPY_EARNINGS = {
     title: 'Payout',
     sent: (amount: string, destination: string): string => `${amount} sent to ${destination}.`,
     pending: (amount: string, destination: string, when: string): string => `${amount} is on its way to ${destination}. You should have it by ${when}.`,
+    /** Used when the payout has no known ETA yet (the server doesn't track one). */
+    pendingNoEta: (amount: string, destination: string): string => `${amount} is on its way to ${destination}.`,
     collect: {
       CASH_SEND: 'Withdraw at any ATM with your PIN.',
       BANK: 'It shows in your account today.',

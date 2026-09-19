@@ -1,3 +1,4 @@
+export * from './booking-payload.service';
 export * from './host-api.service';
 export * from './host-app-storage.service';
 export * from './host-app.selectors';

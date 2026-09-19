@@ -39,7 +39,7 @@ export const OtpInput = ({ length, value, onChange, onComplete, digitLabel, inva
   };
 
   return (
-    <div className="flex justify-center gap-3">
+    <div className="flex w-full justify-center gap-3 tablet:max-w-form tablet:justify-start">
       {Array.from({ length }, (_, index) => (
         <input
           key={index}

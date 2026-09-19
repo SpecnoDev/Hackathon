@@ -1,8 +1,18 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, type Language, type OfferingCategory, type VerificationTier } from '@prisma/client';
+import { BPS_DENOMINATOR, PLATFORM_FEE_BPS } from '../src/core/constants/money.constant';
 
 const adapter = new PrismaPg({ connectionString: process.env.DIRECT_URL! });
 const prisma = new PrismaClient({ adapter });
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const now = Date.now();
+
+/** Same split TECH_STACK.md assigns to the checkout flow — PLATFORM_FEE_BPS off the total, host keeps the rest. */
+const splitFee = (totalCents: number): { feeCents: number; hostReceivesCents: number } => {
+  const feeCents = Math.round((totalCents * PLATFORM_FEE_BPS) / BPS_DENOMINATOR);
+  return { feeCents, hostReceivesCents: totalCents - feeCents };
+};
 
 /*
  * The traveller catalogue below is Brandon's demand-designs prototype data, kept verbatim so both sides of the demo tell one
@@ -928,6 +938,96 @@ const LEGACY_HOST_MEDIA = [
 ] as const;
 
 
+type BookingSeed = {
+  id: string;
+  offeringId: string;
+  hostId: string;
+  travellerId: string;
+  status: 'REQUESTED' | 'CONFIRMED' | 'COMPLETED';
+  date: Date;
+  respondBy: Date;
+  groupSize: number;
+  totalCents: number;
+  paymentRef?: string;
+  payout?: {
+    id: string;
+    channel: 'BANK' | 'CASH_SEND' | 'WALLET' | 'CASH_PICKUP';
+    destination: string;
+    status: 'PENDING' | 'SENT';
+    sentAt: Date | null;
+  };
+};
+
+/**
+ * Demo bookings for the host booking-response screen: for host-nomsa (+27821110001), one
+ * REQUESTED (still awaiting a response, respondBy in the future), one CONFIRMED, one COMPLETED
+ * with a SENT payout, and one CONFIRMED with a PENDING payout. Reuses the travellers seeded
+ * above. `host-elana` doesn't exist in the catalogue above, so its two rows aren't ported.
+ */
+const BOOKING_SEEDS: BookingSeed[] = [
+  {
+    id: 'booking-nomsa-requested-1',
+    offeringId: 'off-langa-lunch',
+    hostId: 'host-nomsa',
+    travellerId: 'trav-jess',
+    status: 'REQUESTED',
+    date: new Date(now + 5 * DAY_MS),
+    respondBy: new Date(now + 2 * DAY_MS),
+    groupSize: 2,
+    totalCents: 18000 * 2,
+  },
+  {
+    id: 'booking-nomsa-confirmed-1',
+    offeringId: 'off-langa-lunch',
+    hostId: 'host-nomsa',
+    travellerId: 'trav-mike',
+    status: 'CONFIRMED',
+    date: new Date(now + 3 * DAY_MS),
+    respondBy: new Date(now - DAY_MS),
+    groupSize: 4,
+    totalCents: 18000 * 4,
+    paymentRef: 'MOCK-PAY-NOMSA-CONFIRMED-1',
+  },
+  {
+    id: 'booking-nomsa-completed-1',
+    offeringId: 'off-langa-lunch',
+    hostId: 'host-nomsa',
+    travellerId: 'trav-lindi',
+    status: 'COMPLETED',
+    date: new Date(now - 10 * DAY_MS),
+    respondBy: new Date(now - 11 * DAY_MS),
+    groupSize: 2,
+    totalCents: 18000 * 2,
+    paymentRef: 'MOCK-PAY-NOMSA-COMPLETED-1',
+    payout: {
+      id: 'payout-nomsa-completed-1',
+      channel: 'CASH_SEND',
+      destination: '082 *** 0001',
+      status: 'SENT',
+      sentAt: new Date(now - 9 * DAY_MS),
+    },
+  },
+  {
+    id: 'booking-nomsa-confirmed-2',
+    offeringId: 'off-langa-lunch',
+    hostId: 'host-nomsa',
+    travellerId: 'trav-jess',
+    status: 'CONFIRMED',
+    date: new Date(now + DAY_MS),
+    respondBy: new Date(now - 2 * DAY_MS),
+    groupSize: 3,
+    totalCents: 18000 * 3,
+    paymentRef: 'MOCK-PAY-NOMSA-CONFIRMED-2',
+    payout: {
+      id: 'payout-nomsa-pending-1',
+      channel: 'CASH_SEND',
+      destination: '082 *** 0001',
+      status: 'PENDING',
+      sentAt: null,
+    },
+  },
+];
+
 async function main() {
   for (const host of HOSTS) {
     const data = {
@@ -1022,14 +1122,55 @@ async function main() {
     await prisma.savedListing.upsert({ where: { travellerId_offeringId: saved }, update: {}, create: saved });
   }
 
+  for (const seed of BOOKING_SEEDS) {
+    const { feeCents, hostReceivesCents } = splitFee(seed.totalCents);
+    const bookingFields = {
+      offeringId: seed.offeringId,
+      hostId: seed.hostId,
+      travellerId: seed.travellerId,
+      status: seed.status,
+      date: seed.date,
+      respondBy: seed.respondBy,
+      groupSize: seed.groupSize,
+      totalCents: seed.totalCents,
+      feeCents,
+      hostReceivesCents,
+      paymentRef: seed.paymentRef ?? null,
+    };
+
+    await prisma.booking.upsert({
+      where: { id: seed.id },
+      update: bookingFields,
+      create: { id: seed.id, ...bookingFields },
+    });
+
+    if (!seed.payout) continue;
+
+    const payoutFields = {
+      amountCents: hostReceivesCents,
+      channel: seed.payout.channel,
+      destination: seed.payout.destination,
+      status: seed.payout.status,
+      sentAt: seed.payout.sentAt,
+    };
+
+    await prisma.payout.upsert({
+      where: { id: seed.payout.id },
+      update: payoutFields,
+      create: { id: seed.payout.id, bookingId: seed.id, hostId: seed.hostId, ...payoutFields },
+    });
+  }
+
   const mediaRepairs = await Promise.all([
     ...LEGACY_OFFERING_MEDIA.map(({ id, photoUrl }) => prisma.offering.updateMany({ where: { id }, data: { photos: [photoUrl] } })),
     ...LEGACY_HOST_MEDIA.map(([id, photoUrl]) => prisma.host.updateMany({ where: { id }, data: { photoUrl } })),
   ]);
   const repairedMediaRecords = mediaRepairs.reduce((total, result) => total + result.count, 0);
 
+  const payoutCount = BOOKING_SEEDS.filter((seed) => seed.payout).length;
+
   console.log(
-    `Seeded ${HOSTS.length} hosts, ${TRAVELLERS.length + reviewers.length} travellers, ${LISTINGS.length} offerings, ${REVIEWS.length} reviews; paused ${RETIRED_OFFERING_IDS.length} retired offerings; repaired ${repairedMediaRecords} legacy media records.`,
+    `Seeded ${HOSTS.length} hosts, ${TRAVELLERS.length + reviewers.length} travellers, ${LISTINGS.length} offerings, ${REVIEWS.length} reviews, ${BOOKING_SEEDS.length} demo bookings (${payoutCount} with a payout); paused ${RETIRED_OFFERING_IDS.length} retired offerings; repaired ${repairedMediaRecords} legacy media records.`,
   );
 }
 
