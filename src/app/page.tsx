@@ -13,6 +13,11 @@ const ROLE_CHOICES = [
     title: 'I want to earn',
     description: 'List what you offer and get paid, with no bank account needed.',
   },
+  {
+    href: ROUTES.plan,
+    title: 'Plan a trip with friends',
+    description: 'Build one itinerary together: drag in experiences, vote, let the group decide.',
+  },
 ] as const;
 
 /**
