@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { TravellerShell } from '@/core/layout';
-import { BottomNav, StepIndicator, TopBar } from '@/shared/components';
-import { COPY_COMMON, TRAVELLER_NAV } from '../constants';
+import { StepIndicator, TopBar } from '@/shared/components';
+import { COPY_COMMON } from '../constants';
+import { TravellerNav } from './TravellerNav';
 import { TravellerOfflineBanner } from './TravellerOfflineBanner';
 
 interface TravellerScreenProps {
@@ -42,7 +43,7 @@ export const TravellerScreen = ({ pageTitle, barTitle, backHref, action, step, h
     }
     lead={lead}
     footer={footer}
-    nav={showNav ? <BottomNav items={TRAVELLER_NAV} label={COPY_COMMON.navLabel} /> : undefined}
+    nav={showNav ? <TravellerNav /> : undefined}
   >
     {pageTitle ? <h1 className="mb-6 pt-2 font-display text-display-xl text-ink">{pageTitle}</h1> : null}
     {heading ? (

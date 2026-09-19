@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { OTP_CODE_LENGTH, ROUTES, withReturnTo } from '@/core/constants';
 import { createSupabaseBrowserClient } from '@/core/services/client';
+import { useToast } from '@/shared/components';
 
 type Stage = 'email' | 'code';
 
@@ -19,10 +20,12 @@ const COPY = {
   verifying: 'Checking…',
   change: 'Use a different email',
   failed: 'That did not work. Check it and try again.',
+  codeSent: (email: string) => `Code sent to ${email}`,
 };
 
 export function EmailSignIn({ returnTo }: { returnTo: string | null }) {
   const router = useRouter();
+  const toast = useToast();
   const [stage, setStage] = useState<Stage>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -38,7 +41,10 @@ export function EmailSignIn({ returnTo }: { returnTo: string | null }) {
     setBusy(false);
     if (failure) return setError(failure.message || COPY.failed);
 
-    if (stage === 'email') return setStage('code');
+    if (stage === 'email') {
+      toast(COPY.codeSent(email));
+      return setStage('code');
+    }
     router.replace(withReturnTo(ROUTES.loginComplete, returnTo));
   };
 

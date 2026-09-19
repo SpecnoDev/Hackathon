@@ -8,6 +8,8 @@ export interface BottomNavItem {
   href: string;
   label: string;
   icon: IconName;
+  /** A signed-in person's initial, shown as a portrait circle in place of the icon (DESIGN.md: round is for portraits). */
+  avatar?: string;
 }
 
 interface BottomNavProps {
@@ -29,7 +31,16 @@ export const BottomNav = ({ items, label }: BottomNavProps) => {
             className={`flex flex-1 flex-col items-center justify-center gap-1 text-nav-label ${active ? 'text-primary-text' : 'text-muted'}`}
           >
             {/* Active state is weight, not colour alone: the icon stroke thickens and the label is marked current. */}
-            <Icon name={item.icon} className={active ? 'stroke-[2.5]' : ''} />
+            {item.avatar ? (
+              <span
+                aria-hidden
+                className={`flex size-6 items-center justify-center rounded-full text-caption ${active ? 'bg-primary text-on-primary' : 'bg-surface-strong text-ink'}`}
+              >
+                {item.avatar}
+              </span>
+            ) : (
+              <Icon name={item.icon} className={active ? 'stroke-[2.5]' : ''} />
+            )}
             <span>{item.label}</span>
           </Link>
         );

@@ -26,6 +26,7 @@ export * from './StepIndicator';
 export * from './Stepper';
 export * from './TextInput';
 export * from './TierCard';
+export * from './SignedInToast';
 export * from './Toast';
 export * from './ToggleRow';
 export * from './TopBar';
