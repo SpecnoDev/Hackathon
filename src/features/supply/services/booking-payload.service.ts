@@ -18,11 +18,19 @@ export interface HostBookingRow {
 }
 
 /**
- * The server has no traveller phone number or decline-reason column yet, and no group-payment
- * ledger — a single `paymentRef` stands in for "the group has paid", so a booking with one is
- * treated as paid in full and one without as nothing paid yet. `travellerPhone` and
- * `responseReason` come from the matching local row when there is one (there never will be for a
- * real synced booking; only a locally seeded/demo booking can supply them).
+ * The server has no group-payment ledger yet. A CONFIRMED or COMPLETED booking is settled, so it
+ * is always paid in full; a DECLINED or CANCELLED one never collects payment. Only a still-pending
+ * REQUESTED booking falls back to `paymentRef` as a stand-in for "the group has paid".
+ */
+const groupPaymentFor = (row: HostBookingRow): Booking['groupPayment'] => {
+  if (row.status === 'CONFIRMED' || row.status === 'COMPLETED') return { paid: row.groupSize, of: row.groupSize };
+  if (row.status === 'DECLINED' || row.status === 'CANCELLED') return { paid: 0, of: row.groupSize };
+  return { paid: row.paymentRef ? row.groupSize : 0, of: row.groupSize };
+};
+
+/**
+ * `travellerPhone` and `responseReason` come from the matching local row when there is one (there
+ * never will be for a real synced booking; only a locally seeded/demo booking can supply them).
  */
 export const fromBookingRow = (row: HostBookingRow, hostId: string, local?: Booking): Booking => ({
   id: row.id,
@@ -37,7 +45,7 @@ export const fromBookingRow = (row: HostBookingRow, hostId: string, local?: Book
   feeCents: row.feeCents,
   hostReceivesCents: row.hostReceivesCents,
   respondBy: row.respondBy,
-  groupPayment: { paid: row.paymentRef ? row.groupSize : 0, of: row.groupSize },
+  groupPayment: groupPaymentFor(row),
   responseReason: local?.responseReason,
   pendingSync: false,
   createdAt: row.createdAt,
