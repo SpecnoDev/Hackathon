@@ -1,5 +1,5 @@
 import { Host, Traveller } from '@prisma/client';
-import { ENV_KEYS, USER_ROLES, adminEmails, optionalEnv } from '../constants';
+import { ENV_KEYS, USER_ROLES, adminEmails, isAccountActive, optionalEnv } from '../constants';
 import { prisma } from './prisma.service';
 import { readHostSession } from './session.service';
 import { createSupabaseServerClient } from './supabase-server.service';
@@ -20,7 +20,9 @@ export const getCurrentUser = async (): Promise<CurrentUser> => {
 
   if (hostId) {
     const host = await prisma.host.findUnique({ where: { id: hostId } });
-    if (host) return { role: USER_ROLES.host, host };
+    // Status is read on every request, not stamped into the cookie: a suspension has to bite on
+    // the next page load rather than when the session finally expires.
+    if (host && isAccountActive(host.status)) return { role: USER_ROLES.host, host };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -35,16 +37,23 @@ export const getCurrentUser = async (): Promise<CurrentUser> => {
 
   const traveller = await ensureTravellerForAuthUser(user.id, user.email);
 
-  return traveller ? { role: USER_ROLES.traveller, traveller } : null;
+  return traveller && isAccountActive(traveller.status) ? { role: USER_ROLES.traveller, traveller } : null;
 };
 
-/** A Supabase sign-up only creates an auth user, so the first visit is what makes them a traveller. */
+/**
+ * A Supabase sign-up only creates an auth user, so the first visit is what makes them a traveller.
+ * A traveller who already exists under this email (seeded, or created before they ever signed in) is
+ * claimed rather than duplicated, since email is unique and the auth id is what the guards look up.
+ */
 const ensureTravellerForAuthUser = async (
   authUserId: string,
   email: string | undefined,
 ): Promise<Traveller | null> => {
   const existing = await prisma.traveller.findUnique({ where: { authUserId } });
   if (existing || !email) return existing;
+
+  const byEmail = await prisma.traveller.findUnique({ where: { email } });
+  if (byEmail) return prisma.traveller.update({ where: { id: byEmail.id }, data: { authUserId } });
 
   return prisma.traveller.create({
     data: { authUserId, email, name: email.split('@')[0] },

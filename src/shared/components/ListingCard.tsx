@@ -1,80 +1,101 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import type { OfferingSummary } from '@/shared/dto';
-import { formatRand } from '@/shared/utils';
+import { Icon } from './Icon';
+import { RatingRow } from './RatingRow';
+import { VerifiedBadge } from './VerifiedBadge';
 
-const CATEGORY_LABEL: Record<OfferingSummary['category'], string> = {
-  TOUR: 'Tour',
-  FOOD: 'Food experience',
-  TRANSPORT: 'Transport',
-  ACCOMMODATION: 'Accommodation',
-  CONCIERGE: 'Concierge',
-  GUIDE: 'Guide',
-  SECURITY: 'Security',
-};
+const HEART_PX = 20;
+const DEFAULT_SIZES = '(min-width: 1128px) 33vw, (min-width: 744px) 50vw, 100vw';
 
-const durationLabel = (durationMin: number | null): string | null => {
-  if (durationMin === null) return null;
-  if (durationMin < 60) return `${durationMin} min`;
-  const hours = durationMin / 60;
-  return `${hours % 1 === 0 ? hours : hours.toFixed(1)} hours`;
-};
+interface ListingCardProps {
+  href: string;
+  title: string;
+  photo?: string;
+  photoAlt: string;
+  /** "Verified" or "Community verified". Omitted for a host with no badge. */
+  badge?: string;
+  /** Town and duration, e.g. "Langa, Cape Town · 2 hours". */
+  meta: string;
+  /** "Hosted by Nomsa". Travellers choose a person, so the person is on the card. */
+  host: string;
+  hostPortrait?: string;
+  rating: number | null;
+  ratingCount: number;
+  ratingLabel?: string;
+  newLabel: string;
+  /** "From R350". */
+  price: string;
+  /** "per person" or "for the group". */
+  priceUnit: string;
+  /** The heart shows only when there is somewhere to save to. */
+  saved?: boolean;
+  saveLabel?: string;
+  onToggleSave?: () => void;
+  priority?: boolean;
+  sizes?: string;
+}
 
-export function ListingCard({ offering }: { offering: OfferingSummary }) {
-  const duration = durationLabel(offering.durationMin);
-  const isVerified = offering.hostTier === 'IDENTITY' || offering.hostTier === 'COMMUNITY';
-  const verifiedLabel = offering.hostTier === 'COMMUNITY' ? 'Community verified' : 'Verified';
-
-  return (
-    <Link
-      href={`/traveller/explore/listings/${offering.id}`}
-      className="flex flex-col rounded-md bg-canvas text-ink no-underline"
-    >
+/**
+ * DESIGN.md listing-card: photo first, no border, the badge lifted off the photo, a heart in a white circle.
+ * Plain props only, so the database-backed feed and the prototype catalogue draw the same card.
+ */
+export const ListingCard = ({
+  href,
+  title,
+  photo,
+  photoAlt,
+  badge,
+  meta,
+  host,
+  hostPortrait,
+  rating,
+  ratingCount,
+  ratingLabel,
+  newLabel,
+  price,
+  priceUnit,
+  saved = false,
+  saveLabel,
+  onToggleSave,
+  priority = false,
+  sizes = DEFAULT_SIZES,
+}: ListingCardProps) => (
+  <div className="relative">
+    <Link href={href} className="flex flex-col gap-3 text-ink no-underline active:opacity-80">
       <div className="relative aspect-4/3 overflow-hidden rounded-md bg-surface-soft">
-        {offering.photos[0] && (
-          <Image
-            src={offering.photos[0]}
-            alt={offering.title}
-            fill
-            className="object-cover"
-            sizes="(min-width: 1128px) 33vw, (min-width: 744px) 50vw, 100vw"
-          />
-        )}
-        {isVerified && (
-          <span className="absolute left-2 top-2 rounded-full bg-primary-tint px-2.5 py-1 text-badge font-[var(--text-badge--font-weight)] text-primary-text shadow-lift">
-            ✓ {verifiedLabel}
+        {photo ? <Image src={photo} alt={photoAlt} fill priority={priority} className="object-cover" sizes={sizes} /> : null}
+        {badge ? (
+          <span className="absolute left-3 top-3">
+            <VerifiedBadge label={badge} floating density="traveller" />
           </span>
-        )}
+        ) : null}
       </div>
-
-      <div className="flex flex-col gap-1 pt-3">
-        <h3 className="text-title-sm text-ink">{offering.title}</h3>
-        <p className="text-body-sm text-muted">
-          {offering.town} · {CATEGORY_LABEL[offering.category]}
-          {duration ? ` · ${duration}` : ''}
-        </p>
-
-        <div className="flex items-center gap-1 text-caption text-ink">
-          {offering.avgRating !== null ? (
-            <>
-              <span className="text-star-rating">★</span>
-              <span>{offering.avgRating.toFixed(1)}</span>
-              <span className="text-muted">({offering.reviewCount})</span>
-            </>
-          ) : (
-            <span className="text-muted">New listing</span>
-          )}
-          {offering.vouchCount > 0 && (
-            <span className="text-muted">
-              · {offering.vouchCount} local{offering.vouchCount === 1 ? '' : 's'} recommend
+      <div className="flex flex-col gap-1">
+        <h3 className="text-title-sm text-ink">{title}</h3>
+        <p className="text-body-sm text-muted">{meta}</p>
+        <p className="flex items-center gap-2 text-body-sm text-muted">
+          {hostPortrait ? (
+            <span className="relative size-6 shrink-0 overflow-hidden rounded-full bg-surface-strong">
+              <Image src={hostPortrait} alt="" fill className="object-cover" sizes="24px" />
             </span>
-          )}
-        </div>
-
-        <p className="text-title-sm text-ink">
-          From {formatRand(offering.priceCents)} <span className="text-body-sm text-muted">per person</span>
+          ) : null}
+          {host}
         </p>
+        <div className="flex items-baseline justify-between gap-3 pt-1">
+          <RatingRow rating={rating} count={ratingCount} newLabel={newLabel} label={ratingLabel} />
+          <p className="text-body-sm text-muted">
+            <span className="text-title-sm text-ink">{price}</span> {priceUnit}
+          </p>
+        </div>
       </div>
     </Link>
-  );
-}
+    {onToggleSave ? (
+      <button type="button" aria-pressed={saved} aria-label={saveLabel} onClick={onToggleSave} className="absolute right-1 top-1 flex size-12 items-center justify-center">
+        <span className="flex size-9 items-center justify-center rounded-full bg-canvas text-ink shadow-lift">
+          {/* Saved is a filled heart, not a colour change: the shape carries the state. */}
+          <Icon name="heart" size={HEART_PX} className={saved ? 'fill-current' : ''} />
+        </span>
+      </button>
+    ) : null}
+  </div>
+);

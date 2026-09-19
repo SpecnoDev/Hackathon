@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { ROUTES } from '@/core/constants';
 
 const ROLE_CHOICES = [
   {
@@ -13,7 +15,19 @@ const ROLE_CHOICES = [
   },
 ] as const;
 
-export default function LandingPage() {
+/**
+ * A Supabase sign-in link falls back to the configured Site URL when its redirect is not on the
+ * allow-list, dropping the one-time code here instead of on the page that trades it for a
+ * session. Forwarding it means a misconfigured dashboard cannot silently swallow a sign-in.
+ */
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const { code } = await searchParams;
+  if (code) redirect(`${ROUTES.loginComplete}?code=${encodeURIComponent(code)}`);
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col justify-center px-6 py-12">
       <h1 className="font-display text-display-xl text-ink">

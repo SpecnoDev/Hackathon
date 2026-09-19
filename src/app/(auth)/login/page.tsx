@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ROLE_HOME_ROUTE, ROUTES } from '@/core/constants';
 import { getCurrentUser } from '@/core/services';
-import { EmailSignIn } from '@/features/auth/components';
+import { EmailSignIn, SessionFromUrl } from '@/features/auth/components';
 
 export const metadata = { title: 'Sign in' };
 export const dynamic = 'force-dynamic';
@@ -16,6 +16,7 @@ export default async function LoginPage() {
       <h1 className="font-display text-display-lg text-ink">Sign in</h1>
       <p className="mt-2 text-body-md text-muted">Travellers sign in with their email.</p>
 
+      <SessionFromUrl />
       <EmailSignIn />
 
       <div className="mt-10 rounded-lg border border-hairline p-6">

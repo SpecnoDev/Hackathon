@@ -48,5 +48,8 @@ export const MOCK_OTP_REJECTED_CODE = '0000';
  */
 export const isMockAuthEnabled = (): boolean => optionalEnv(ENV_KEYS.allowMockAuth) === 'true';
 
+/** Stamped on audit rows written while the demo bypass is on, so they are never mistaken for a real admin. */
+export const DEMO_ADMIN_EMAIL = 'demo-operator@hosted.local';
+
 export const otpMessage = (code: string): string =>
   `${code} is your sign-in code. It expires in ${OTP_TTL_MINUTES} minutes. Never share it.`;
