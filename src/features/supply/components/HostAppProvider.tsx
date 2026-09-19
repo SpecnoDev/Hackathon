@@ -12,8 +12,8 @@ import { hostAppStore, selectIsSignedIn, selectPayouts } from '../services';
 const selectCheckDueAt = (state: HostAppState): string | undefined =>
   state.verification.state === 'CHECKING' ? state.verification.resolveAt : undefined;
 
-const selectScheduledPayouts = (state: HostAppState): Payout[] =>
-  selectPayouts(state).filter((payout) => payout.status === 'PENDING' && payout.autoSendAt);
+const selectScheduledPayouts = (state: HostAppState): Array<Payout & { autoSendAt: string }> =>
+  selectPayouts(state).filter((payout): payout is Payout & { autoSendAt: string } => payout.status === 'PENDING' && Boolean(payout.autoSendAt));
 
 const msUntil = (iso: string): number => Math.max(0, Date.parse(iso) - Date.now());
 
@@ -70,7 +70,7 @@ const HostAppEffects = () => {
       setTimeout(() => {
         hostAppStore.markPayoutSent(payout.id);
         toast(HOST_COPY.earnings.sentNotice(formatRand(payout.amountCents), payout.destination), HOST_ROUTES.earnings.payout(payout.id));
-      }, msUntil(payout.autoSendAt ?? payout.expectedBy)),
+      }, msUntil(payout.autoSendAt)),
     );
     return () => timers.forEach(clearTimeout);
   }, [ready, online, scheduledPayouts, toast]);

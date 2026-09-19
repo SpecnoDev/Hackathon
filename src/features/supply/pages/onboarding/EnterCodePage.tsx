@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Banner, Button, OtpInput, useToast } from '@/shared/components';
 import { formatLocalPhone } from '@/shared/utils';
@@ -25,6 +25,7 @@ export const EnterCodePage = () => {
   const [code, setCode] = useState('');
   const [wrong, setWrong] = useState(false);
   const [wait, setWait] = useState(0);
+  const pending = useRef(false);
 
   useEffect(() => {
     if (ready && !phone) router.replace(HOST_ROUTES.register.phone);
@@ -36,8 +37,18 @@ export const EnterCodePage = () => {
     return () => clearInterval(timer);
   }, [codeSentAt]);
 
+  /**
+   * Guards against a second OTP submit (e.g. autofill firing alongside a manual entry) landing
+   * while the first is still in flight. A ref, not state: two `onComplete` calls in the same React
+   * batch would both still read the pre-batch `false` from state, since a `setState` call doesn't
+   * update the closure until the next render — a ref is written synchronously, so the second call
+   * always sees the first one's guard.
+   */
   const confirm = async (entered: string): Promise<void> => {
+    if (pending.current) return;
+    pending.current = true;
     const result = await hostAppStore.confirmCode(entered);
+    pending.current = false;
     if (result === 'RETURNING') router.replace(HOST_ROUTES.offerings.list);
     else if (result === 'NEW_HOST') router.push(HOST_ROUTES.register.name);
     else {

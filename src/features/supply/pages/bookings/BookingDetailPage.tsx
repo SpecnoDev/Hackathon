@@ -92,12 +92,14 @@ export const BookingDetailPage = ({ bookingId }: { bookingId: string }) => {
           <Fact icon="map-pin" label={copy.detail.meeting}>
             {[offering?.meetingPoint, offering?.town].filter(Boolean).join(', ')}
           </Fact>
-          <Fact icon="phone" label={copy.detail.phone}>
-            {accepted ? formatLocalPhone(booking.travellerPhone) : copy.detail.phoneHidden}
-          </Fact>
+          {booking.travellerPhone ? (
+            <Fact icon="phone" label={copy.detail.phone}>
+              {accepted ? formatLocalPhone(booking.travellerPhone) : copy.detail.phoneHidden}
+            </Fact>
+          ) : null}
         </dl>
 
-        {accepted ? (
+        {accepted && booking.travellerPhone ? (
           <Button variant="secondary" icon="message" href={whatsAppLink(booking.travellerPhone, copy.detail.whatsappMessage(booking.travellerName))}>
             {copy.detail.whatsapp}
           </Button>

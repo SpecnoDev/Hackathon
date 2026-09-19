@@ -18,6 +18,7 @@ import {
 } from '../constants';
 import type {
   Booking,
+  BookingStatus,
   CaptureKind,
   CommunityProofType,
   ContactChannel,
@@ -40,6 +41,8 @@ import type {
   VerificationProgress,
 } from '../interfaces';
 import { createId } from '../utils';
+import type { HostBookingRow, HostPayoutRow } from './booking-payload.service';
+import { fromBookingRow, fromPayoutRow } from './booking-payload.service';
 import type { HostApiOutcome } from './host-api.service';
 import { hostApiService } from './host-api.service';
 import { hostAppStorage } from './host-app-storage.service';
@@ -104,8 +107,6 @@ class HostAppStore {
   private saveTimer: ReturnType<typeof setTimeout> | undefined;
   private readonly listeners = new Set<Listener>();
   private syncing: Promise<void> | undefined;
-  /** Hosts the demo ledger graft has already run for, this session. See graftDemoLedgerOnto. */
-  private readonly ledgerGraftedHostIds = new Set<string>();
   /**
    * F4: bumped on confirmCode success and on sign-out, the two moments the `host_session` cookie
    * changes whose it is. `runSync` captures this at start and re-checks it after each await, so a
@@ -192,31 +193,42 @@ class HostAppStore {
       const otherHosts = state.offerings.filter((item) => item.hostId !== hostId);
       return { ...state, offerings: [...serverOfferings, ...keptLocalOnly, ...otherHosts] };
     });
-    this.graftDemoLedgerOnto(hostId);
-  }
 
-  /**
-   * DEMO ONLY, obviously removable: the seed ledger (bookings/payouts) was written against the
-   * three local personas in host-seed.constant.ts, so it means nothing once a real synced host
-   * signs in — Bookings/Earnings would render blank titles for offering ids that don't exist for
-   * this host. Re-keys that ledger onto the signed-in host and round-robins each booking onto one
-   * of their real synced offerings, so the judged demo path has something to show. Runs once per
-   * host per session; safe to re-run (idempotent) but pointless once bookings/payouts sync for real.
-   */
-  private graftDemoLedgerOnto(hostId: string): void {
-    if (this.ledgerGraftedHostIds.has(hostId)) return;
-    this.ledgerGraftedHostIds.add(hostId);
+    const bookingsResponse = await hostApiService.request<HostBookingRow[]>('GET', `${API}/hosts/me/bookings`);
+    if (generation !== this.syncGeneration || !bookingsResponse.ok || !bookingsResponse.data) return;
+    const bookingRows = bookingsResponse.data;
     this.update((state) => {
-      const offeringIds = state.offerings.filter((item) => item.hostId === hostId).map((item) => item.id);
-      if (offeringIds.length === 0) return state;
-      const host = state.hosts.find((item) => item.id === hostId);
-      return {
-        ...state,
-        bookings: state.bookings.map((booking, index) => ({ ...booking, hostId, offeringId: offeringIds[index % offeringIds.length] })),
-        payouts: host
-          ? state.payouts.map((payout) => ({ ...payout, hostId, channel: host.payoutChannel, destination: this.payoutDestination(host) }))
-          : state.payouts.map((payout) => ({ ...payout, hostId })),
-      };
+      const localById = new Map(state.bookings.map((item) => [item.id, item]));
+      const serverBookings = bookingRows.map((row) => fromBookingRow(row, hostId, localById.get(row.id)));
+      const serverIds = new Set(serverBookings.map((item) => item.id));
+      // Same rule as offerings above. This is also what keeps a seed persona's demo bookings
+      // (host-seed.constant.ts) from leaking onto a real signed-in host that happens to share its id
+      // (SEED_HOST_IDS.nomsa and the seeded DB host both use 'host-nomsa'): this always replaces the
+      // whole list for this hostId with the server's, so a seed booking with no server row and an old
+      // createdAt is dropped outright rather than merely hidden by a selector filter.
+      const keptLocalOnly = state.bookings.filter(
+        (item) => item.hostId === hostId && !serverIds.has(item.id) && (item.pendingSync || item.createdAt > syncStartedAt),
+      );
+      const otherHosts = state.bookings.filter((item) => item.hostId !== hostId);
+      return { ...state, bookings: [...serverBookings, ...keptLocalOnly, ...otherHosts] };
+    });
+
+    const payoutsResponse = await hostApiService.request<HostPayoutRow[]>('GET', `${API}/hosts/me/payouts`);
+    if (generation !== this.syncGeneration || !payoutsResponse.ok || !payoutsResponse.data) return;
+    const payoutRows = payoutsResponse.data;
+    this.update((state) => {
+      const serverPayouts = payoutRows.map((row) => fromPayoutRow(row, hostId));
+      const serverIds = new Set(serverPayouts.map((item) => item.id));
+      // Payout carries no createdAt/pendingSync to test staleness with (unlike Booking/Offering above), so
+      // a local-only payout is kept only if the booking it settles is still around after the merge just
+      // above — that's true for one `completeBooking()` just made locally (no server endpoint yet, see its
+      // TODO), and false for a seed persona's demo payouts once their matching demo bookings are dropped.
+      const validBookingIds = new Set(state.bookings.filter((item) => item.hostId === hostId).map((item) => item.id));
+      const keptLocalOnly = state.payouts.filter(
+        (item) => item.hostId === hostId && !serverIds.has(item.id) && validBookingIds.has(item.bookingId),
+      );
+      const otherHosts = state.payouts.filter((item) => item.hostId !== hostId);
+      return { ...state, payouts: [...serverPayouts, ...keptLocalOnly, ...otherHosts] };
     });
   }
 
@@ -275,6 +287,11 @@ class HostAppStore {
   private applyOfferingStatus(id: string, data: unknown): void {
     const status = (data as { status?: OfferingStatus } | undefined)?.status;
     if (status) this.patchOffering(id, { status });
+  }
+
+  private applyBookingStatus(id: string, data: unknown): void {
+    const status = (data as { status?: BookingStatus } | undefined)?.status;
+    if (status) this.patchBooking(id, { status });
   }
 
   /** The offering or booking id a queued write is about, read off its path (or its POST body, for a create). */
@@ -643,11 +660,14 @@ class HostAppStore {
   // Bookings
 
   acceptBooking(id: string): void {
-    this.patchBooking(id, { status: 'CONFIRMED', pendingSync: this.enqueue('POST', `/bookings/${id}/accept`) });
+    const pendingSync = this.enqueue('PATCH', `/hosts/me/bookings/${id}`, { status: 'CONFIRMED' }, (data) => this.applyBookingStatus(id, data));
+    this.patchBooking(id, { status: 'CONFIRMED', pendingSync });
   }
 
+  /** The reason is host-side only — the server's PATCH schema only accepts `status` — so it's kept in local state and never sent. */
   declineBooking(id: string, reason: ResponseReason): void {
-    this.patchBooking(id, { status: 'DECLINED', responseReason: reason, pendingSync: this.enqueue('POST', `/bookings/${id}/decline`, { reason }) });
+    const pendingSync = this.enqueue('PATCH', `/hosts/me/bookings/${id}`, { status: 'DECLINED' }, (data) => this.applyBookingStatus(id, data));
+    this.patchBooking(id, { status: 'DECLINED', responseReason: reason, pendingSync });
   }
 
   cancelBooking(id: string, reason: ResponseReason): void {
@@ -670,6 +690,7 @@ class HostAppStore {
       expectedBy: inMs((host.tier === 'COMMUNITY' ? 0 : PAYOUT_WINDOW_HOURS) * MS_PER_HOUR),
       autoSendAt: inMs(DEMO_PAYOUT_DELAY_MS),
     };
+    // TODO: no POST /hosts/me/bookings/:id/complete endpoint yet — this enqueue 404s and drops; the payout above stays local-only until it exists.
     const pendingSync = this.enqueue('POST', `/bookings/${id}/complete`);
     this.update((state) => ({
       ...state,

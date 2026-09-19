@@ -133,7 +133,8 @@ export interface Booking {
   offeringId: string;
   hostId: string;
   travellerName: string;
-  travellerPhone: string;
+  /** The server's booking read model does not carry the traveller's number yet — only set for locally seeded/demo bookings. */
+  travellerPhone?: string;
   status: BookingStatus;
   date: string;
   groupSize: number;
@@ -157,7 +158,8 @@ export interface Payout {
   /** Already masked, e.g. "082 *** 4471". */
   destination: string;
   status: PayoutStatus;
-  expectedBy: string;
+  /** The server's payout read model does not track an ETA yet — set for locally seeded/demo payouts and the local mark-completed flow. */
+  expectedBy?: string;
   sentAt?: string;
   /** Demo only: when the mocked payout flips to SENT. */
   autoSendAt?: string;

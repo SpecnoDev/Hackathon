@@ -44,7 +44,13 @@ export const PayoutPage = ({ payoutId }: { payoutId: string }) => {
           </div>
         </div>
         <div className="flex flex-col gap-2 rounded-lg bg-accent-tint p-5 text-body-host text-ink">
-          <p>{sent ? copy.sent(amount, payout.destination) : copy.pending(amount, payout.destination, formatDayAndTime(payout.expectedBy))}</p>
+          <p>
+            {sent
+              ? copy.sent(amount, payout.destination)
+              : payout.expectedBy
+                ? copy.pending(amount, payout.destination, formatDayAndTime(payout.expectedBy))
+                : copy.pendingNoEta(amount, payout.destination)}
+          </p>
           <p>{copy.collect[payout.channel]}</p>
           {payout.channel === 'CASH_SEND' ? (
             <div>
