@@ -20,7 +20,7 @@ interface DeckStageProps {
 }
 
 const RoundButton = ({ label, onClick, disabled = false, children }: { label: string; onClick: () => void; disabled?: boolean; children: ReactNode }) => (
-  <button type="button" aria-label={label} onClick={onClick} disabled={disabled} className="flex size-12 items-center justify-center rounded-full text-on-dark active:bg-on-dark/10 disabled:text-on-dark/30">
+  <button type="button" aria-label={label} onClick={onClick} disabled={disabled} className="flex size-12 items-center justify-center rounded-sm text-on-dark active:bg-on-dark/10 disabled:text-on-dark/30">
     {children}
   </button>
 );
@@ -35,7 +35,7 @@ export const DeckStage = ({ index, total, onNext, onPrevious, onGoTo, isFullScre
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-ink">
       <div className="relative flex min-h-0 flex-1 items-center justify-center">
-        <div className="overflow-hidden rounded-sm shadow-lift" style={{ width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }}>
+        <div className="overflow-hidden rounded-lg shadow-lift" style={{ width: STAGE_WIDTH * scale, height: STAGE_HEIGHT * scale }}>
           <div className="origin-top-left" style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT, transform: `scale(${scale})` }}>
             {children}
           </div>

@@ -87,14 +87,14 @@ export const BuiltSlide = () => (
   </Slide>
 );
 
-const FEATURE_PHONE_PX = 380;
+const FEATURE_PHONE_PX = 360;
 
 /** One slide per feature, in the order the product is used: a host lists, a host is paid, a traveller browses, a group plans. */
 export const FeatureSlides = copy.features.items.map((feature) => {
   const FeatureSlide = () => (
     <Slide tone="light" eyebrow={copy.features.eyebrow} headline={feature.title}>
-      <div className="grid flex-1 grid-cols-[1.1fr_auto] items-center gap-12">
-        <div className="flex flex-col gap-5">
+      <div className="grid flex-1 grid-cols-[1.1fr_auto] gap-12">
+        <div className="flex flex-col gap-5 pt-1">
           <Reveal order={1}>
             <p className="text-body-host text-body">{feature.body}</p>
           </Reveal>
@@ -109,7 +109,7 @@ export const FeatureSlides = copy.features.items.map((feature) => {
             ))}
           </ul>
         </div>
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 self-end">
           <PhoneFrame route={'route' in feature ? feature.route : ''} image={'image' in feature ? feature.image : undefined} label={copy.chrome.phoneLabel(feature.title)} height={FEATURE_PHONE_PX} />
           <p className="text-[0.625rem] text-muted">{'image' in feature ? copy.features.shot : copy.features.tap}</p>
         </div>
