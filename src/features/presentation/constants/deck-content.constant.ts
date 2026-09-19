@@ -46,7 +46,7 @@ export const DECK_SOURCES = {
 /** The live app screens shown inside phones. Swap any of them for a screenshot by giving the slide an image instead. */
 /** A screenshot of something the deck cannot run live, saved in /public. */
 export const DECK_IMAGES = {
-  whatsAppOnboarding: '/presentation/whatsapp-onboarding.png',
+  whatsAppOnboarding: '/presentation/whatsapp-onboarding.webp',
 } as const;
 
 export const DECK_SCREENS = {
