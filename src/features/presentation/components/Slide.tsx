@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { PatternField } from '@/shared/components';
 import { STAGGER_MS } from '../constants';
 
 export type SlideTone = 'dark' | 'green' | 'light' | 'brand';
@@ -43,6 +44,7 @@ interface SlideProps {
 
 export const Slide = ({ tone, eyebrow, headline, source, children }: SlideProps) => (
   <section className={`relative flex size-full flex-col gap-5 overflow-hidden px-14 pb-6 pt-10 ${TONE[tone]}`}>
+    {tone === 'green' || tone === 'brand' ? <PatternField /> : null}
     {eyebrow || headline ? (
       <header className="flex flex-col gap-3">
         {eyebrow ? (
