@@ -26,6 +26,20 @@ const demoTravellerUser = cache(
 );
 
 /**
+ * Hackathon-only: the traveller tree (layout, session-aware components, the booking pages) needs
+ * the same "resolve to Jess" fallback `requireRole` uses, but without the redirect — these render
+ * for a guest too. One host cookie flips the whole pitch between sides, so a host viewing the
+ * traveller tree under bypass reads as Jess here rather than signed-out. Removal target: 2026-09-19.
+ */
+export const currentTravellerOrDemo = async (): Promise<
+  Extract<NonNullable<CurrentUser>, { role: typeof USER_ROLES.traveller }> | null
+> => {
+  const user = await currentUser();
+  if (user?.role === USER_ROLES.traveller) return user;
+  return isDemoBypassEnabled() ? demoTravellerUser() : null;
+};
+
+/**
  * Server-side enforcement, deliberately not only in middleware: middleware is a redirect
  * convenience and has been bypassable by a crafted header (CVE-2025-29927). These run inside
  * the render, so a request that skips middleware still cannot see another role's UI.

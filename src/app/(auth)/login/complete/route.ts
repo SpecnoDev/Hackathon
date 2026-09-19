@@ -6,6 +6,8 @@ import {
   SIGNED_IN_COOKIE,
   SIGNED_IN_COOKIE_MAX_AGE_SECONDS,
   USER_ROLES,
+  demoAwareHomeRoute,
+  isDemoBypassEnabled,
   safeReturnPath,
 } from '@/core/constants';
 import { createSupabaseServerClient, getCurrentUser } from '@/core/services';
@@ -34,10 +36,14 @@ export const GET = async (request: NextRequest): Promise<NextResponse> => {
 
   const user = await getCurrentUser();
   const returnTo = safeReturnPath(request.nextUrl.searchParams.get(RETURN_TO_PARAM));
+  const refererIsTraveller = (request.headers.get('referer') ?? '').includes(ROUTES.traveller);
+  const home = user
+    ? isDemoBypassEnabled()
+      ? demoAwareHomeRoute(user.role, returnTo, refererIsTraveller)
+      : (returnTo ?? ROLE_HOME_ROUTE[user.role])
+    : ROUTES.login;
 
-  const response = NextResponse.redirect(
-    new URL(user ? (returnTo ?? ROLE_HOME_ROUTE[user.role]) : ROUTES.login, request.url),
-  );
+  const response = NextResponse.redirect(new URL(home, request.url));
   if (user?.role === USER_ROLES.traveller)
     response.cookies.set(SIGNED_IN_COOKIE, user.traveller.name, {
       maxAge: SIGNED_IN_COOKIE_MAX_AGE_SECONDS,
