@@ -226,7 +226,7 @@ export const DECK_COPY = {
       { icon: 'mic', title: 'Voice first, low literacy', body: 'One question a screen, in their own language.' },
       { icon: 'cloud-off', title: 'Offline first', body: 'Work is never lost because signal dropped.' },
       { icon: 'wallet', title: 'Bank account optional', body: 'Cash send, wallets and shop pickup.' },
-      { icon: 'shield-check', title: 'Trust that does not re-exclude', body: 'Start with a phone and an ID. Earn more through your community.' },
+      { icon: 'shield-check', title: 'KYC with a human in the loop', body: 'A person reviews the ID and the selfie, then approves or stops the account.' },
     ],
     budgetTitle: 'Low data, measured',
     budget: 'The PRD’s budget, first load',
