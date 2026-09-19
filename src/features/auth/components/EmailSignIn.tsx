@@ -54,7 +54,7 @@ export function EmailSignIn({ returnTo }: { returnTo: string | null }) {
       onSubmit={(event) =>
         run(event, async () => {
           // Sent through our own provider: Supabase only mints the code, so its email rate limit never applies.
-          const { error: message } = await requestSignInEmailAction(email);
+          const { error: message } = await requestSignInEmailAction(email, returnTo);
           return { error: message ? { message } : null };
         })
       }

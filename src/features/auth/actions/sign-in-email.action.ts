@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { safeReturnPath } from '@/core/constants';
 import { SIGN_IN_EMAIL_COPY } from '../constants';
 import { sendSignInEmail } from '../services';
 
@@ -11,12 +12,12 @@ export interface SignInEmailState {
 const emailSchema = z.email();
 
 /** Anyone may ask for a code, as with any sign-in form; the answer never says whether the address is known. */
-export const requestSignInEmailAction = async (email: unknown): Promise<SignInEmailState> => {
+export const requestSignInEmailAction = async (email: unknown, returnTo: string | null): Promise<SignInEmailState> => {
   const parsed = emailSchema.safeParse(typeof email === 'string' ? email.trim() : email);
   if (!parsed.success) return { error: SIGN_IN_EMAIL_COPY.invalid };
 
   try {
-    await sendSignInEmail(parsed.data);
+    await sendSignInEmail(parsed.data, safeReturnPath(returnTo));
     return { error: null };
   } catch {
     return { error: SIGN_IN_EMAIL_COPY.failed };
