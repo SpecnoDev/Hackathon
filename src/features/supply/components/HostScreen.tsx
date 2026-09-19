@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { HostShell } from '@/core/layout';
+import { HostShell, type HostShellMode } from '@/core/layout';
 import { BottomNav, OfflineBanner, Skeleton, StepIndicator, TopBar, type BottomNavItem } from '@/shared/components';
 import { HOST_COPY, HOST_ROUTES } from '../constants';
 import { useHostAppReady, useOnline } from '../hooks';
@@ -28,6 +28,8 @@ interface HostScreenProps {
   /** The primary action, pinned to the bottom. */
   footer?: ReactNode;
   showNav?: boolean;
+  /** List screens (Offerings, Bookings, Earnings) pass 'list' to widen from tablet up. @default 'linear' */
+  mode?: HostShellMode;
   children: ReactNode;
 }
 
@@ -45,12 +47,13 @@ const LoadingBlocks = ({ cards }: { cards: boolean }) => (
  * Every host screen: one question, one set of controls, one primary button pinned to the bottom,
  * and the offline banner whenever there is no signal. Content waits for the saved state so nothing flashes.
  */
-export const HostScreen = ({ barTitle, barTitleIsHeading, backHref, action, step, pageTitle, heading, helper, footer, showNav = false, children }: HostScreenProps) => {
+export const HostScreen = ({ barTitle, barTitleIsHeading, backHref, action, step, pageTitle, heading, helper, footer, showNav = false, mode = 'linear', children }: HostScreenProps) => {
   const online = useOnline();
   const ready = useHostAppReady();
 
   return (
     <HostShell
+      mode={mode}
       topBar={
         barTitle ? (
           <TopBar title={barTitle} titleIsHeading={barTitleIsHeading} backHref={backHref} backLabel={HOST_COPY.common.back} action={action} />

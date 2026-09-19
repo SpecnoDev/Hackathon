@@ -584,10 +584,18 @@ The loud moment is money. Airbnb's is the 64px rating; ours is the 48px earnings
 - Gutters between cards: `{spacing.base}` 16px in traveller grids; `{spacing.md}` 12px between stacked tiles on the host side.
 
 ### Grid and container
-- Mobile first. The product is designed at 390px and the host app is mobile-only by intent.
+- Mobile first. The product is designed at 390px; the host app is phone-primary by intent — the host is a person on an Android in sunlight — but is not phone-only. See Host app on tablet and desktop below.
 - Traveller listing grid: 1-up on phones, 2-up from 744px, 3-up from 1128px, capped at 1200px.
-- Host screens never go multi-column. On a tablet or desktop the host app renders as a centred 480px column on `{colors.surface-soft}`.
+- Host screens split in two from 744px up: linear flows stay the single centred 480px column on `{colors.surface-soft}`; the three list screens (Offerings, Bookings, Earnings) widen with the viewport instead, capped at 1200px like the traveller grid. See Host app on tablet and desktop below.
 - Listing detail on desktop: content left (about 64 percent), sticky booking card right (about 32 percent). On phones the booking card becomes `{component.sticky-book-bar}`.
+
+### Host app on tablet and desktop
+The host stays the primary user and the phone stays the design target: this section only gives the existing phone screens more room so the host side does not read as a phone next to the traveller side's grid in a side-by-side demo. No host feature or component is added.
+
+- **Linear flows** — register, verify, publish/voice, offering create and edit, and profile — keep the single centred 480px column (`max-w-host`, the existing `--container-host` token) on `{colors.surface-soft}` at every width from 744px up, unchanged from today. One question or task per screen gains nothing from extra width, and Montserrat already wants short line lengths (see Typography).
+- **List screens** — Offerings, Bookings, Earnings — drop the 480px cap from 744px up and take the same fluid width and 1200px cap as the traveller grid, keeping the host's own 24px gutter (`{spacing.lg}`) rather than the traveller's 16px. `{component.offering-card}` and the `booking-request-card` sections run `tablet:grid-cols-2 desktop:grid-cols-3`, the same utilities `{component.listing-card}` already uses. Earnings' payout history stays a single-column row list inside the wider frame; it is a ledger, not a card, and gains nothing from columns. The dark `{component.earnings-display-card}` and the `payout-option-tile` list stay single column too.
+- The primary action pinned to the bottom of the phone screen (`{component.button-primary}` in the shell's `footer` slot) becomes an ordinary inline button at the end of the content from 744px up, in both column widths. A button stuck to the bottom of a tall desktop viewport drifts away from the content above it, and once there is room to scroll to a visible action nothing on the host side needs the pin.
+- `{component.bottom-nav}` stays pinned to the bottom of the screen at every width. It does not become a top bar or a side rail: `top-bar` is already spoken for on inner screens only, and a rail would be a new, unnamed component. The nav simply tracks whichever container its own screen uses, so it is 480px wide under Profile and the 1200px-capped width under the three list screens; that seam between tabs is accepted, not solved with a new mechanism.
 
 ### Whitespace
 Host screens are deliberately empty: one question, one set of controls, one button. Traveller screens are denser, with cards 16px apart under an open hero, in the Airbnb pattern of "open at the fold, dense below".
@@ -770,8 +778,8 @@ Both densities pull from the same colour, radius and spacing tokens, so componen
 | Name | Width | Key changes |
 |---|---|---|
 | Phone | < 744px | The design target. Host app full-width single column with pinned bottom button. Traveller listing grid 1-up, booking card becomes the sticky bar. |
-| Tablet | 744 to 1128px | Host app renders as a centred 480px column on `{colors.surface-soft}`. Traveller grid 2-up. |
-| Desktop | > 1128px | Host app unchanged (centred column). Traveller grid 3-up, listing detail two-column with sticky booking card right, content capped at 1200px. |
+| Tablet | 744 to 1128px | Host list screens (Offerings, Bookings, Earnings) go `tablet:grid-cols-2` inside a fluid, 1200px-capped container; host linear flows, including Profile, keep the centred 480px column on `{colors.surface-soft}`. The pinned primary button becomes an inline one. Traveller grid 2-up. |
+| Desktop | > 1128px | Host list screens go `desktop:grid-cols-3`, capped at 1200px like the traveller grid; linear flows stay the centred 480px column. `{component.bottom-nav}` tracks whichever width its own screen uses. Traveller grid 3-up, listing detail two-column with sticky booking card right, content capped at 1200px. |
 
 ## Using This in the Repo
 
@@ -802,7 +810,7 @@ Spacing uses Tailwind's built-in 4px scale rather than named utilities: xxs is `
 | `TierBadge` | `verified-badge`, with `tier-card` for the explainer |
 | `EmptyState`, `EmptyIllustration` | `empty-state` and its four illustrations |
 | `OfferingDraftStack`, `ListingPreview`, `NextStepsCard`, `OfferingCard` (in `src/features/supply/components`) | `detail-row`, `listing-detail` with `steps-timeline`, `next-steps-card`, `offering-card` |
-| `HostShell` | `top-bar`, `step-indicator`, `offline-banner`, host `bottom-nav`, the primary button pinned to the bottom, and the centred 480px column from tablet up |
+| `HostShell` | `top-bar`, `step-indicator`, `offline-banner`, host `bottom-nav`, the primary button pinned to the bottom on phone and inline from 744px up, the centred 480px column for linear flows, and the fluid 1200px-capped column for list screens (see Host app on tablet and desktop) |
 | `TravellerShell` | `top-bar` or `search-bar-pill`, traveller `bottom-nav`, content capped at 1200px |
 | `ChatBubble` | Not specified here. See Known Gaps |
 
