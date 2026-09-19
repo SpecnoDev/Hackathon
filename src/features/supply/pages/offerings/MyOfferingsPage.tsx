@@ -31,7 +31,6 @@ export const MyOfferingsPage = () => {
     <HostScreen
       pageTitle={copy.title}
       showNav
-      mode="list"
       footer={
         isEmpty ? null : (
           <Button icon="plus" href={HOST_ROUTES.create.category}>

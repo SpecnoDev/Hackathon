@@ -24,7 +24,7 @@ export const EarningsPage = () => {
   const rows = useHostApp(selectRows);
 
   return (
-    <HostScreen pageTitle={copy.title} showNav mode="list">
+    <HostScreen pageTitle={copy.title} showNav>
       <div className="flex flex-col gap-10">
         {rows.length === 0 ? (
           // No dark card yet: a black box that says R0 three times tells a new host nothing and discourages them.

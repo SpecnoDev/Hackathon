@@ -1,10 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { HostShell, type HostShellMode } from '@/core/layout';
-import { BottomNav, OfflineBanner, Skeleton, StepIndicator, TopBar, type BottomNavItem } from '@/shared/components';
+import { HostShell, WebHeader } from '@/core/layout';
+import { BottomNav, OfflineBanner, Skeleton, StepIndicator, TopBar, useToast, type BottomNavItem } from '@/shared/components';
 import { HOST_COPY, HOST_ROUTES } from '../constants';
-import { useHostAppReady, useOnline } from '../hooks';
+import { useHostApp, useHostAppReady, useOnline } from '../hooks';
+import { hostAppStore, selectIsSignedIn } from '../services';
 
 const NAV_ITEMS: BottomNavItem[] = [
   { href: HOST_ROUTES.offerings.list, label: HOST_COPY.common.nav.offerings, icon: 'tag' },
@@ -28,8 +29,6 @@ interface HostScreenProps {
   /** The primary action, pinned to the bottom. */
   footer?: ReactNode;
   showNav?: boolean;
-  /** List screens (Offerings, Bookings, Earnings) pass 'list' to widen from tablet up. @default 'linear' */
-  mode?: HostShellMode;
   children: ReactNode;
 }
 
@@ -47,13 +46,25 @@ const LoadingBlocks = ({ cards }: { cards: boolean }) => (
  * Every host screen: one question, one set of controls, one primary button pinned to the bottom,
  * and the offline banner whenever there is no signal. Content waits for the saved state so nothing flashes.
  */
-export const HostScreen = ({ barTitle, barTitleIsHeading, backHref, action, step, pageTitle, heading, helper, footer, showNav = false, mode = 'linear', children }: HostScreenProps) => {
+export const HostScreen = ({ barTitle, barTitleIsHeading, backHref, action, step, pageTitle, heading, helper, footer, showNav = false, children }: HostScreenProps) => {
   const online = useOnline();
   const ready = useHostAppReady();
+  const toast = useToast();
+  const signedIn = useHostApp(selectIsSignedIn);
+
+  const handleSignOut = async (): Promise<void> => {
+    if ((await hostAppStore.signOut()) === 'OFFLINE') toast(HOST_COPY.profile.signOutOffline);
+  };
 
   return (
     <HostShell
-      mode={mode}
+      header={
+        <WebHeader
+          navItems={signedIn ? NAV_ITEMS : undefined}
+          signOutLabel={signedIn ? HOST_COPY.profile.signOut : undefined}
+          onSignOut={signedIn ? () => void handleSignOut() : undefined}
+        />
+      }
       topBar={
         barTitle ? (
           <TopBar title={barTitle} titleIsHeading={barTitleIsHeading} backHref={backHref} backLabel={HOST_COPY.common.back} action={action} />

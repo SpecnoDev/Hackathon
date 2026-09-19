@@ -50,7 +50,7 @@ export const BookingsPage = () => {
   };
 
   return (
-    <HostScreen pageTitle={copy.title} showNav mode="list">
+    <HostScreen pageTitle={copy.title} showNav>
       {nothingYet ? (
         // One designed empty state for the whole tab, not three empty sections.
         <EmptyState

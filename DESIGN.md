@@ -158,6 +158,11 @@ spacing:
   xxl: 48px
   section: 64px
 
+containers:
+  host: 480px
+  form: 560px
+  page: 1200px
+
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
@@ -274,6 +279,11 @@ components:
     backgroundColor: transparent
     textColor: "{colors.primary-text}"
     typography: "{typography.nav-label}"
+  web-header:
+    backgroundColor: "{colors.canvas}"
+    textColor: "{colors.muted}"
+    typography: "{typography.nav-label}"
+    height: 64px
   search-bar-pill:
     backgroundColor: "{colors.canvas}"
     textColor: "{colors.ink}"
@@ -586,16 +596,18 @@ The loud moment is money. Airbnb's is the 64px rating; ours is the 48px earnings
 ### Grid and container
 - Mobile first. The product is designed at 390px; the host app is phone-primary by intent — the host is a person on an Android in sunlight — but is not phone-only. See Host app on tablet and desktop below.
 - Traveller listing grid: 1-up on phones, 2-up from 744px, 3-up from 1128px, capped at 1200px.
-- Host screens split in two from 744px up: linear flows stay the single centred 480px column on `{colors.surface-soft}`; the three list screens (Offerings, Bookings, Earnings) widen with the viewport instead, capped at 1200px like the traveller grid. See Host app on tablet and desktop below.
+- Host screens share one container from 744px up: every screen fills `{containers.page}` under a persistent `{component.web-header}`, left-aligned on `{colors.canvas}`; only form control groups inside a screen constrain to `{containers.form}`. See Host app on tablet and desktop below.
 - Listing detail on desktop: content left (about 64 percent), sticky booking card right (about 32 percent). On phones the booking card becomes `{component.sticky-book-bar}`.
 
 ### Host app on tablet and desktop
-The host stays the primary user and the phone stays the design target: this section only gives the existing phone screens more room so the host side does not read as a phone next to the traveller side's grid in a side-by-side demo. No host feature or component is added.
+The host stays the primary user and the phone stays the design target for density and one-task-per-screen focus: below 744px the host app is exactly today's phone experience, unchanged in every particular. From 744px up it stops reading as a stretched phone and becomes a proper web layout with its own navigation, on every host screen. This supersedes both tonight's grid-only pass, which left the bottom nav pinned at every width and every flow a 480px column regardless of viewport, and the centred-card pass that followed it, which put every linear flow in a 560px card beside a 1200px header and grid screens — two widths on one screen, still reading as a phone page under a web header.
 
-- **Linear flows** — register, verify, publish/voice, offering create and edit, and profile — keep the single centred 480px column (`max-w-host`, the existing `--container-host` token) on `{colors.surface-soft}` at every width from 744px up, unchanged from today. One question or task per screen gains nothing from extra width, and Montserrat already wants short line lengths (see Typography).
-- **List screens** — Offerings, Bookings, Earnings — drop the 480px cap from 744px up and take the same fluid width and 1200px cap as the traveller grid, keeping the host's own 24px gutter (`{spacing.lg}`) rather than the traveller's 16px. `{component.offering-card}` and the `booking-request-card` sections run `tablet:grid-cols-2 desktop:grid-cols-3`, the same utilities `{component.listing-card}` already uses. Earnings' payout history stays a single-column row list inside the wider frame; it is a ledger, not a card, and gains nothing from columns. The dark `{component.earnings-display-card}` and the `payout-option-tile` list stay single column too.
-- The primary action pinned to the bottom of the phone screen (`{component.button-primary}` in the shell's `footer` slot) becomes an ordinary inline button at the end of the content from 744px up, in both column widths. A button stuck to the bottom of a tall desktop viewport drifts away from the content above it, and once there is room to scroll to a visible action nothing on the host side needs the pin.
-- `{component.bottom-nav}` stays pinned to the bottom of the screen at every width. It does not become a top bar or a side rail: `top-bar` is already spoken for on inner screens only, and a rail would be a new, unnamed component. The nav simply tracks whichever container its own screen uses, so it is 480px wide under Profile and the 1200px-capped width under the three list screens; that seam between tabs is accepted, not solved with a new mechanism.
+- **Header and navigation** — `{component.web-header}` appears from 744px up and replaces `{component.bottom-nav}`, which becomes phone-only; the host app never shows both at once. Full spec for each under Navigation.
+- **Inner screens** — `{component.top-bar}` keeps its phone form below 744px. From 744px up it collapses into an inline back link and a page heading sitting above the content; see the `top-bar` tablet-and-up variant under Navigation.
+- **Container** — every host screen, list and flow alike, fills `{containers.page}` (1200px) from 744px up, with `{spacing.lg}` (24px) gutters, left-aligned on `{colors.canvas}`: no soft-surface page background and no card wraps page content at this width or above (no border, radius or padding block around it). Only a form control group — text/phone/OTP inputs, option-tile lists, text areas, the voice recorder, selects — constrains to `{containers.form}` (560px, renamed from `containers.host-card`) and stays left-aligned inside the page; headings, helper text, detail rows, lists, cards and grids run the full page width. `{containers.host}` (480px) stays reserved for the phone width it already names.
+- **Primary action** — `{component.button-primary}` in the shell's `footer` slot stays pinned full-width at the bottom of the phone screen, unchanged. From 744px up it becomes an ordinary inline button at the end of the screen's content, natural width (`w-auto`), left-aligned with the content above it, not pinned. Where a screen carries two actions (Accept and Decline, Profile's two settings actions) they sit in one row with a `{spacing.sm}`-scale gap between them.
+- **List screens** — Offerings, Bookings, Earnings — the `tablet:grid-cols-2 desktop:grid-cols-3` grid on `{component.offering-card}` and the `booking-request-card` sections is a content rule inside the shared page container, not a container rule of its own; payout history and the dark earnings card stay single column. `page-title` is unaffected, since a tab root — including Profile — never had a `top-bar` to collapse.
+- **Profile** — the fourth tab root, full width like the rest, not a card: the identity row (initial, name, town, phone) sits across the top, the settings list runs full width beneath it, and its two actions sit inline in one row at the end, per Primary action above.
 
 ### Whitespace
 Host screens are deliberately empty: one question, one set of controls, one button. Traveller screens are denser, with cards 16px apart under an open hero, in the Airbnb pattern of "open at the fold, dense below".
@@ -650,13 +662,17 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 **`tier-card`**: A white card with `{rounded.lg}` explaining one verification tier: tier name in `{typography.title-md}`, what it unlocks in `{typography.body-host}`, and a `{component.verified-badge}` preview. Current tier gets the primary-tint fill.
 
 ### Navigation
-**`top-bar`**: 56px white bar, back chevron left, screen title centred in `{typography.title-md}`, optional text action right in `{typography.link}`. 1px hairline beneath. Inner screens only.
+**`top-bar`**: 56px white bar, back chevron left, screen title centred in `{typography.title-md}`, optional text action right in `{typography.link}`. 1px hairline beneath. Inner screens only, phone only (< 744px); the tablet-and-up form below is a variant of this component, not a second one.
+
+*Tablet and up variant*: the bar itself disappears; its job moves into the content, left-aligned at the top of the `{containers.page}` container described under Host app on tablet and desktop. The back chevron becomes an inline back link — chevron plus label in `{typography.link}` (underlined, `{colors.primary-text}`). The screen title becomes the page heading in `{typography.display-md}` ink, left-aligned, `{spacing.sm}` below the back link. The optional text action moves from the bar's right edge to sit beside this heading, same baseline, still `{typography.link}`. A `step-indicator`, where the screen has one, keeps sitting directly under the heading, unchanged from its phone position directly under the bar.
 
 **`page-title`**: The four host tab roots (Offerings, Bookings, Earnings, Profile) have no top bar. The tab's name sits top-left in `{typography.display-xl}` ink with 16px above and 32px below, the way Airbnb titles its tabs. It is the screen's one Cal Sans element, so section headings beneath it use `{typography.title-lg}`. A top bar never repeats the heading under it: when a screen has both, the bar names the flow ("New offering", "Offering") and the heading asks the question.
 
-**`bottom-nav`**: 64px white bar with a top hairline. Host tabs: Offerings, Bookings, Earnings, Profile. Traveller tabs: Explore, Trips, Bookings, Profile, matching the traveller routes in `docs/TECH_STACK.md`. A Saved tab returns when favourites exist. Icon above a 14px label; muted at rest.
+**`bottom-nav`**: 64px white bar with a top hairline. Phone only (< 744px) on the host side, where `{component.web-header}` takes over from 744px up; pinned at every width on the traveller side, which has no web-header equivalent and is out of scope for this amendment. Host tabs: Offerings, Bookings, Earnings, Profile. Traveller tabs: Explore, Trips, Bookings, Profile, matching the traveller routes in `docs/TECH_STACK.md`. A Saved tab returns when favourites exist. Icon above a 14px label; muted at rest.
 
 **`bottom-nav-item-active`**: Icon and label in `{colors.primary-text}`, icon switches to its filled variant. No underline, no pill.
+
+**`web-header`**: Host only, tablet and up (≥ 744px), replacing `{component.bottom-nav}` at that width. A 64px `{colors.canvas}` bar spanning the top of the `{containers.page}` frame, with a 1px `{colors.hairline}` bottom edge, sticky above the content the same way the phone shell's top-bar-and-banner stack sticks today — above `{component.offline-banner}`, which continues to render directly beneath it. Horizontal padding is `{spacing.lg}` at the frame edges. The app name sits left in `{typography.title-lg}` `{colors.primary-text}`, the wordmark's colour, ahead of the wordmark itself being designed (see Known Gaps). The four host tabs (Offerings, Bookings, Earnings, Profile) follow immediately after, left-aligned, as plain text links in `{typography.nav-label}` with `{spacing.lg}` between them: text only, no icon, since a 64px horizontal bar has no room for the icon-above-label pairing `bottom-nav` uses and four words are already unambiguous without one. The active tab matches `bottom-nav-item-active`'s intent exactly: label in `{colors.primary-text}`, no underline, no pill. "Sign out" sits right, pushed to the far edge, as a text action in `{typography.link}`.
 
 ### Search and browse (traveller)
 **`search-bar-pill`**: 56px white pill with the lift shadow, a search glyph, and placeholder copy in `{typography.body-md}` muted ("Where are you going?"). Tapping opens a full-screen search sheet.
@@ -777,9 +793,9 @@ Both densities pull from the same colour, radius and spacing tokens, so componen
 
 | Name | Width | Key changes |
 |---|---|---|
-| Phone | < 744px | The design target. Host app full-width single column with pinned bottom button. Traveller listing grid 1-up, booking card becomes the sticky bar. |
-| Tablet | 744 to 1128px | Host list screens (Offerings, Bookings, Earnings) go `tablet:grid-cols-2` inside a fluid, 1200px-capped container; host linear flows, including Profile, keep the centred 480px column on `{colors.surface-soft}`. The pinned primary button becomes an inline one. Traveller grid 2-up. |
-| Desktop | > 1128px | Host list screens go `desktop:grid-cols-3`, capped at 1200px like the traveller grid; linear flows stay the centred 480px column. `{component.bottom-nav}` tracks whichever width its own screen uses. Traveller grid 3-up, listing detail two-column with sticky booking card right, content capped at 1200px. |
+| Phone | < 744px | The design target. Host app full-width single column with pinned `{component.bottom-nav}` and pinned bottom button, `top-bar` on inner screens. Traveller listing grid 1-up, booking card becomes the sticky bar. |
+| Tablet | 744 to 1128px | Host `{component.bottom-nav}` is replaced by `{component.web-header}`. Every host screen fills the same `{containers.page}` container on `{colors.canvas}`, left-aligned, no card: list screens (Offerings, Bookings, Earnings) add `tablet:grid-cols-2` on their cards; other screens, including Profile, sit below an inline back link and heading in place of `top-bar`, with form control groups capped at `{containers.form}`. The pinned primary button becomes an inline one. Traveller grid 2-up, `{component.bottom-nav}` still pinned. |
+| Desktop | > 1128px | Host list screens go `desktop:grid-cols-3`, capped at `{containers.page}` like the traveller grid; every other host screen stays the same `{containers.page}` container beneath `{component.web-header}`, form control groups still capped at `{containers.form}`. Traveller grid 3-up, listing detail two-column with sticky booking card right, content capped at `{containers.page}`. |
 
 ## Using This in the Repo
 
@@ -796,6 +812,7 @@ Tailwind v4 reads its theme from CSS variables in an `@theme` block in `src/app/
 | Font stacks | `--font-display` (Cal Sans), `--font-sans` (Montserrat) | `font-display`, `font-sans` |
 | Lift shadow | `--shadow-lift` | `shadow-lift` |
 | Breakpoints | `--breakpoint-tablet` 744px, `--breakpoint-desktop` 1128px | `tablet:grid-cols-2`, `desktop:grid-cols-3` |
+| `containers.<name>` | `--container-<name>` | `max-w-host` (480px), `max-w-form` (560px), `max-w-page` (1200px) |
 
 Spacing uses Tailwind's built-in 4px scale rather than named utilities: xxs is `0.5`, xs `1`, sm `2`, md `3`, base `4`, lg `6`, xl `8`, xxl `12`, section `16`. No colour and type style share a name, so `text-*` utilities stay unambiguous.
 
@@ -810,7 +827,7 @@ Spacing uses Tailwind's built-in 4px scale rather than named utilities: xxs is `
 | `TierBadge` | `verified-badge`, with `tier-card` for the explainer |
 | `EmptyState`, `EmptyIllustration` | `empty-state` and its four illustrations |
 | `OfferingDraftStack`, `ListingPreview`, `NextStepsCard`, `OfferingCard` (in `src/features/supply/components`) | `detail-row`, `listing-detail` with `steps-timeline`, `next-steps-card`, `offering-card` |
-| `HostShell` | `top-bar`, `step-indicator`, `offline-banner`, host `bottom-nav`, the primary button pinned to the bottom on phone and inline from 744px up, the centred 480px column for linear flows, and the fluid 1200px-capped column for list screens (see Host app on tablet and desktop) |
+| `HostShell` | `web-header` (744px up, replacing `bottom-nav`), phone-only host `bottom-nav` (< 744px), `top-bar` on phone with its inline-back-link-and-heading variant from 744px up, `step-indicator`, `offline-banner`, the primary button pinned to the bottom on phone and inline from 744px up, the centred `{containers.host}` (480px) column on phone widening to the fluid `{containers.page}` (1200px)-capped column from 744px up for every screen, with form control groups inside it capped at `{containers.form}` (560px) (see Host app on tablet and desktop) |
 | `TravellerShell` | `top-bar` or `search-bar-pill`, traveller `bottom-nav`, content capped at 1200px |
 | `ChatBubble` | Not specified here. See Known Gaps |
 
