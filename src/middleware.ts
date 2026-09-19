@@ -65,10 +65,17 @@ const readHostSession = async (token: string | undefined): Promise<EdgeSession> 
     : null;
 };
 
+/** How @supabase/ssr names its session cookies, chunked or not. */
+const SUPABASE_AUTH_COOKIE = /^sb-.+-auth-token/;
+
+const hasSupabaseSession = (request: NextRequest): boolean =>
+  request.cookies.getAll().some(({ name }) => SUPABASE_AUTH_COOKIE.test(name));
+
 /** The host cookie wins, and costs no network call — the same order core/services/current-user.service.ts uses. */
 const readSession = async (request: NextRequest, response: NextResponse): Promise<EdgeSession> => {
   const host = await readHostSession(request.cookies.get(HOST_SESSION_COOKIE)?.value);
   if (host) return host;
+  if (!hasSupabaseSession(request)) return null;
 
   const supabase = createServerClient(
     requireEnv(ENV_KEYS.supabaseUrl),
@@ -81,11 +88,12 @@ const readSession = async (request: NextRequest, response: NextResponse): Promis
       },
     },
   );
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Refreshes an expiring token into the response cookies. Its verdict is deliberately not used: a
+  // token mid-refresh or a transient auth error read as "anonymous" here and signed travellers out,
+  // while the layout guards already turn an invalid session away with a redirect the router handles.
+  await supabase.auth.getUser().catch(() => undefined);
 
-  return user ? { role: 'authenticated' } : null;
+  return { role: 'authenticated' };
 };
 
 const isWithin = (pathname: string, route: string): boolean =>
@@ -96,6 +104,10 @@ export const middleware = async (request: NextRequest): Promise<NextResponse> =>
   if (PUBLIC_ROUTES.some((route) => isWithin(pathname, route))) return NextResponse.next();
   // Demo bypass: the layout guard hands out a demo operator identity, so nothing here should redirect first.
   if (isMockAuthEnabled() && ADMIN_ROUTES.some((route) => isWithin(pathname, route))) return NextResponse.next();
+  // Server actions arrive as POSTs to the page's own URL. A redirect here would hand the client HTML in
+  // place of the action's result and crash the page; the action's own guard answers with a redirect
+  // the router understands.
+  if (request.method !== 'GET' && request.method !== 'HEAD') return NextResponse.next({ request });
 
   const response = NextResponse.next({ request });
   const session = await readSession(request, response);

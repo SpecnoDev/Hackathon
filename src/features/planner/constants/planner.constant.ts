@@ -18,6 +18,13 @@ export const CANDIDATE_LIST_LIMIT = OFFERING_LIST_MAX_TAKE;
 /** Plain text so Safari and Firefox both carry the id across the drag. */
 export const DND_MIME = 'text/plain';
 
+/** Mirrors the theme's `desktop` breakpoint; the sheet's scroll hint is the one behaviour that differs by layout. */
+export const DESKTOP_MEDIA_QUERY = '(min-width: 70.5rem)';
+export const REDUCED_MOTION_MEDIA_QUERY = '(prefers-reduced-motion: reduce)';
+export const SCROLL_HINT_PX = 56;
+export const SCROLL_HINT_DELAY_MS = 300;
+export const SCROLL_HINT_BACK_MS = 750;
+
 export const TRAVEL_THEMES = [
   'Food & culture',
   'Nature & hiking',
@@ -78,6 +85,7 @@ export const PLANNER_COPY = {
     planning: 'Planning…',
     experiences: 'Experiences',
     experiencesHint: 'Drag one onto a day, or pick a day below it.',
+    experiencesHintMobile: 'Swipe through, then pick a day.',
     addExperiences: 'Add experiences',
     closePanel: 'Close experiences',
     search: 'Search by name or town',
@@ -87,7 +95,7 @@ export const PLANNER_COPY = {
     add: 'Add',
     addToDay: 'Add to day…',
     addToThisDay: 'Add to this day',
-    addingTo: (day: number) => `Adding to Day ${day}. Tap Add on an experience.`,
+    addingTo: (day: number) => `Adding to Day ${day}`,
     cancel: 'Cancel',
     day: (day: number) => `Day ${day}`,
     emptyDay: 'Nothing here yet. Drop an experience in.',
@@ -99,7 +107,7 @@ export const PLANNER_COPY = {
     votes: (up: number, down: number) => `${up} up, ${down} down`,
     travellers: (joined: number, planned: number | null) =>
       planned ? `${joined} of ${planned} travellers here` : `${joined} traveller${joined === 1 ? '' : 's'}`,
-    route: (from: string | null, to: string | null) => [from, to].filter(Boolean).join(' to '),
+    to: 'to',
     locked: 'This trip is locked. Voting and changes are closed.',
     aiUnavailable: 'The planner needs a moment. Try again, or drag experiences in yourself.',
     aiNothing: 'Nothing new fits this trip. Drag experiences in yourself.',

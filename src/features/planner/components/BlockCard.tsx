@@ -22,14 +22,14 @@ export const BlockCard = ({ block, locked, onOpen, onVote }: BlockCardProps) => 
   const verdict = blockVerdict(block);
 
   return (
-    <article className="flex gap-3 rounded-md border border-hairline bg-canvas p-3">
+    <article className="flex gap-2.5 rounded-md border border-hairline bg-canvas p-2.5 tablet:gap-3 tablet:p-3">
       <VoteArrows block={block} disabled={locked} onVote={onVote} />
       <button type="button" onClick={onOpen} className="flex min-w-0 flex-1 gap-3 text-left active:opacity-80">
-        <span className="relative size-16 shrink-0 overflow-hidden rounded-md bg-surface-soft">
+        <span className="relative size-14 shrink-0 overflow-hidden rounded-md bg-surface-soft tablet:size-16">
           {block.photo ? <Image src={block.photo} alt="" fill sizes={THUMB_SIZES} className="object-cover" /> : null}
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-caption text-muted">
+          <span className="truncate text-caption text-muted">
             {block.startTime ?? PLANNER_COPY.board.timeUnset} · {block.town}
           </span>
           <span className="truncate text-title-sm text-ink">{block.title}</span>

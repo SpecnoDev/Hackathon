@@ -13,7 +13,7 @@ export const InviteButton = ({ shareCode }: { shareCode: string }) => {
   };
 
   return (
-    <Button variant="secondary" size="md" fullWidth={false} icon="link" onClick={() => void invite()}>
+    <Button variant="tertiary" icon="link" onClick={() => void invite()}>
       {PLANNER_COPY.board.invite}
     </Button>
   );

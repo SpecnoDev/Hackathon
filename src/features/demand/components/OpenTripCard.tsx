@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import { Icon } from '@/shared/components';
 import type { TripSummary } from '@/shared/dto';
-import { TRAVELLER_ROUTES } from '../constants';
+import { ROUTES } from '@/core/constants';
 
 /** A trip still being co-created: no photo of its own yet, since it may hold several offerings. */
 export const OpenTripCard = ({ trip }: { trip: TripSummary }) => (
   <Link
-    href={TRAVELLER_ROUTES.trips.detail(trip.id)}
+    href={`${ROUTES.plan}/${trip.id}`}
     className="flex items-center gap-4 rounded-lg border border-hairline p-5 text-ink active:bg-surface-soft"
   >
     <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-surface-soft">

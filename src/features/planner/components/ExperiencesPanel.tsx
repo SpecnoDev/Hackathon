@@ -1,11 +1,20 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import type { OfferingCategory } from '@prisma/client';
 import { Banner, Button, Icon } from '@/shared/components';
 import { formatRand } from '@/shared/utils';
-import { DND_MIME, EXPERIENCE_TYPE_LABEL, PLANNER_COPY } from '../constants';
+import {
+  DESKTOP_MEDIA_QUERY,
+  DND_MIME,
+  EXPERIENCE_TYPE_LABEL,
+  PLANNER_COPY,
+  REDUCED_MOTION_MEDIA_QUERY,
+  SCROLL_HINT_BACK_MS,
+  SCROLL_HINT_DELAY_MS,
+  SCROLL_HINT_PX,
+} from '../constants';
 import type { CandidateOffering } from '../interfaces';
 import { formatDay, formatDuration } from '../utils';
 import { TypePill } from './TypePill';
@@ -13,10 +22,14 @@ import { TypePill } from './TypePill';
 const THUMB_SIZES = '56px';
 const SEARCH_ICON_PX = 20;
 const CHECK_PX = 14;
-const PILL = 'inline-flex min-h-10 shrink-0 items-center rounded-full px-4 text-button-sm transition-colors';
+const HIDE_SCROLLBAR = '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
+const PILL = 'inline-flex min-h-10 shrink-0 items-center rounded-md px-4 text-button-sm transition-colors';
 const PILL_ON = 'bg-ink text-on-dark';
 const PILL_OFF = 'bg-surface-soft text-ink';
-const SELECT = 'h-12 w-full rounded-full border border-ink bg-canvas px-4 text-button-sm text-ink';
+const SELECT = 'h-12 w-full rounded-md border border-ink bg-canvas px-4 text-button-sm text-ink';
+/* A sideways row on a phone, a column on desktop where it sits beside the timeline. */
+const LIST = `-mx-4 flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-1 ${HIDE_SCROLLBAR} desktop:mx-0 desktop:snap-none desktop:flex-col desktop:overflow-x-hidden desktop:overflow-y-auto desktop:px-0`;
+const CARD = 'flex w-60 shrink-0 snap-start flex-col gap-3 rounded-md border border-hairline bg-canvas p-3 desktop:w-auto desktop:shrink';
 
 interface ExperiencesPanelProps {
   candidates: CandidateOffering[];
@@ -25,6 +38,8 @@ interface ExperiencesPanelProps {
   /** Set when the traveller tapped "Add to this day": every row then adds straight to that day. */
   targetDay: number | null;
   locked: boolean;
+  /** The phone sheet's open state; the desktop column is always open. */
+  open: boolean;
   onAdd: (offeringId: string, dayIndex: number) => void;
   onClearTarget: () => void;
   onClose: () => void;
@@ -37,12 +52,25 @@ const matches = (candidate: CandidateOffering, q: string, category: OfferingCate
 const meta = (candidate: CandidateOffering): string =>
   [candidate.town, candidate.durationMin && formatDuration(candidate.durationMin), formatRand(candidate.priceCents)].filter(Boolean).join(' · ');
 
-export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, onAdd, onClearTarget, onClose }: ExperiencesPanelProps) => {
+export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, open, onAdd, onClearTarget, onClose }: ExperiencesPanelProps) => {
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<OfferingCategory | null>(null);
+  const list = useRef<HTMLUListElement>(null);
   const categories = useMemo(() => [...new Set(candidates.map((candidate) => candidate.category))], [candidates]);
   const shown = candidates.filter((candidate) => matches(candidate, q.trim().toLowerCase(), category));
   const copy = PLANNER_COPY.board;
+
+  // A phone cannot drag, so the row nudges sideways once when the sheet opens: the motion says "swipe" without a word.
+  useEffect(() => {
+    const row = list.current;
+    if (!open || !row || window.matchMedia(DESKTOP_MEDIA_QUERY).matches || window.matchMedia(REDUCED_MOTION_MEDIA_QUERY).matches) return undefined;
+    const out = window.setTimeout(() => row.scrollTo({ left: SCROLL_HINT_PX, behavior: 'smooth' }), SCROLL_HINT_DELAY_MS);
+    const back = window.setTimeout(() => row.scrollTo({ left: 0, behavior: 'smooth' }), SCROLL_HINT_BACK_MS);
+    return () => {
+      window.clearTimeout(out);
+      window.clearTimeout(back);
+    };
+  }, [open]);
 
   const startDrag = (event: DragEvent<HTMLLIElement>, offeringId: string) => {
     event.dataTransfer.setData(DND_MIME, offeringId);
@@ -50,13 +78,16 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
   };
 
   return (
-    <section aria-label={copy.experiences} className="flex h-full min-h-0 w-full min-w-0 flex-col gap-4 p-4">
+    <section aria-label={copy.experiences} className="flex h-full min-h-0 w-full min-w-0 flex-col gap-3 p-4 desktop:gap-4">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-title-lg text-ink">{copy.experiences}</h2>
-          <p className="text-caption text-muted">{copy.experiencesHint}</p>
+          <h2 className="text-title-md text-ink desktop:text-title-lg">{copy.experiences}</h2>
+          <p className="text-caption text-muted">
+            <span className="desktop:hidden">{copy.experiencesHintMobile}</span>
+            <span className="hidden desktop:inline">{copy.experiencesHint}</span>
+          </p>
         </div>
-        <button type="button" aria-label={copy.closePanel} onClick={onClose} className="flex size-12 shrink-0 items-center justify-center rounded-full text-ink desktop:hidden">
+        <button type="button" aria-label={copy.closePanel} onClick={onClose} className="-mr-2 -mt-2 flex size-12 shrink-0 items-center justify-center rounded-md text-ink desktop:hidden">
           <Icon name="x" />
         </button>
       </header>
@@ -80,11 +111,11 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
           value={q}
           onChange={(event) => setQ(event.target.value)}
           placeholder={copy.search}
-          className="h-12 w-full rounded-full border border-hairline bg-canvas pl-12 pr-4 text-body-md text-ink placeholder:text-muted-soft focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+          className="h-12 w-full rounded-md border border-hairline bg-canvas pl-12 pr-4 text-body-md text-ink placeholder:text-muted-soft focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
         />
       </label>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className={`-mx-4 flex gap-2 overflow-x-auto px-4 ${HIDE_SCROLLBAR} desktop:mx-0 desktop:px-0`}>
         <button type="button" aria-pressed={category === null} onClick={() => setCategory(null)} className={`${PILL} ${category === null ? PILL_ON : PILL_OFF}`}>
           {copy.allTypes}
         </button>
@@ -101,21 +132,16 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
         ))}
       </div>
 
-      <ul className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <ul ref={list} className={LIST}>
         {shown.map((candidate) => (
-          <li
-            key={candidate.id}
-            draggable={!locked}
-            onDragStart={(event) => startDrag(event, candidate.id)}
-            className={`flex flex-col gap-3 rounded-md border border-hairline bg-canvas p-3 ${locked ? '' : 'cursor-grab active:cursor-grabbing'}`}
-          >
+          <li key={candidate.id} draggable={!locked} onDragStart={(event) => startDrag(event, candidate.id)} className={`${CARD} ${locked ? '' : 'cursor-grab active:cursor-grabbing'}`}>
             <div className="flex gap-3">
               <span className="relative size-14 shrink-0 overflow-hidden rounded-md bg-surface-soft">
                 {candidate.photo ? <Image src={candidate.photo} alt="" fill sizes={THUMB_SIZES} className="object-cover" /> : null}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-title-sm text-ink">{candidate.title}</p>
-                <p className="text-body-sm text-muted">{meta(candidate)}</p>
+                <p className="truncate text-body-sm text-muted">{meta(candidate)}</p>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   <TypePill category={candidate.category} />
                   {inPlan.has(candidate.id) ? (
@@ -150,7 +176,7 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
             )}
           </li>
         ))}
-        {shown.length === 0 ? <li className="rounded-md bg-surface-soft p-4 text-center text-body-sm text-muted">{copy.noMatches}</li> : null}
+        {shown.length === 0 ? <li className="w-full shrink-0 rounded-md bg-surface-soft p-4 text-center text-body-sm text-muted">{copy.noMatches}</li> : null}
       </ul>
     </section>
   );
