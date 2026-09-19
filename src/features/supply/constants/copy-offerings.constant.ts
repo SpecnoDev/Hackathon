@@ -237,6 +237,7 @@ export const COPY_OFFERINGS = {
   empty: 'Tell us what you do and travellers can book you. You can just speak.',
   emptyCta: 'Create my first offering',
   addPhotos: 'Add photos',
+  photosNote: 'Only finished offerings with a photo go live. Add a photo to a draft and it publishes.',
   nextSteps: {
     title: 'Your next steps',
     progress: (done: number, total: number): string => `${done} of ${total} done`,
