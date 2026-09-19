@@ -29,7 +29,7 @@ export default async function LoginPage() {
         </p>
         <Link
           href={ROUTES.host}
-          className="mt-4 flex h-12 items-center justify-center rounded-full border border-ink text-button-md text-ink"
+          className="mt-4 flex h-12 items-center justify-center rounded-md border border-hairline text-button-md text-ink"
         >
           Open the host app
         </Link>

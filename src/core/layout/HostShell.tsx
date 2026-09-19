@@ -20,11 +20,11 @@ interface HostShellProps {
  * further, to `max-w-form`, applied where those primitives are composed, not here.
  */
 export const HostShell = ({ header, topBar, progress, banner, footer, nav, children }: HostShellProps) => (
-  <div className="min-h-dvh bg-canvas">
+  <div className="min-h-dvh bg-sand">
     {header}
     {header ? <div className="hidden tablet:sticky tablet:top-16 tablet:z-20 tablet:block">{banner}</div> : null}
-    <div className="mx-auto flex min-h-dvh w-full flex-col bg-canvas max-w-host tablet:max-w-page">
-      <div className="sticky top-0 z-20 bg-canvas tablet:static tablet:bg-transparent">
+    <div className="mx-auto flex min-h-dvh w-full flex-col bg-sand max-w-host tablet:max-w-page">
+      <div className="sticky top-0 z-20 bg-sand tablet:static tablet:bg-transparent">
         {topBar}
         {progress}
         <div className="tablet:hidden">{banner}</div>
@@ -32,7 +32,7 @@ export const HostShell = ({ header, topBar, progress, banner, footer, nav, child
       <div className="flex flex-1 flex-col">
         <main className="flex flex-1 flex-col px-6 pb-8 pt-6">{children}</main>
         {footer || nav ? (
-          <div className="sticky bottom-0 z-10 bg-canvas tablet:static tablet:bg-transparent">
+          <div className="sticky bottom-0 z-10 bg-sand tablet:static tablet:bg-transparent">
             {footer ? (
               <div className="flex flex-col gap-3 border-t border-hairline-soft px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] tablet:flex-row tablet:border-0 tablet:px-6 tablet:pb-0 tablet:pt-6 tablet:[&>*]:w-auto">
                 {footer}

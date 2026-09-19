@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { APP_NAME } from '@/core/constants';
+import { HostedLogo } from '@/shared/components';
 
 export interface WebHeaderItem {
   href: string;
@@ -20,9 +21,9 @@ interface WebHeaderProps {
 export const WebHeader = ({ navItems, signOutLabel, onSignOut }: WebHeaderProps) => {
   const pathname = usePathname();
   return (
-    <header className="sticky top-0 z-20 hidden h-16 border-b border-hairline bg-canvas tablet:flex">
+    <header className="sticky top-0 z-20 hidden h-16 border-b border-hairline bg-sand tablet:flex">
       <div className="mx-auto flex w-full max-w-page items-center gap-6 px-6">
-        <span className="text-title-lg text-primary-text">{APP_NAME}</span>
+        <HostedLogo name={APP_NAME} size="sm" />
         {navItems?.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (

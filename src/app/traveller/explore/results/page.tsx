@@ -24,7 +24,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
   return (
     <TravellerScreen barTitle={COPY_EXPLORE.results.title} backHref={TRAVELLER_ROUTES.home} showNav>
       <div className="flex flex-col gap-6">
-        <div className="sticky top-14 z-10 -mx-4 flex flex-col gap-3 bg-canvas px-4 pb-3 tablet:-mx-6 tablet:px-6">
+        <div className="sticky top-14 z-10 -mx-4 flex flex-col gap-3 bg-sand px-4 pb-3 tablet:-mx-6 tablet:px-6">
           <SearchPillLink href={searchHref} label={where} summary={summary} />
           <CategoryStrip active={query.category} hrefFor={(category) => resultsHref({ ...query, category })} />
         </div>
@@ -33,7 +33,7 @@ export default async function ResultsPage({ searchParams }: { searchParams: Prom
           <p className="text-body-md text-muted" aria-live="polite">
             {COPY_EXPLORE.results.count(offerings.length)}
           </p>
-          <Link href={resultsHref(query, { [SHEET_PARAM]: FILTERS_SHEET })} scroll={false} className="flex h-12 shrink-0 items-center gap-2 rounded-full border border-hairline bg-canvas px-5 text-button-sm text-ink">
+          <Link href={resultsHref(query, { [SHEET_PARAM]: FILTERS_SHEET })} scroll={false} className="flex h-12 shrink-0 items-center gap-2 rounded-sm border border-hairline bg-canvas px-5 text-button-sm text-ink">
             <Icon name="sliders" size={16} />
             {activeFilters > 0 ? COPY_EXPLORE.results.filtersOn(activeFilters) : COPY_EXPLORE.results.filters}
           </Link>

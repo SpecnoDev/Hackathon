@@ -24,12 +24,12 @@ interface TravellerShellProps {
  * so card grids can widen on a tablet and a desktop. Same parts as HostShell, never a different design.
  */
 export const TravellerShell = ({ topBar, lead, footer, nav, width = 'page', children }: TravellerShellProps) => (
-  <div className="flex min-h-dvh flex-col bg-canvas">
-    {topBar ? <div className="sticky top-0 z-20 bg-canvas">{topBar}</div> : null}
+  <div className="flex min-h-dvh flex-col bg-sand">
+    {topBar ? <div className="sticky top-0 z-20 bg-sand">{topBar}</div> : null}
     {lead}
     <main className={`mx-auto flex w-full flex-1 flex-col px-4 pb-10 pt-6 tablet:px-6 ${WIDTH[width]}`}>{children}</main>
     {footer || nav ? (
-      <div className="sticky bottom-0 z-10 bg-canvas">
+      <div className="sticky bottom-0 z-10 bg-sand">
         {footer ? (
           <div className="border-t border-hairline-soft">
             <div className={`mx-auto flex w-full flex-col gap-3 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] tablet:px-6 ${WIDTH[width]}`}>{footer}</div>

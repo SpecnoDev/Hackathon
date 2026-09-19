@@ -18,7 +18,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="min-h-dvh bg-surface-soft">
-      <header className="border-b border-hairline bg-canvas">
+      <header className="border-b border-hairline bg-sand">
         <div className="mx-auto flex h-14 max-w-page items-center gap-6 px-4">
           <span className="text-title-sm text-ink">Backoffice</span>
           <nav className="flex flex-1 gap-4">

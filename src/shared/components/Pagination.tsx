@@ -12,10 +12,10 @@ const COPY = {
 } as const;
 
 const STEP_ICON_PX = 16;
-const STEP = 'inline-flex h-12 items-center gap-1 rounded-full border px-4 text-button-md';
+const STEP = 'inline-flex h-12 items-center gap-1 rounded-md border px-4 text-button-md';
 const STEP_LIVE = `${STEP} border-ink bg-canvas text-ink hover:bg-surface-soft`;
 const STEP_OFF = `${STEP} border-border-strong bg-canvas text-muted-soft`;
-const SIZE_CHIP = 'inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-button-sm';
+const SIZE_CHIP = 'inline-flex h-10 min-w-10 items-center justify-center rounded-sm px-3 text-button-sm';
 
 interface PaginationProps {
   total: number;

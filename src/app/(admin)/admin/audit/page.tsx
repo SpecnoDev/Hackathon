@@ -9,7 +9,7 @@ import { readPagination, toPageRange } from '@/shared/dto';
 export const dynamic = 'force-dynamic';
 
 const FILTER_ICON_PX = 16;
-const CHIP = 'inline-flex min-h-12 items-center gap-2 rounded-full px-4 text-button-sm';
+const CHIP = 'inline-flex min-h-12 items-center gap-2 rounded-sm px-4 text-button-sm';
 
 const FILTERS: readonly { action?: AdminActionType; label: string }[] = [
   { label: AUDIT_COPY.allActions },
@@ -43,7 +43,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps) {
               key={label}
               href={auditFilterHref(value)}
               aria-current={selected ? 'page' : undefined}
-              className={`${CHIP} ${selected ? 'bg-ink text-on-dark' : 'bg-surface-soft text-ink'}`}
+              className={`${CHIP} ${selected ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}
             >
               {selected ? <Icon name="check" size={FILTER_ICON_PX} /> : null}
               {label}

@@ -11,7 +11,7 @@ const StripChip = ({ label, icon, active, href }: { label: string; icon?: IconNa
     href={href}
     aria-current={active ? 'true' : undefined}
     scroll={false}
-    className={`flex h-12 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-5 text-button-sm ${active ? 'bg-ink text-on-dark' : 'bg-surface-soft text-ink'}`}
+    className={`flex h-12 shrink-0 items-center gap-2 whitespace-nowrap rounded-sm px-5 text-button-sm ${active ? 'bg-primary text-on-primary' : 'bg-canvas text-ink ring-1 ring-inset ring-hairline'}`}
   >
     {icon ? <Icon name={icon} size={CHIP_ICON_PX} /> : null}
     {label}

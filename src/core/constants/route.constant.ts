@@ -24,6 +24,8 @@ export const ROUTES = {
   hostEarnings: '/host/earnings',
   hostProfile: '/host/profile',
   flows: '/flows',
+  /** The pitch deck. Public so it can be opened from any machine in the room. */
+  presentation: '/presentation',
   admin: '/admin',
   adminHosts: '/admin/hosts',
   adminTravellers: '/admin/travellers',
@@ -44,6 +46,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.privacy,
   ROUTES.explore,
   ROUTES.listings,
+  ROUTES.presentation,
 ] as const;
 
 /**

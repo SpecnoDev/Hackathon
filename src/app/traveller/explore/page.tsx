@@ -41,8 +41,8 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
           />
         ) : null}
         {nearYou ? <ListingRail title={COPY_EXPLORE.rails.nearYou} offerings={near} moreHref={TRAVELLER_ROUTES.place(nearYou.slug)} moreLabel={COPY_EXPLORE.rails.seeAll} /> : null}
-        <ListingRail title={COPY_EXPLORE.rails.loved} offerings={loved} />
         <PlaceTiles regions={regions} />
+        <ListingRail title={COPY_EXPLORE.rails.loved} offerings={loved} />
         <ListingRail title={COPY_EXPLORE.rails.justAdded} offerings={justAdded} />
         {featured ? <ListingRail title={COPY_EXPLORE.rails.hostsIn(featured.name)} offerings={hostsIn} moreHref={TRAVELLER_ROUTES.place(featured.slug)} moreLabel={COPY_EXPLORE.rails.seeAll} /> : null}
       </div>

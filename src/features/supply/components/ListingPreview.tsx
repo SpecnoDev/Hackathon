@@ -201,7 +201,7 @@ export const ListingPreview = ({ fields, host }: { fields: OfferingFields; host:
           <span className="text-title-md text-ink">{formatRand(fields.priceCents)}</span>
           <span className="text-caption text-muted">{priceUnitLabel(fields.priceUnit)}</span>
         </p>
-        <span className="inline-flex h-12 items-center rounded-full bg-primary px-6 text-button-md text-on-primary">{copy.preview.book}</span>
+        <span className="inline-flex h-12 items-center rounded-md bg-primary px-6 text-button-md text-on-primary">{copy.preview.book}</span>
       </div>
     </article>
   );
