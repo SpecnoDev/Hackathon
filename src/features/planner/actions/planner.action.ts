@@ -10,6 +10,7 @@ import type { PlannerActionState } from '../interfaces';
 import {
   addPlannerBlock,
   createPlannerTrip,
+  getPlannerTrip,
   planTripWithAi,
   removePlannerBlock,
   setPlannerBlockTime,
@@ -55,6 +56,16 @@ export const voteAction = async (tripId: string, input: unknown): Promise<Planne
 
 export const setBlockTimeAction = async (tripId: string, input: unknown): Promise<PlannerActionState> =>
   mutate(tripId, (travellerId) => setPlannerBlockTime(travellerId, tripId, setBlockTimeSchema.parse(input)));
+
+/** Every change is already persisted as it happens; this reads the plan back so the confirmation states what is on the server. */
+export const savePlanAction = async (tripId: string): Promise<PlannerActionState> => {
+  const { traveller } = await requireTravellerPage();
+  const trip = await getPlannerTrip(traveller.id, tripId);
+  if (!trip) return { error: PLANNER_ERRORS.notFound };
+
+  revalidatePath(ROUTES.plan);
+  return { note: PLANNER_COPY.board.planSaved(trip.blocks.length, trip.days.length) };
+};
 
 export const planWithAiAction = async (tripId: string): Promise<PlannerActionState> => {
   const { traveller } = await requireTravellerPage();

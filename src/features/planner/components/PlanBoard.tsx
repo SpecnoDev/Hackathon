@@ -10,6 +10,7 @@ import { formatDateRange } from '../utils';
 import { BlockModal } from './BlockModal';
 import { ExperiencesPanel } from './ExperiencesPanel';
 import { InviteButton } from './InviteButton';
+import { SaveBar } from './SaveBar';
 import { Timeline } from './Timeline';
 
 const META_ICON_PX = 16;
@@ -31,9 +32,14 @@ const applyVote = (blocks: PlannerBlock[], { blockId, up }: VoteDto): PlannerBlo
   );
 
 const PANEL_CLOSED = 'hidden';
-const PANEL_OPEN = 'fixed inset-x-0 bottom-0 z-40 flex h-3/4 flex-col rounded-t-xl shadow-lift';
+const PANEL_OPEN = 'fixed inset-x-0 bottom-0 z-40 flex h-3/4 flex-col overflow-hidden rounded-t-xl shadow-lift';
+/*
+ * A column container, so the panel's section is stretched to the panel's width instead of sizing to its
+ * own content: the nowrap listing titles would otherwise push it past the border. The height leaves room
+ * for the top bar above and the save bar below while the panel stays pinned during a long scroll.
+ */
 const PANEL_DESKTOP =
-  'bg-canvas desktop:sticky desktop:inset-x-auto desktop:bottom-auto desktop:top-20 desktop:flex desktop:h-auto desktop:max-h-dvh desktop:w-96 desktop:shrink-0 desktop:rounded-lg desktop:border desktop:border-hairline desktop:shadow-none';
+  'bg-canvas desktop:sticky desktop:inset-x-auto desktop:bottom-auto desktop:top-20 desktop:flex desktop:h-auto desktop:max-h-[calc(100dvh-11rem)] desktop:w-96 desktop:shrink-0 desktop:flex-col desktop:overflow-hidden desktop:rounded-lg desktop:border desktop:border-hairline desktop:shadow-none';
 
 interface PlanBoardProps {
   trip: PlannerTrip;
@@ -84,87 +90,91 @@ export const PlanBoard = ({ trip, candidates }: PlanBoardProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-6 desktop:flex-row desktop:items-start desktop:gap-8">
-      <section className="flex min-w-0 flex-1 flex-col gap-6">
-        <header className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <p className="text-caption text-muted">
-              {copy.route(trip.departureFrom, trip.destination)} · {formatDateRange(trip.startDate, trip.endDate)}
-            </p>
-            <h1 className="font-display text-display-lg text-ink">{trip.name}</h1>
+    <>
+      <div className="flex flex-col gap-6 desktop:flex-row desktop:items-start desktop:gap-8">
+        <section className="flex min-w-0 flex-1 flex-col gap-6">
+          <header className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <p className="text-caption capitalize text-muted">
+                {copy.route(trip.departureFrom, trip.destination)} · {formatDateRange(trip.startDate, trip.endDate)}
+              </p>
+              <h1 className="font-display text-display-lg text-ink">{trip.name}</h1>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 text-caption text-muted">
+                <Icon name="users" size={META_ICON_PX} />
+                {copy.travellers(trip.members.length, trip.travellerCount)}
+              </span>
+              <ul className="flex -space-x-2">
+                {trip.members.slice(0, MAX_AVATARS).map((member) => (
+                  <li key={member.id} title={member.name} className="flex size-8 items-center justify-center rounded-full bg-surface-strong text-badge text-ink ring-2 ring-canvas">
+                    {initial(member.name)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button size="md" fullWidth={false} icon="sparkles" onClick={planForMe} disabled={pending || trip.locked}>
+                {planning ? copy.planning : copy.planForMe}
+              </Button>
+              <InviteButton shareCode={trip.shareCode} />
+            </div>
+
+            {trip.locked ? (
+              <Banner tone="warning" icon="lock">
+                {copy.locked}
+              </Banner>
+            ) : null}
+            {state.note ? (
+              <Banner tone="success" icon="sparkles">
+                {state.note}
+              </Banner>
+            ) : null}
+            {state.error ? <Banner tone="error">{state.error}</Banner> : null}
+          </header>
+
+          <div aria-busy={pending} className={`transition-opacity ${pending ? 'opacity-70' : ''}`}>
+            <Timeline days={trip.days} blocks={blocks} locked={trip.locked} onDrop={add} onAdd={openAdd} onOpen={(block) => setSelectedId(block.id)} onVote={vote} />
           </div>
+        </section>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 text-caption text-muted">
-              <Icon name="users" size={META_ICON_PX} />
-              {copy.travellers(trip.members.length, trip.travellerCount)}
-            </span>
-            <ul className="flex -space-x-2">
-              {trip.members.slice(0, MAX_AVATARS).map((member) => (
-                <li key={member.id} title={member.name} className="flex size-8 items-center justify-center rounded-full bg-surface-strong text-badge text-ink ring-2 ring-canvas">
-                  {initial(member.name)}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {panelOpen ? <button type="button" aria-label={copy.closePanel} onClick={() => setPanelOpen(false)} className="fixed inset-0 z-30 bg-scrim/50 desktop:hidden" /> : null}
+        <aside className={`${panelOpen ? PANEL_OPEN : PANEL_CLOSED} ${PANEL_DESKTOP}`}>
+          <ExperiencesPanel
+            candidates={candidates}
+            days={trip.days}
+            inPlan={inPlan}
+            targetDay={targetDay}
+            locked={trip.locked}
+            onAdd={add}
+            onClearTarget={() => setTargetDay(null)}
+            onClose={() => setPanelOpen(false)}
+          />
+        </aside>
 
-          <div className="flex flex-wrap gap-3">
-            <Button size="md" fullWidth={false} icon="sparkles" onClick={planForMe} disabled={pending || trip.locked}>
-              {planning ? copy.planning : copy.planForMe}
-            </Button>
-            <InviteButton shareCode={trip.shareCode} />
-          </div>
+        {selected ? (
+          <BlockModal
+            block={selected}
+            dayIndex={trip.days.indexOf(selected.day)}
+            locked={trip.locked}
+            onClose={() => setSelectedId(null)}
+            onSetTime={(startTime) => run(() => setBlockTimeAction(trip.id, { blockId: selected.id, startTime }))}
+            onRemove={() => remove(selected.id)}
+          />
+        ) : null}
+      </div>
 
-          {trip.locked ? (
-            <Banner tone="warning" icon="lock">
-              {copy.locked}
-            </Banner>
-          ) : null}
-          {state.note ? (
-            <Banner tone="success" icon="sparkles">
-              {state.note}
-            </Banner>
-          ) : null}
-          {state.error ? <Banner tone="error">{state.error}</Banner> : null}
-        </header>
-
-        <div aria-busy={pending} className={`transition-opacity ${pending ? 'opacity-70' : ''}`}>
-          <Timeline days={trip.days} blocks={blocks} locked={trip.locked} onDrop={add} onAdd={openAdd} onOpen={(block) => setSelectedId(block.id)} onVote={vote} />
-        </div>
-
-        {trip.locked ? null : (
-          <div className="sticky bottom-4 z-20 desktop:hidden">
-            <Button size="md" icon="plus" onClick={() => setPanelOpen(true)}>
-              {copy.addExperiences}
-            </Button>
-          </div>
-        )}
-      </section>
-
-      {panelOpen ? <button type="button" aria-label={copy.closePanel} onClick={() => setPanelOpen(false)} className="fixed inset-0 z-30 bg-scrim/50 desktop:hidden" /> : null}
-      <aside className={`${panelOpen ? PANEL_OPEN : PANEL_CLOSED} ${PANEL_DESKTOP}`}>
-        <ExperiencesPanel
-          candidates={candidates}
-          days={trip.days}
-          inPlan={inPlan}
-          targetDay={targetDay}
-          locked={trip.locked}
-          onAdd={add}
-          onClearTarget={() => setTargetDay(null)}
-          onClose={() => setPanelOpen(false)}
-        />
-      </aside>
-
-      {selected ? (
-        <BlockModal
-          block={selected}
-          dayIndex={trip.days.indexOf(selected.day)}
-          locked={trip.locked}
-          onClose={() => setSelectedId(null)}
-          onSetTime={(startTime) => run(() => setBlockTimeAction(trip.id, { blockId: selected.id, startTime }))}
-          onRemove={() => remove(selected.id)}
-        />
-      ) : null}
-    </div>
+      <SaveBar
+        tripId={trip.id}
+        blockCount={blocks.length}
+        dayCount={trip.days.length}
+        status={state.error ? 'failed' : pending ? 'saving' : 'saved'}
+        locked={trip.locked}
+        onAddExperiences={() => setPanelOpen(true)}
+        onError={(error) => setState({ error })}
+      />
+    </>
   );
 };

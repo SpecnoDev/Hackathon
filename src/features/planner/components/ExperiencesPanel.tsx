@@ -50,7 +50,7 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
   };
 
   return (
-    <section aria-label={copy.experiences} className="flex h-full min-h-0 flex-col gap-4 p-4">
+    <section aria-label={copy.experiences} className="flex h-full min-h-0 w-full min-w-0 flex-col gap-4 p-4">
       <header className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-title-lg text-ink">{copy.experiences}</h2>

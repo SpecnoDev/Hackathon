@@ -50,6 +50,8 @@ export const EXPERIENCE_TYPE_LABEL: Record<OfferingCategory, string> = {
 
 export const tripName = (destination: string, theme: TravelTheme): string => `${theme} in ${destination}`;
 
+const plural = (count: number, noun: string): string => `${count} ${noun}${count === 1 ? '' : 's'}`;
+
 export const PLANNER_COPY = {
   bar: { plan: 'Plan a trip', board: 'Trip plan', back: 'Back' },
   create: {
@@ -67,7 +69,7 @@ export const PLANNER_COPY = {
     submitting: 'Creating…',
     yourTrips: 'Your trips',
     noTrips: 'No trips yet. The first one starts above.',
-    experiences: (count: number) => `${count} experience${count === 1 ? '' : 's'}`,
+    experiences: (count: number) => plural(count, 'experience'),
   },
   board: {
     invite: 'Invite friends',
@@ -101,6 +103,12 @@ export const PLANNER_COPY = {
     locked: 'This trip is locked. Voting and changes are closed.',
     aiUnavailable: 'The planner needs a moment. Try again, or drag experiences in yourself.',
     aiNothing: 'Nothing new fits this trip. Drag experiences in yourself.',
+    savePlan: 'Save plan',
+    saving: 'Saving…',
+    allSaved: 'All changes saved',
+    notSaved: 'Something did not save. Try again.',
+    summary: (count: number, days: number) => `${plural(count, 'experience')} over ${plural(days, 'day')}`,
+    planSaved: (count: number, days: number) => `Plan saved: ${plural(count, 'experience')} over ${plural(days, 'day')}.`,
   },
   modal: {
     day: (day: number) => `Day ${day}`,
