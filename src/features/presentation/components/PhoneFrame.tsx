@@ -20,6 +20,8 @@ interface PhoneFrameProps {
   route: string;
   /** A screenshot to show instead, e.g. "/presentation/earnings.png" in /public. When set, the live screen is not loaded. */
   image?: string;
+  /** A recording to play instead, muted and looping. It wins over the other two, and takes the screenshot as its poster. */
+  video?: string;
   label: string;
   /** How tall the phone is on the slide; the screen is scaled to fit. */
   height: number;
@@ -31,7 +33,7 @@ interface PhoneFrameProps {
  * A phone on a slide. By default the screen is the real app in an iframe, so the deck never shows a stale picture
  * and the presenter can tap through it. Hand it an image to freeze a moment instead.
  */
-export const PhoneFrame = ({ route, image, label, height, caption }: PhoneFrameProps) => {
+export const PhoneFrame = ({ route, image, video, label, height, caption }: PhoneFrameProps) => {
   const scale = (height - BEZEL_PX * 2) / PHONE_HEIGHT;
   const screenWidth = PHONE_WIDTH * scale;
   const screenHeight = PHONE_HEIGHT * scale;
@@ -43,7 +45,10 @@ export const PhoneFrame = ({ route, image, label, height, caption }: PhoneFrameP
         style={{ padding: BEZEL_PX, animationDelay: '300ms' }}
       >
         <div className="relative overflow-hidden rounded-sm bg-canvas" style={{ width: screenWidth, height: screenHeight }}>
-          {image ? (
+          {video ? (
+            // Muted and inline is what every browser requires before it will start a video on its own.
+            <video src={video} poster={image} aria-label={label} autoPlay loop muted playsInline className="size-full object-cover object-top" />
+          ) : image ? (
             // A screenshot is a plain file in /public; next/image would need its size up front and gains nothing here.
             <img src={image} alt={label} className="size-full object-cover object-top" />
           ) : (

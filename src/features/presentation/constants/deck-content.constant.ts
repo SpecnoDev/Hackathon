@@ -53,6 +53,11 @@ export const DECK_IMAGES = {
   slideEdge: '/presentation/slide-edge.webp',
 } as const;
 
+/** A recording of something the deck cannot run live. The WhatsApp one is played at twice its real speed. */
+export const DECK_VIDEOS = {
+  whatsAppOnboarding: '/presentation/whatsapp-onboarding.mp4',
+} as const;
+
 export const DECK_SCREENS = {
   landing: '/',
   hostWelcome: '/host/welcome',
@@ -265,7 +270,8 @@ export const DECK_COPY = {
   features: {
     eyebrow: 'Feature by feature',
     tap: 'This is the real app. Tap it.',
-    shot: 'From the WhatsApp bot, running on the Meta Cloud API.',
+    /* The recording is sped up to fit the slide, so the slide says so rather than implying the bot answers that fast. */
+    recording: 'The real WhatsApp bot, played at 2× speed.',
     items: [
       {
         title: 'A listing made by talking',
@@ -277,6 +283,7 @@ export const DECK_COPY = {
         title: 'Onboarding that happens in WhatsApp',
         body: 'A host does not download anything. They message the number they already use, answer in their own language, and the bot builds the account and the first listing with them.',
         points: ['Meta Cloud API, no app install', 'Answers in isiZulu, isiXhosa, Afrikaans or English', 'SA ID validated in the conversation'],
+        video: DECK_VIDEOS.whatsAppOnboarding,
         image: DECK_IMAGES.whatsAppOnboarding,
       },
       {

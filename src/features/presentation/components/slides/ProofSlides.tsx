@@ -113,10 +113,11 @@ export const FeatureSlides = copy.features.items.map((feature) => {
         </div>
         <PhoneFrame
           route={'route' in feature ? feature.route : ''}
+          video={'video' in feature ? feature.video : undefined}
           image={'image' in feature ? feature.image : undefined}
           label={copy.chrome.phoneLabel(feature.title)}
           height={FEATURE_PHONE_PX}
-          caption={'image' in feature ? copy.features.shot : copy.features.tap}
+          caption={'video' in feature ? copy.features.recording : copy.features.tap}
         />
       </div>
     </Slide>
