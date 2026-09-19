@@ -18,7 +18,7 @@ interface BottomNavProps {
 export const BottomNav = ({ items, label }: BottomNavProps) => {
   const pathname = usePathname();
   return (
-    <nav aria-label={label} className="flex h-16 border-t border-hairline bg-canvas">
+    <nav aria-label={label} className="flex h-16 border-t border-hairline bg-sand">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (

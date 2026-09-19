@@ -91,7 +91,7 @@ export const ListingCard = ({
     </Link>
     {onToggleSave ? (
       <button type="button" aria-pressed={saved} aria-label={saveLabel} onClick={onToggleSave} className="absolute right-1 top-1 flex size-12 items-center justify-center">
-        <span className="flex size-9 items-center justify-center rounded-full bg-canvas text-ink shadow-lift">
+        <span className="flex size-9 items-center justify-center rounded-sm bg-canvas text-ink shadow-lift">
           {/* Saved is a filled heart, not a colour change: the shape carries the state. */}
           <Icon name="heart" size={HEART_PX} className={saved ? 'fill-current' : ''} />
         </span>

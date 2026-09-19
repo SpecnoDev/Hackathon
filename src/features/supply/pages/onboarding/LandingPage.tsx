@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { APP_NAME } from '@/core/constants';
-import { Button, Icon, type IconName } from '@/shared/components';
+import { Button, HostedLogo, Icon, type IconName } from '@/shared/components';
 import { platformFeePercent } from '@/shared/utils';
 import { HostScreen } from '../../components';
 import { HOST_COPY, HOST_ROUTES } from '../../constants';
@@ -58,8 +58,11 @@ export const LandingPage = () => {
       }
     >
       <div className="flex flex-col gap-8">
-        <header className="flex items-center justify-between">
-          <p className="font-display text-display-md text-primary">{APP_NAME}</p>
+        {/* From tablet up the web-header carries the logo, so the page would show it twice. */}
+        <header className="flex items-center justify-between tablet:justify-end">
+          <span className="tablet:hidden">
+            <HostedLogo name={APP_NAME} />
+          </span>
           <Button size="md" fullWidth={false} onClick={join}>
             {copy.joinShort}
           </Button>
@@ -90,7 +93,7 @@ export const LandingPage = () => {
           <p className="text-body-host text-body">{copy.who.body}</p>
           <ul className="flex flex-wrap gap-2">
             {copy.who.people.map((person) => (
-              <li key={person} className="rounded-full bg-surface-soft px-4 py-2.5 text-button-sm text-ink">
+              <li key={person} className="rounded-sm bg-surface-soft px-4 py-2.5 text-button-sm text-ink">
                 {person}
               </li>
             ))}

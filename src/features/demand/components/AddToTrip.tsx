@@ -108,12 +108,12 @@ function TripSheet({
           ) : (
             <>
               {trips.length > 0 && (
-                <div className="flex rounded-full bg-surface-soft p-1">
+                <div className="flex rounded-sm bg-surface-soft p-1">
                   <button
                     type="button"
                     onClick={() => setMode('existing')}
-                    className={`flex-1 rounded-full py-2 text-body-sm ${
-                      mode === 'existing' ? 'bg-canvas text-ink shadow-lift' : 'text-muted'
+                    className={`flex-1 rounded-xs py-2 text-body-sm ${
+                      mode === 'existing' ? 'bg-primary text-on-primary' : 'text-muted'
                     }`}
                   >
                     Existing trip
@@ -121,8 +121,8 @@ function TripSheet({
                   <button
                     type="button"
                     onClick={() => setMode('new')}
-                    className={`flex-1 rounded-full py-2 text-body-sm ${
-                      mode === 'new' ? 'bg-canvas text-ink shadow-lift' : 'text-muted'
+                    className={`flex-1 rounded-xs py-2 text-body-sm ${
+                      mode === 'new' ? 'bg-primary text-on-primary' : 'text-muted'
                     }`}
                   >
                     New trip
@@ -199,7 +199,7 @@ function TripSheet({
             type="button"
             disabled={!canConfirm || isSubmitting}
             onClick={handleConfirm}
-            className="h-12 w-full rounded-full bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
+            className="h-12 w-full rounded-md bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
           >
             {isSubmitting ? 'Adding…' : mode === 'existing' ? 'Add to trip' : 'Create trip & add'}
           </button>

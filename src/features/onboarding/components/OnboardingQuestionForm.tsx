@@ -64,7 +64,7 @@ export function OnboardingQuestionForm({ question, answer, submit }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-auto h-14 w-full rounded-full bg-primary text-button-lg text-on-primary disabled:bg-primary-disabled"
+        className="mt-auto h-14 w-full rounded-md bg-primary text-button-lg text-on-primary disabled:bg-primary-disabled"
       >
         {pending ? 'Saving…' : 'Continue'}
       </button>

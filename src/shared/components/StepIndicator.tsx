@@ -6,7 +6,7 @@ interface StepIndicatorProps {
 }
 
 export const StepIndicator = ({ current, total, label }: StepIndicatorProps) => (
-  <div className="flex items-center gap-3 bg-canvas px-6 py-3">
+  <div className="flex items-center gap-3 px-6 py-3">
     <div className="flex flex-1 gap-1" aria-hidden>
       {Array.from({ length: total }, (_, index) => (
         <span key={index} className={`h-1 flex-1 rounded-full ${index < current ? 'bg-primary' : 'bg-hairline'}`} />

@@ -15,7 +15,7 @@ export const Chip = ({ label, selected, onToggle }: ChipProps) => (
     role="checkbox"
     aria-checked={selected}
     onClick={onToggle}
-    className={`inline-flex min-h-12 items-center gap-2 rounded-full px-4 text-button-sm ${selected ? 'bg-ink text-on-dark' : 'bg-surface-soft text-ink'}`}
+    className={`inline-flex min-h-12 items-center gap-2 rounded-sm px-4 text-button-sm ${selected ? 'bg-primary text-on-primary' : 'bg-canvas text-ink ring-1 ring-inset ring-hairline'}`}
   >
     {selected ? <Icon name="check" size={CHIP_ICON_PX} /> : null}
     {label}

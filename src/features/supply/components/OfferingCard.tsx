@@ -31,7 +31,7 @@ export const OfferingCard = ({ offering }: { offering: Offering }) => {
           placeholderIcon={kindOption(offering.kind).icon}
           placeholderLabel={offering.photos.length === 0 ? HOST_COPY.offerings.addPhotos : undefined}
         />
-        <span className="absolute left-3 top-3 rounded-full shadow-lift">
+        <span className="absolute left-3 top-3 rounded-xs shadow-lift">
           <OfferingStatusPill offering={offering} />
         </span>
       </div>

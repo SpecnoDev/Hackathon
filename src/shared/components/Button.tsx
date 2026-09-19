@@ -11,11 +11,10 @@ const BASE =
   'inline-flex select-none items-center justify-center gap-2 text-center transition-colors duration-150 motion-reduce:transition-none';
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'rounded-full bg-primary text-on-primary active:bg-primary-active disabled:bg-primary-disabled',
-  accent: 'rounded-full bg-accent text-on-accent active:bg-accent-active disabled:opacity-50',
-  secondary:
-    'rounded-full border border-ink bg-canvas text-ink active:bg-surface-soft disabled:border-border-strong disabled:text-muted-soft',
-  destructive: 'rounded-full border border-error bg-canvas text-error active:bg-error-tint',
+  primary: 'rounded-md bg-primary text-on-primary active:bg-primary-active disabled:bg-primary-disabled disabled:text-muted',
+  accent: 'rounded-md bg-accent text-on-accent active:bg-accent-active disabled:opacity-50',
+  secondary: 'rounded-md border border-hairline bg-canvas text-ink active:bg-surface-soft disabled:text-muted-soft',
+  destructive: 'rounded-md border border-error bg-canvas text-error active:bg-error-tint',
   tertiary: 'min-h-12 px-2 text-link text-primary-text underline disabled:text-muted-soft',
 };
 

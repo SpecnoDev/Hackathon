@@ -14,7 +14,7 @@ export default function OfflinePage() {
       </p>
       <Link
         href={ROUTES.home}
-        className="flex h-14 items-center justify-center rounded-full bg-primary text-button-lg text-on-primary"
+        className="flex h-14 items-center justify-center rounded-md bg-primary text-button-lg text-on-primary"
       >
         Try again
       </Link>

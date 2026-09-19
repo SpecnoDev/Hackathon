@@ -14,7 +14,7 @@ export const BookingCard = ({ booking }: { booking: BookingSummary }) => (
   <Link href={TRAVELLER_ROUTES.bookings.detail(booking.id)} className="flex flex-col gap-3 text-ink active:opacity-80">
     <div className="relative aspect-4/3 overflow-hidden rounded-md bg-surface-soft">
       {booking.offeringPhoto ? <Image src={booking.offeringPhoto} alt="" fill className="object-cover" sizes={CARD_SIZES} /> : null}
-      <span className="absolute left-3 top-3 rounded-full shadow-lift">
+      <span className="absolute left-3 top-3 rounded-xs shadow-lift">
         <BookingStatusPill status={booking.status} />
       </span>
     </div>

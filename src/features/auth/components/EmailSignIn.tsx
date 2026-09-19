@@ -67,7 +67,7 @@ export function EmailSignIn() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-6 h-12 w-full rounded-full bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
+        className="mt-6 h-12 w-full rounded-md bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
       >
         {busy ? COPY.sending : COPY.send}
       </button>
@@ -98,7 +98,7 @@ export function EmailSignIn() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-6 h-12 w-full rounded-full bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
+        className="mt-6 h-12 w-full rounded-md bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
       >
         {busy ? COPY.verifying : COPY.verify}
       </button>

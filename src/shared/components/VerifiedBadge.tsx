@@ -18,7 +18,7 @@ interface VerifiedBadgeProps {
 
 export const VerifiedBadge = ({ label, floating = false, density = 'host' }: VerifiedBadgeProps) => (
   <span
-    className={`inline-flex items-center gap-1.5 rounded-full bg-primary-tint px-2.5 py-1 text-primary-text ${TEXT[density]} ${floating ? 'shadow-lift' : ''}`}
+    className={`inline-flex items-center gap-1.5 rounded-xs bg-primary-tint px-2.5 py-1 text-primary-text ${TEXT[density]} ${floating ? 'shadow-lift' : ''}`}
   >
     <Icon name="check" size={BADGE_ICON_PX} />
     {label}
