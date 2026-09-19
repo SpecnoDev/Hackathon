@@ -66,8 +66,9 @@ export const ProblemSlide = () => (
           {copy.problem.people.map((person, index) => (
             <li key={person.role}>
               <Reveal order={6 + index} className="flex items-center gap-3">
-                {/* Plain files on Unsplash, the same faces the app seeds; next/image would only add a loader here. */}
-                <img src={person.portrait} alt="" className="size-14 rounded-full object-cover ring-1 ring-on-dark/20" />
+                {/* Plain files on Unsplash, the same faces the app seeds; next/image would only add a loader here.
+                    Each photo brings its own backdrop, so the edge is dissolved into the slide and only the face is left. */}
+                <img src={person.portrait} alt="" className="size-16 rounded-full object-cover [mask-image:radial-gradient(circle,#000_52%,transparent_76%)]" />
                 <span className="text-button-sm text-on-dark">{person.role}</span>
               </Reveal>
             </li>

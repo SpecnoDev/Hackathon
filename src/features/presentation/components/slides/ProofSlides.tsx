@@ -64,7 +64,7 @@ export const PrinciplesSlide = () => (
 );
 
 export const BuiltSlide = () => (
-  <Slide tone="light" eyebrow={copy.built.eyebrow} headline={copy.built.headline}>
+  <Slide tone="light" eyebrow={copy.built.eyebrow} headline={copy.built.headline} edge>
     <div className="grid flex-1 grid-cols-[1fr_auto] items-center gap-10">
       <ul className="flex flex-col gap-4">
         {copy.built.items.map((item, index) => (

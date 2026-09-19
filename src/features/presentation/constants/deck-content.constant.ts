@@ -90,12 +90,14 @@ export const DECK_COPY = {
     peopleLabel: 'The people this is about',
     headline: 'Money flows past the people who make a place worth visiting.',
     body: 'Tourism is one of South Africa’s biggest job creators. Its benefits pool in hotels, franchises and established operators. The guide, the taxi driver, the home cook and the person who knows who to call are shut out of the platforms where travellers spend.',
+    /* The five faces are the app's own host portraits, chosen to read as South Africa: majority Black African,
+       with the Karoo farmer who is also part of it. TODO: replace stock with photographs of real hosts. */
     people: [
       { role: 'The local guide', portrait: portrait('1531384441138-2736e62e0919') },
-      { role: 'The taxi driver', portrait: portrait('1506794778202-cad84cf45f1d') },
       { role: 'The home cook', portrait: portrait('1507152832244-10d45c7eda57') },
-      { role: 'The crafter', portrait: portrait('1544005313-94ddf0286df2') },
-      { role: 'The fixer', portrait: portrait('1472099645785-5658abf4ff4e') },
+      { role: 'The crafter', portrait: portrait('1531123897727-8f129e1688ce') },
+      { role: 'The taxi driver', portrait: portrait('1507003211169-0a1dd7228f2d') },
+      { role: 'The farmer', portrait: portrait('1472099645785-5658abf4ff4e') },
     ],
   },
   numbers: {
@@ -139,10 +141,7 @@ export const DECK_COPY = {
   oneLiner: {
     eyebrow: 'Our answer',
     lead: 'A marketplace that removes the technological and financial barriers keeping local South Africans out of the tourism economy,',
-    statement: [
-      'so anyone with something authentic to offer can list it, get booked and get paid,',
-      'even without a bank account or reliable data.',
-    ],
+    statement: 'so anyone with something authentic to offer can list it, get booked and get paid, even without a bank account or reliable data.',
     tagline: 'Hosted by locals. Hosted all the way.',
   },
   trendOne: {

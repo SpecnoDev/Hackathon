@@ -20,13 +20,9 @@ export const OneLinerSlide = () => (
         <Reveal order={2}>
           <h2 className="font-display text-earnings-display text-ink">{copy.oneLiner.lead}</h2>
         </Reveal>
-        <div className="flex flex-col gap-1 border-l-2 border-ink/25 pl-5">
-          {copy.oneLiner.statement.map((line, index) => (
-            <Reveal key={line} order={5 + index * 3}>
-              <p className="text-title-lg text-ink/80">{line}</p>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal order={5} className="border-l-2 border-ink/25 pl-5">
+          <p className="max-w-3xl text-title-lg text-ink/80">{copy.oneLiner.statement}</p>
+        </Reveal>
       </div>
       <Reveal order={12}>
         <p className="text-body-md text-ink/70">{copy.oneLiner.tagline}</p>
