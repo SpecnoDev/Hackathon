@@ -126,39 +126,44 @@ export const FeatureSlides = copy.features.items.map((feature) => {
   return FeatureSlide;
 });
 
-export const MeasureSlide = () => (
+/** Five changes is two rows on a 960 stage: three across, then two wider ones. Six columns divide evenly into both. */
+const IMPACTS_IN_FIRST_ROW = 3;
+const IMPACT_SPAN = ['col-span-2', 'col-span-3'] as const;
+
+export const ImpactSlide = () => (
   <Slide tone="dark" eyebrow={copy.built.impactTitle}>
-    <div className="flex flex-1 flex-col justify-center gap-6">
-      <ul className="grid grid-cols-3 gap-4">
-        {copy.built.impacts.map((impact, index) => (
-          <li key={impact.title}>
-            <Reveal order={1 + index * 2} className="flex h-full flex-col gap-2.5 rounded-lg border border-on-dark/10 bg-on-dark/5 p-5">
-              <span className="flex size-9 items-center justify-center rounded-sm bg-on-dark/10 text-accent">
-                <Icon name={impact.icon} size={20} />
-              </span>
-              <p className="font-display text-title-lg text-on-dark">{impact.title}</p>
-              <p className="text-body-sm text-on-dark/70">{impact.body}</p>
+    <ul className="grid flex-1 grid-cols-6 content-center gap-4">
+      {copy.built.impacts.map((impact, index) => (
+        <li key={impact.title} className={IMPACT_SPAN[index < IMPACTS_IN_FIRST_ROW ? 0 : 1]}>
+          <Reveal order={1 + index} className="flex h-full flex-col gap-2.5 rounded-lg border border-on-dark/10 bg-on-dark/5 p-5">
+            <span className="flex size-9 items-center justify-center rounded-sm bg-on-dark/10 text-accent">
+              <Icon name={impact.icon} size={20} />
+            </span>
+            <p className="font-display text-title-lg text-on-dark">{impact.title}</p>
+            <p className="text-body-sm text-on-dark/70">{impact.body}</p>
+          </Reveal>
+        </li>
+      ))}
+    </ul>
+  </Slide>
+);
+
+/** What the impact slide used to carry in its bottom third: the test we hold ourselves to, and what comes after. */
+export const NextSlide = () => (
+  <Slide tone="dark" eyebrow={copy.next.eyebrow}>
+    <div className="flex flex-1 flex-col justify-center gap-10">
+      <Reveal order={1}>
+        <p className="max-w-4xl font-display text-display-md text-on-dark">{copy.built.impactMeasure}</p>
+      </Reveal>
+      <ul className="flex flex-wrap gap-2">
+        {copy.next.items.map((item, index) => (
+          <li key={item}>
+            <Reveal order={3 + index}>
+              <span className="flex h-10 items-center rounded-sm border border-on-dark/20 px-4 text-button-sm text-on-dark">{item}</span>
             </Reveal>
           </li>
         ))}
       </ul>
-      <Reveal order={7}>
-        <p className="max-w-4xl text-body-sm text-on-dark/60">{copy.built.impactMeasure}</p>
-      </Reveal>
-      <div className="flex flex-col gap-3">
-        <Reveal order={8}>
-          <p className="text-badge uppercase tracking-[0.22em] text-accent">{copy.next.eyebrow}</p>
-        </Reveal>
-        <ul className="flex flex-wrap gap-2">
-          {copy.next.items.map((item, index) => (
-            <li key={item}>
-              <Reveal order={9 + index}>
-                <span className="flex h-10 items-center rounded-sm border border-on-dark/20 px-4 text-button-sm text-on-dark">{item}</span>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   </Slide>
 );

@@ -251,18 +251,28 @@ export const DECK_COPY = {
     impacts: [
       {
         icon: 'banknote',
-        title: 'Work that pays',
-        body: 'Every booking is income for a guide, a driver or a cook, in an economy tourism touches but rarely pays.',
+        title: 'Income against unemployment',
+        body: 'Every booking is a day’s work for a guide, a driver or a cook, earned in the communities where jobs are scarcest.',
       },
       {
-        icon: 'users',
-        title: 'A seat in the economy',
-        body: 'No bank account, no website, no English web form. List what you offer, get booked, get paid.',
+        icon: 'store',
+        title: 'Local people, local businesses',
+        body: 'A host sets their own price and keeps the margin. The business is theirs, and so is everything it earns.',
       },
       {
-        icon: 'compass',
-        title: 'Travel worth the trip',
-        body: 'The day inside local life that no hotel can sell, from the person whose place it is.',
+        icon: 'utensils',
+        title: 'Culture shared and kept alive',
+        body: 'The cooking, the language and the stories are what people travel for. Sharing them is what keeps them going.',
+      },
+      {
+        icon: 'smartphone',
+        title: 'No app, no bank, no barrier to entry',
+        body: 'WhatsApp instead of a download, a voice note instead of a form, a phone number instead of a bank account. Nothing to buy before the first booking.',
+      },
+      {
+        icon: 'wallet',
+        title: 'A trip paid off in pieces',
+        body: 'Friends pay into one pot in small amounts over time. Nobody fronts the whole cost, and it only confirms once the pot is full.',
       },
     ],
     impactMeasure: 'We will know it is working when a host goes from sign-up to a live listing in 15 minutes by voice, when rands land without a bank, and when most hosts are people who have never sold on a platform before.',
