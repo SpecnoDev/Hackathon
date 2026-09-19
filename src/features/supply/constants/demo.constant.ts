@@ -3,14 +3,16 @@ import type { CaptureKind, ContactChannel, DocumentType, LanguageCode, OfferingK
 /**
  * Hackathon pitch-mode flag. `NEXT_PUBLIC_DEMO_MODE=true` drives the host happy path — Welcome →
  * Join → language → phone → OTP → name → contact → done → verify → create listing → published —
- * with no typing, recording, camera or choice screens: every screen it touches prefills a canned
- * answer instead of waiting for input, so a presenter can click straight through with one tap per
- * screen's primary CTA.
+ * with no typing, recording, camera or choice screens for every step but the OTP: every other
+ * screen it touches prefills a canned answer instead of waiting for input, so a presenter can click
+ * straight through with one tap per screen's primary CTA. The OTP step is the one exception — the
+ * presenter types any 4 digits and submits on the 4th, same as the non-demo path.
  *
  * Requires `ALLOW_MOCK_AUTH=true` (see `core/constants/auth.constant.ts`, `isMockAuthEnabled`) so
- * the OTP this submits is accepted by `/api/v1/auth/host/verify`. Off by default — whenever the var
- * is absent (including production), every prefill effect below is a no-op and the flow behaves
- * exactly as it does today. Removal target: after judging, 2026-09-19 (matches `isMockAuthEnabled`).
+ * any 4-digit code but `MOCK_OTP_REJECTED_CODE` ('0000') is accepted by `/api/v1/auth/host/verify`.
+ * Off by default — whenever the var is absent (including production), every prefill effect below is
+ * a no-op and the flow behaves exactly as it does today. Removal target: after judging, 2026-09-19
+ * (matches `isMockAuthEnabled`).
  *
  * Read as a static literal, not through `optionalEnv`: Next.js only inlines a `NEXT_PUBLIC_` value
  * into the browser bundle when it sees the full `process.env.NEXT_PUBLIC_X` literal (same pattern as
@@ -19,21 +21,14 @@ import type { CaptureKind, ContactChannel, DocumentType, LanguageCode, OfferingK
  * The server-side page-auth redirect bypass lives in `isDemoBypassEnabled` (ALLOW_DEMO_BYPASS,
  * `core/constants/auth.constant.ts`), not this flag.
  *
- * `EnterCodePage`'s auto-submit waits `DEMO_OTP_SUBMIT_DELAY_MS` after filling the code and, on Join,
- * routes a `RETURNING` result the same as `NEW_HOST` — `confirmCode`'s profile/offerings/bookings/
- * payouts sync is real network latency the OTP screen has no reason to block on for a canned host,
- * and the canned phone number is reused on every run, so by run two it is a real, existing host.
+ * `EnterCodePage`, on Join, routes a `RETURNING` result the same as `NEW_HOST` — the canned phone
+ * number is reused on every run, so by run two it is a real, existing host, and Join must not
+ * dead-end on "already registered".
  */
 export const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 /** A local SA mobile number that passes `phoneNumberSchema` (`isSaMobile`). Never sent to a real host. */
 export const DEMO_PHONE_LOCAL = '0821234567';
-
-/** Any `HOST_OTP_CODE_LENGTH`-digit code but `MOCK_OTP_REJECTED_CODE` ('0000') passes the mock verify route. */
-export const DEMO_OTP = '1234';
-
-/** How long after filling the code `EnterCodePage` waits before auto-submitting it, so the presenter sees the digits fill and the spinner flash instead of an instant jump. */
-export const DEMO_OTP_SUBMIT_DELAY_MS = 500;
 
 /** Demo only: how long the Checking screen holds before resolving, in place of `DEMO_VERIFICATION_DELAY_MS`, so the presenter isn't left waiting on stage. */
 export const DEMO_CHECKING_DELAY_MS = 500;

@@ -5,18 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Banner, Button, HostedMark, OtpInput, useToast } from '@/shared/components';
 import { formatLocalPhone } from '@/shared/utils';
 import { HostScreen } from '../../components';
-import {
-  DEMO_OTP,
-  DEMO_OTP_SUBMIT_DELAY_MS,
-  HOST_COPY,
-  HOST_ROUTES,
-  MS_PER_SECOND,
-  OTP_LENGTH,
-  OTP_RESEND_SECONDS,
-  REGISTER_FLOW_STEPS,
-  SIGN_IN_FLOW_STEPS,
-  isDemoMode,
-} from '../../constants';
+import { HOST_COPY, HOST_ROUTES, MS_PER_SECOND, OTP_LENGTH, OTP_RESEND_SECONDS, REGISTER_FLOW_STEPS, SIGN_IN_FLOW_STEPS, isDemoMode } from '../../constants';
 import { useHostApp, useHostAppReady } from '../../hooks';
 import type { HostAppState, RegistrationProgress } from '../../interfaces';
 import { hostAppStore } from '../../services';
@@ -39,7 +28,6 @@ export const EnterCodePage = () => {
   const [wait, setWait] = useState(0);
   const [verifying, setVerifying] = useState(false);
   const pending = useRef(false);
-  const demoSubmitted = useRef(false);
 
   useEffect(() => {
     if (ready && !phone) router.replace(HOST_ROUTES.register.phone);
@@ -83,18 +71,6 @@ export const EnterCodePage = () => {
       setVerifying(false);
     }
   };
-
-  // Demo pitch mode: auto-submits once instead of waiting for a typed code; demoSubmitted (not
-  // confirm's identity) is what keeps a second run from re-submitting. The code fills immediately
-  // and submits DEMO_OTP_SUBMIT_DELAY_MS later, so the presenter sees the digits land before the
-  // spinner takes over instead of an instant cut to the next screen.
-  useEffect(() => {
-    if (!isDemoMode || !ready || !phone || demoSubmitted.current) return;
-    demoSubmitted.current = true;
-    setCode(DEMO_OTP);
-    const timer = setTimeout(() => void confirm(DEMO_OTP), DEMO_OTP_SUBMIT_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [ready, phone]);
 
   const resend = (notice: string): void => {
     if (phone) hostAppStore.sendCode(phone);
