@@ -37,9 +37,11 @@ const LIST = `-mx-4 flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-a
 /*
  * The row stretches every card to its height, so on a phone the photo grows to fill the card and the
  * button sits at the foot; on desktop the card is a compact row with the photo as a thumbnail. White on
- * the green ground, so the cards need no hairline of their own.
+ * the green ground, so the cards need no hairline of their own. `shrink-0` on every breakpoint: with
+ * `overflow-hidden` a flex item's minimum height is zero, and the desktop column would squash the cards
+ * to fit instead of scrolling, clipping the control at their foot.
  */
-const CARD = 'flex w-60 shrink-0 snap-start flex-col overflow-hidden rounded-md bg-canvas desktop:w-auto desktop:shrink';
+const CARD = 'flex w-60 shrink-0 snap-start flex-col overflow-hidden rounded-md bg-canvas desktop:w-auto';
 const CARD_BODY = 'flex min-h-0 flex-1 flex-col desktop:flex-none desktop:flex-row desktop:gap-3 desktop:p-3 desktop:pb-0';
 const PLATE = 'relative min-h-28 w-full flex-1 bg-surface-soft desktop:size-14 desktop:min-h-0 desktop:w-14 desktop:flex-none desktop:shrink-0 desktop:overflow-hidden desktop:rounded-md';
 
