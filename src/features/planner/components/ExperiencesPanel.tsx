@@ -23,18 +23,23 @@ import { TypePill } from './TypePill';
 const THUMB_SIZES = '(min-width: 70.5rem) 56px, 240px';
 const SEARCH_ICON_PX = 20;
 const CHECK_PX = 14;
+const MORE_ICON_PX = 14;
+/** Anything less than a pixel of travel left counts as the end, so the hint never flickers on a rounding gap. */
+const SCROLL_END_TOLERANCE_PX = 1;
 const HIDE_SCROLLBAR = '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden';
-const PILL = 'inline-flex min-h-10 shrink-0 items-center rounded-md px-4 text-button-sm transition-colors';
-const PILL_ON = 'bg-ink text-on-dark';
-const PILL_OFF = 'bg-surface-soft text-ink';
+/* On the deep green, DESIGN.md's highlight is sand, not the bright green; the rest of the chips are white at a tenth. */
+const PILL = 'inline-flex min-h-10 shrink-0 items-center rounded-md px-4 text-button-sm transition-colors motion-reduce:transition-none';
+const PILL_ON = 'bg-sand text-ink';
+const PILL_OFF = 'bg-on-dark/10 text-on-dark hover:bg-on-dark/20';
 const SELECT = 'h-12 w-full rounded-md border border-ink bg-canvas px-4 text-button-sm text-ink';
 /* A sideways row on a phone, a column on desktop where it sits beside the timeline. */
-const LIST = `-mx-4 flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-1 ${HIDE_SCROLLBAR} desktop:mx-0 desktop:snap-none desktop:flex-col desktop:overflow-x-hidden desktop:overflow-y-auto desktop:px-0`;
+const LIST = `-mx-4 flex min-h-0 flex-1 snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-1 ${HIDE_SCROLLBAR} desktop:mx-0 desktop:snap-none desktop:flex-col desktop:overflow-x-hidden desktop:overflow-y-auto desktop:px-0 desktop:pb-12`;
 /*
  * The row stretches every card to its height, so on a phone the photo grows to fill the card and the
- * button sits at the foot; on desktop the card is a compact row with the photo as a thumbnail.
+ * button sits at the foot; on desktop the card is a compact row with the photo as a thumbnail. White on
+ * the green ground, so the cards need no hairline of their own.
  */
-const CARD = 'flex w-60 shrink-0 snap-start flex-col overflow-hidden rounded-md border border-hairline bg-canvas desktop:w-auto desktop:shrink';
+const CARD = 'flex w-60 shrink-0 snap-start flex-col overflow-hidden rounded-md bg-canvas desktop:w-auto desktop:shrink';
 const CARD_BODY = 'flex min-h-0 flex-1 flex-col desktop:flex-none desktop:flex-row desktop:gap-3 desktop:p-3 desktop:pb-0';
 const PLATE = 'relative min-h-28 w-full flex-1 bg-surface-soft desktop:size-14 desktop:min-h-0 desktop:w-14 desktop:flex-none desktop:shrink-0 desktop:overflow-hidden desktop:rounded-md';
 
@@ -62,10 +67,18 @@ const meta = (candidate: CandidateOffering): string =>
 export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, open, onAdd, onClearTarget, onClose }: ExperiencesPanelProps) => {
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<OfferingCategory | null>(null);
+  const [moreBelow, setMoreBelow] = useState(false);
   const list = useRef<HTMLUListElement>(null);
   const categories = useMemo(() => [...new Set(candidates.map((candidate) => candidate.category))], [candidates]);
   const shown = candidates.filter((candidate) => matches(candidate, q.trim().toLowerCase(), category));
   const copy = PLANNER_COPY.board;
+
+  // Only the desktop column scrolls vertically; on a phone the row has no vertical travel and the hint stays away.
+  const measure = () => {
+    const column = list.current;
+    if (column) setMoreBelow(column.scrollHeight - column.scrollTop - column.clientHeight > SCROLL_END_TOLERANCE_PX);
+  };
+  useEffect(measure, [shown.length, open]);
 
   // A phone cannot drag, so the row nudges sideways once when the sheet opens: the motion says "swipe" without a word.
   useEffect(() => {
@@ -85,16 +98,16 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
   };
 
   return (
-    <section aria-label={copy.experiences} className="flex h-full min-h-0 w-full min-w-0 flex-col gap-3 p-4 desktop:gap-4">
+    <section aria-label={copy.experiences} className="relative flex h-full min-h-0 w-full min-w-0 flex-col gap-3 p-4 desktop:gap-4">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-title-md text-ink desktop:text-title-lg">{copy.experiences}</h2>
-          <p className="text-caption text-muted">
+          <h2 className="text-title-md text-on-dark desktop:text-title-lg">{copy.experiences}</h2>
+          <p className="text-caption text-on-dark/70">
             <span className="desktop:hidden">{copy.experiencesHintMobile}</span>
             <span className="hidden desktop:inline">{copy.experiencesHint}</span>
           </p>
         </div>
-        <button type="button" aria-label={copy.closePanel} onClick={onClose} className="-mr-2 -mt-2 flex size-12 shrink-0 items-center justify-center rounded-md text-ink desktop:hidden">
+        <button type="button" aria-label={copy.closePanel} onClick={onClose} className="-mr-2 -mt-2 flex size-12 shrink-0 items-center justify-center rounded-md text-on-dark desktop:hidden">
           <Icon name="x" />
         </button>
       </header>
@@ -118,11 +131,11 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
           value={q}
           onChange={(event) => setQ(event.target.value)}
           placeholder={copy.search}
-          className="h-12 w-full rounded-md border border-hairline bg-canvas pl-12 pr-4 text-body-md text-ink placeholder:text-muted-soft focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
+          className="h-12 w-full rounded-md bg-canvas pl-12 pr-4 text-body-md text-ink placeholder:text-muted-soft focus:outline-none focus:ring-2 focus:ring-sand"
         />
       </label>
 
-      <div className={`-mx-4 flex gap-2 overflow-x-auto px-4 ${HIDE_SCROLLBAR} desktop:mx-0 desktop:px-0`}>
+      <div className="flex flex-wrap gap-2">
         <button type="button" aria-pressed={category === null} onClick={() => setCategory(null)} className={`${PILL} ${category === null ? PILL_ON : PILL_OFF}`}>
           {copy.allTypes}
         </button>
@@ -139,62 +152,72 @@ export const ExperiencesPanel = ({ candidates, days, inPlan, targetDay, locked, 
         ))}
       </div>
 
-      <ul ref={list} className={LIST}>
-        {shown.map((candidate) => (
-          <li key={candidate.id} draggable={!locked} onDragStart={(event) => startDrag(event, candidate.id)} className={`${CARD} ${locked ? '' : 'cursor-grab active:cursor-grabbing'}`}>
-            <div className={CARD_BODY}>
-              <span className={PLATE}>
-                {candidate.photo ? (
-                  <Image src={candidate.photo} alt="" fill sizes={THUMB_SIZES} className="object-cover" />
-                ) : (
-                  <span className="absolute inset-0 flex items-center justify-center text-muted-soft">
-                    <Icon name="image" />
-                  </span>
-                )}
-              </span>
-              <div className="min-w-0 flex-1 p-3 desktop:p-0">
-                <p className="truncate text-title-sm text-ink">{candidate.title}</p>
-                <p className="truncate text-body-sm text-muted">{meta(candidate)}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <TypePill category={candidate.category} />
-                  {inPlan.has(candidate.id) ? (
-                    <span className="inline-flex items-center gap-1 text-badge text-primary-text">
-                      <Icon name="check" size={CHECK_PX} />
-                      {copy.inPlan}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <ul ref={list} onScroll={measure} className={LIST}>
+          {shown.map((candidate) => (
+            <li key={candidate.id} draggable={!locked} onDragStart={(event) => startDrag(event, candidate.id)} className={`${CARD} ${locked ? '' : 'cursor-grab active:cursor-grabbing'}`}>
+              <div className={CARD_BODY}>
+                <span className={PLATE}>
+                  {candidate.photo ? (
+                    <Image src={candidate.photo} alt="" fill sizes={THUMB_SIZES} className="object-cover" />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center text-muted-soft">
+                      <Icon name="image" />
                     </span>
-                  ) : null}
+                  )}
+                </span>
+                <div className="min-w-0 flex-1 p-3 desktop:p-0">
+                  <p className="truncate text-title-sm text-ink">{candidate.title}</p>
+                  <p className="truncate text-body-sm text-muted">{meta(candidate)}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <TypePill category={candidate.category} />
+                    {inPlan.has(candidate.id) ? (
+                      <span className="inline-flex items-center gap-1 text-badge text-primary-text">
+                        <Icon name="check" size={CHECK_PX} />
+                        {copy.inPlan}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </div>
-            {locked ? null : (
-              <div className="p-3 pt-0">
-                {targetDay !== null ? (
-                  <Button size="md" icon="plus" onClick={() => onAdd(candidate.id, targetDay)}>
-                    {copy.add}
-                  </Button>
-                ) : (
-                  <select
-                    aria-label={copy.addToDay}
-                    value=""
-                    onChange={(event) => {
-                      if (event.target.value) onAdd(candidate.id, Number(event.target.value));
-                    }}
-                    className={SELECT}
-                  >
-                    <option value="">{copy.addToDay}</option>
-                    {days.map((day, index) => (
-                      <option key={day} value={index}>
-                        {copy.day(index + 1)}, {formatDay(day)}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            )}
-          </li>
-        ))}
-        {shown.length === 0 ? <li className="w-full shrink-0 rounded-md bg-surface-soft p-4 text-center text-body-sm text-muted">{copy.noMatches}</li> : null}
-      </ul>
+              {locked ? null : (
+                <div className="p-3 pt-0">
+                  {targetDay !== null ? (
+                    <Button size="md" icon="plus" onClick={() => onAdd(candidate.id, targetDay)}>
+                      {copy.add}
+                    </Button>
+                  ) : (
+                    <select
+                      aria-label={copy.addToDay}
+                      value=""
+                      onChange={(event) => {
+                        if (event.target.value) onAdd(candidate.id, Number(event.target.value));
+                      }}
+                      className={SELECT}
+                    >
+                      <option value="">{copy.addToDay}</option>
+                      {days.map((day, index) => (
+                        <option key={day} value={index}>
+                          {copy.day(index + 1)}, {formatDay(day)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+          {shown.length === 0 ? <li className="w-full shrink-0 rounded-md bg-on-dark/10 p-4 text-center text-body-sm text-on-dark">{copy.noMatches}</li> : null}
+        </ul>
+        {moreBelow ? (
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-20 items-end justify-center bg-linear-to-t from-primary-deep to-transparent pb-2 desktop:flex">
+            <span className="inline-flex items-center gap-1 rounded-xs bg-sand px-2 py-1 text-badge text-ink">
+              {copy.scrollForMore}
+              <Icon name="chevron-down" size={MORE_ICON_PX} />
+            </span>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 };
