@@ -47,6 +47,8 @@ export const DECK_SOURCES = {
 /** A screenshot of something the deck cannot run live, saved in /public. */
 export const DECK_IMAGES = {
   whatsAppOnboarding: '/presentation/whatsapp-onboarding.webp',
+  /** The drawn pattern that bleeds off the right edge of a slide carrying a mockup. */
+  slideEdge: '/presentation/slide-edge.webp',
 } as const;
 
 export const DECK_SCREENS = {
@@ -56,6 +58,7 @@ export const DECK_SCREENS = {
   hostBookings: '/host/bookings',
   hostEarnings: '/host/earnings',
   travellerHome: '/traveller/explore',
+  travellerPlace: '/traveller/explore/places/cape-town',
   travellerResults: '/traveller/explore/results',
   travellerPlan: '/traveller/plan',
 } as const;
@@ -258,7 +261,7 @@ export const DECK_COPY = {
         title: 'Browsing people, not products',
         body: 'Every listing is one person, with their story, their place and their reviews. The traveller chooses a host, not a room.',
         points: ['Photo-first, place by place', 'Verified and community-vouched hosts', 'Book and pay in rand'],
-        route: DECK_SCREENS.travellerHome,
+        route: DECK_SCREENS.travellerPlace,
       },
       {
         title: 'One itinerary, one group',

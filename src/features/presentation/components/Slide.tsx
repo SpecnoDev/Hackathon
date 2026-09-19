@@ -1,8 +1,29 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { PatternField } from '@/shared/components';
-import { STAGGER_MS } from '../constants';
+import { DECK_IMAGES, STAGGER_MS } from '../constants';
 
 export type SlideTone = 'dark' | 'green' | 'light' | 'brand';
+
+/** The drawn pattern bleeds in from the right edge, behind a mockup, and fades out before it reaches the words. */
+const EDGE_WIDTH_PX = 300;
+const EDGE_OPACITY = 0.09;
+const EDGE_FADE = 'linear-gradient(to left, #000 0%, #000 45%, transparent 100%)';
+
+const EdgePattern = () => (
+  <span
+    aria-hidden
+    className="pointer-events-none absolute inset-y-0 right-0"
+    style={{
+      width: EDGE_WIDTH_PX,
+      opacity: EDGE_OPACITY,
+      backgroundImage: `url(${DECK_IMAGES.slideEdge})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'right center',
+      maskImage: EDGE_FADE,
+      WebkitMaskImage: EDGE_FADE,
+    }}
+  />
+);
 
 /** DESIGN.md: the dark surface, the app's green hero, the warm canvas, and the one bright green. Nothing else is a slide background. */
 const TONE: Record<SlideTone, string> = {
@@ -36,15 +57,18 @@ export const Reveal = ({ order = 0, className = '', children }: { order?: number
 interface SlideProps {
   tone: SlideTone;
   eyebrow?: string;
+  /** Slides with a mockup on the right take the drawn pattern behind it. */
+  edge?: boolean;
   headline?: ReactNode;
   /** Where the figures on this slide came from. Small, but always there. */
   source?: string;
   children: ReactNode;
 }
 
-export const Slide = ({ tone, eyebrow, headline, source, children }: SlideProps) => (
+export const Slide = ({ tone, eyebrow, headline, source, edge = false, children }: SlideProps) => (
   <section className={`relative flex size-full flex-col gap-5 overflow-hidden px-14 pb-6 pt-10 ${TONE[tone]}`}>
     {tone === 'green' || tone === 'brand' ? <PatternField /> : null}
+    {edge ? <EdgePattern /> : null}
     {eyebrow || headline ? (
       <header className="flex flex-col gap-3">
         {eyebrow ? (

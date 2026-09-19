@@ -92,7 +92,7 @@ const FEATURE_PHONE_PX = 360;
 /** One slide per feature, in the order the product is used: a host lists, a host is paid, a traveller browses, a group plans. */
 export const FeatureSlides = copy.features.items.map((feature) => {
   const FeatureSlide = () => (
-    <Slide tone="light" eyebrow={copy.features.eyebrow} headline={feature.title}>
+    <Slide tone="light" eyebrow={copy.features.eyebrow} headline={feature.title} edge>
       <div className="grid flex-1 grid-cols-[1.1fr_auto] gap-12">
         <div className="flex flex-col gap-5 pt-1">
           <Reveal order={1}>
