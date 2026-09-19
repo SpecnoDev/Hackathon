@@ -1,8 +1,9 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { APP_NAME } from '@/core/constants';
+import { APP_NAME, ROUTES } from '@/core/constants';
 import { Button, HostedLogo, Icon, type IconName } from '@/shared/components';
 import { platformFeePercent } from '@/shared/utils';
 import { HostScreen } from '../../components';
@@ -58,6 +59,14 @@ export const LandingPage = () => {
       }
     >
       <div className="flex flex-col gap-8">
+        <Link
+          href={ROUTES.home}
+          className="inline-flex w-fit items-center gap-1 text-link text-primary-text underline"
+        >
+          <Icon name="chevron-left" />
+          {HOST_COPY.common.back}
+        </Link>
+
         {/* From tablet up the web-header carries the logo, so the page would show it twice. */}
         <header className="flex items-center justify-between tablet:justify-end">
           <span className="tablet:hidden">

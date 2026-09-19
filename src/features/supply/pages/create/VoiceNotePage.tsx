@@ -4,7 +4,18 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Banner, Button, Skeleton, VoiceNotePlayer, VoiceRecordButton, formatClock } from '@/shared/components';
 import { HostScreen } from '../../components';
-import { CREATE_FLOW_STEPS, HOST_COPY, HOST_ROUTES, LANGUAGES, NEW_DRAFT_KEY, VOICE_NOTE_MAX_SECONDS, VOICE_NOTE_MIN_SECONDS } from '../../constants';
+import {
+  CREATE_FLOW_STEPS,
+  DEMO_REGION,
+  HOST_COPY,
+  HOST_ROUTES,
+  LANGUAGES,
+  LISTING_SAMPLES,
+  NEW_DRAFT_KEY,
+  VOICE_NOTE_MAX_SECONDS,
+  VOICE_NOTE_MIN_SECONDS,
+  isDemoMode,
+} from '../../constants';
 import { useBlobUrl, useHostApp, useOnline, useRequireDraft, useVoiceRecorder } from '../../hooks';
 import type { HostAppState, LanguageCode } from '../../interfaces';
 import { hostAppStore, selectHost, transcribeVoiceNote, waitForDraftedListing } from '../../services';
@@ -42,6 +53,14 @@ export const VoiceNotePage = () => {
       setBusy(undefined);
     };
   }, [kind, hasNote, transcript, online, language]);
+
+  // Demo pitch mode: skips the hold-to-record step entirely by handing the page a cached transcript,
+  // as if it had already been heard and transcribed. Region is filled too — LISTING_SAMPLES omits it,
+  // and applyDraftedListing() needs it to clear missingDraftFields()'s region gate.
+  useEffect(() => {
+    if (!isDemoMode || !kind || hasNote || transcript) return;
+    hostAppStore.patchDraftFields(NEW_DRAFT_KEY, { transcript: LISTING_SAMPLES[kind].transcript.EN, region: DEMO_REGION });
+  }, [kind, hasNote, transcript]);
 
   const finish = async (): Promise<void> => {
     const result = await recorder.stop();

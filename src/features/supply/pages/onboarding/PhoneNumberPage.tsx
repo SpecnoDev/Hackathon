@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SA_COUNTRY_CODE } from '@/core/constants';
 import { Banner, Button, TextInput } from '@/shared/components';
 import { HostScreen } from '../../components';
-import { HOST_COPY, HOST_ROUTES, REGISTER_FLOW_STEPS, SIGN_IN_FLOW_STEPS } from '../../constants';
+import { DEMO_PHONE_LOCAL, HOST_COPY, HOST_ROUTES, REGISTER_FLOW_STEPS, SIGN_IN_FLOW_STEPS, isDemoMode } from '../../constants';
 import { firstIssue, phoneNumberSchema } from '../../dto';
 import { useHostApp, useOnline } from '../../hooks';
 import type { HostAppState, RegistrationIntent } from '../../interfaces';
@@ -25,6 +25,10 @@ export const PhoneNumberPage = () => {
   const [error, setError] = useState<string>();
   const [blockedOffline, setBlockedOffline] = useState(false);
 
+  useEffect(() => {
+    if (isDemoMode && !phone) hostAppStore.answerRegistration({ phone: DEMO_PHONE_LOCAL });
+  }, [phone]);
+
   const sendCode = (): void => {
     const issue = firstIssue(phoneNumberSchema, phone);
     setError(issue);
@@ -38,7 +42,7 @@ export const PhoneNumberPage = () => {
 
   return (
     <HostScreen
-      barTitle={HOST_COPY.register.flowTitle}
+      barTitle={isSignIn ? HOST_COPY.register.signInFlowTitle : HOST_COPY.register.flowTitle}
       backHref={isSignIn ? HOST_ROUTES.welcome : HOST_ROUTES.register.language}
       step={{ current: isSignIn ? 1 : PHONE_STEP, total: isSignIn ? SIGN_IN_FLOW_STEPS : REGISTER_FLOW_STEPS }}
       heading={copy.title}

@@ -2,10 +2,11 @@
 
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button, Icon, useToast, type IconName } from '@/shared/components';
 import { formatLocalPhone, whatsAppLink } from '@/shared/utils';
 import { HostScreen, TierBadge } from '../../components';
-import { HOST_COPY, HOST_ROUTES, SUPPORT_WHATSAPP_NUMBER, languageName } from '../../constants';
+import { HOST_COPY, HOST_ROUTES, SUPPORT_WHATSAPP_NUMBER, isDemoMode, languageName } from '../../constants';
 import { useHostApp } from '../../hooks';
 import type { Host, HostAppState } from '../../interfaces';
 import { hostAppStore, selectHost } from '../../services';
@@ -27,11 +28,16 @@ const Row = ({ href, icon, label, children }: { href: string; icon: IconName; la
 );
 
 export const ProfilePage = () => {
+  const router = useRouter();
   const host = useHostApp(selectCurrentHost);
   const toast = useToast();
 
   const handleSignOut = async (): Promise<void> => {
-    if ((await hostAppStore.signOut()) === 'OFFLINE') toast(copy.signOutOffline);
+    const result = await hostAppStore.signOut();
+    if (result === 'OFFLINE') toast(copy.signOutOffline);
+    // useRedirectSignedOut (HostAppProvider) no-ops in demo mode so the auth bypass can open any
+    // host route — this replaces the welcome redirect it would otherwise have done.
+    else if (isDemoMode) router.replace(HOST_ROUTES.welcome);
   };
 
   return (

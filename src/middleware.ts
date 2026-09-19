@@ -12,6 +12,7 @@ import {
   ROUTES,
   SESSION_TOKEN_SEPARATOR,
   USER_ROLES,
+  isDemoBypassEnabled,
   isMockAuthEnabled,
   requireEnv,
   withReturnTo,
@@ -108,6 +109,12 @@ export const middleware = async (request: NextRequest): Promise<NextResponse> =>
   // place of the action's result and crash the page; the action's own guard answers with a redirect
   // the router understands.
   if (request.method !== 'GET' && request.method !== 'HEAD') return NextResponse.next({ request });
+  // Hackathon pitch mode: any page URL opens directly, with no redirect to /login or /host/welcome.
+  // API guards are untouched, so a route that also calls the API still gets a real 401 there.
+  if (isDemoBypassEnabled()) {
+    console.info('[auth] demo bypass', { pathname });
+    return NextResponse.next();
+  }
 
   const response = NextResponse.next({ request });
   const session = await readSession(request, response);

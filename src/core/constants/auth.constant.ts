@@ -1,4 +1,4 @@
-import { ENV_KEYS, optionalEnv } from './env.constant';
+import { ENV_KEYS, isProduction, optionalEnv } from './env.constant';
 import { HOURS_PER_DAY, MINUTES_PER_HOUR, MS_PER_SECOND, SECONDS_PER_MINUTE } from './time.constant';
 
 export const USER_ROLES = { admin: 'admin', host: 'host', traveller: 'traveller' } as const;
@@ -51,6 +51,21 @@ export const MOCK_OTP_REJECTED_CODE = '0000';
  * This gates the mock endpoints only — it is NOT a substitute for OTP rate limiting.
  */
 export const isMockAuthEnabled = (): boolean => optionalEnv(ENV_KEYS.allowMockAuth) === 'true';
+
+/**
+ * Hackathon-only bypass: when true, the middleware lets every page route through without a
+ * session, so a presenter can deep-link any URL without hitting `/login` or `/host/welcome`
+ * first. Read at call time (not cached) so flipping the env var takes effect on the next
+ * request; exact string match, default deny. Removal target: after judging, 2026-09-19.
+ * Gated on `!isProduction()` so a production build never inherits this even if
+ * `ALLOW_DEMO_BYPASS` leaks into that environment. Its own var, distinct from
+ * `ALLOW_MOCK_AUTH` (`isMockAuthEnabled`) — this does NOT imply mock auth is on; the pitch
+ * run sets `ALLOW_MOCK_AUTH`, `ALLOW_DEMO_BYPASS` and `NEXT_PUBLIC_DEMO_MODE` together.
+ * This disables page redirects only — API guards (`requireHost`, `requireTraveller`,
+ * `requireAdmin`, `requireService`) still 401.
+ */
+export const isDemoBypassEnabled = (): boolean =>
+  optionalEnv(ENV_KEYS.allowDemoBypass) === 'true' && !isProduction();
 
 /** Stamped on audit rows written while the demo bypass is on, so they are never mistaken for a real admin. */
 export const DEMO_ADMIN_EMAIL = 'demo-operator@hosted.local';

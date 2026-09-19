@@ -1,9 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 import { HostShell, WebHeader } from '@/core/layout';
 import { BottomNav, OfflineBanner, Skeleton, StepIndicator, TopBar, useToast, type BottomNavItem } from '@/shared/components';
-import { HOST_COPY, HOST_ROUTES } from '../constants';
+import { HOST_COPY, HOST_ROUTES, isDemoMode } from '../constants';
 import { useHostApp, useHostAppReady, useOnline } from '../hooks';
 import { hostAppStore, selectIsSignedIn } from '../services';
 
@@ -47,13 +48,18 @@ const LoadingBlocks = ({ cards }: { cards: boolean }) => (
  * and the offline banner whenever there is no signal. Content waits for the saved state so nothing flashes.
  */
 export const HostScreen = ({ barTitle, barTitleIsHeading, backHref, action, step, pageTitle, heading, helper, footer, showNav = false, children }: HostScreenProps) => {
+  const router = useRouter();
   const online = useOnline();
   const ready = useHostAppReady();
   const toast = useToast();
   const signedIn = useHostApp(selectIsSignedIn);
 
   const handleSignOut = async (): Promise<void> => {
-    if ((await hostAppStore.signOut()) === 'OFFLINE') toast(HOST_COPY.profile.signOutOffline);
+    const result = await hostAppStore.signOut();
+    if (result === 'OFFLINE') toast(HOST_COPY.profile.signOutOffline);
+    // useRedirectSignedOut (HostAppProvider) no-ops in demo mode so the auth bypass can open any
+    // host route — this replaces the welcome redirect it would otherwise have done.
+    else if (isDemoMode) router.replace(HOST_ROUTES.welcome);
   };
 
   return (

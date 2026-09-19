@@ -1,9 +1,9 @@
 'use client';
 
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Banner, Button } from '@/shared/components';
 import { compressImage } from '@/shared/utils';
-import { HOST_COPY, VERIFY_FLOW_STEPS } from '../constants';
+import { DEMO_SAMPLE_PHOTO, HOST_COPY, VERIFY_FLOW_STEPS, isDemoMode } from '../constants';
 import { useBlobUrl, useHostApp } from '../hooks';
 import type { CaptureKind, HostAppState } from '../interfaces';
 import { hostAppStore } from '../services';
@@ -45,8 +45,10 @@ interface CaptureScreenProps {
  */
 export const CaptureScreen = ({ kind, step, backHref, nextHref }: CaptureScreenProps) => {
   const picker = useRef<HTMLInputElement>(null);
-  const photoUrl = useBlobUrl(useHostApp(selectKey[kind]));
+  const photoKey = useHostApp(selectKey[kind]);
+  const photoUrl = useBlobUrl(photoKey);
   const [failed, setFailed] = useState(false);
+  const demoLoaded = useRef(false);
 
   const handlePhoto = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
@@ -61,6 +63,21 @@ export const CaptureScreen = ({ kind, step, backHref, nextHref }: CaptureScreenP
   };
 
   const openCamera = (): void => picker.current?.click();
+
+  // Demo pitch mode: opens the screen already showing the sample photo so the presenter's only tap
+  // is the existing Use button, same as a real capture.
+  useEffect(() => {
+    if (!isDemoMode || photoKey || demoLoaded.current) return;
+    demoLoaded.current = true;
+    void (async () => {
+      try {
+        const response = await fetch(DEMO_SAMPLE_PHOTO[kind]);
+        await hostAppStore.saveCapture(kind, await compressImage(await response.blob()));
+      } catch {
+        setFailed(true);
+      }
+    })();
+  }, [kind, photoKey]);
 
   return (
     <HostScreen

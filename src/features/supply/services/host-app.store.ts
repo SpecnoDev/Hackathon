@@ -2,6 +2,7 @@ import { connectivityService } from '@/core/services/client';
 import { hostReceivesCents, maskPhone, toE164 } from '@/shared/utils';
 import {
   DEFAULT_GROUP_MAX,
+  DEMO_CHECKING_DELAY_MS,
   DEMO_PAYOUT_DELAY_MS,
   DEMO_VERIFICATION_DELAY_MS,
   GROUP_SIZE_MIN,
@@ -14,6 +15,7 @@ import {
   PAYOUT_WINDOW_HOURS,
   TITLE_MIN_LENGTH,
   createSeedState,
+  isDemoMode,
   kindOption,
 } from '../constants';
 import type {
@@ -402,6 +404,15 @@ class HostAppStore {
     // The host_session cookie was just set: any sync already in flight started before it existed
     // and is answering a different question, so don't coalesce onto it.
     this.syncing = undefined;
+    // Demo pitch mode (Join only, see demo.constant.ts): the profile/offerings/bookings/payouts sync
+    // below is four sequential network round trips the OTP screen has no reason to block on for a
+    // canned host — fire it and return immediately; EnterCodePage's own demo check routes a Join the
+    // same way regardless of what this would have resolved to. Sign-in keeps the awaited, accurate
+    // read below since its RETURNING/NEW_HOST split still drives real routing.
+    if (isDemoMode && this.state.registration.intent === 'JOIN') {
+      void this.syncFromServer();
+      return 'NEW_HOST';
+    }
     await this.syncFromServer();
     const host = this.state.hosts.find((item) => item.id === hostId);
     return host?.firstName.trim() ? 'RETURNING' : 'NEW_HOST';
@@ -500,7 +511,7 @@ class HostAppStore {
       const tier = (data as { tier?: Host['tier'] } | undefined)?.tier;
       if (tier) this.patchHost({ tier });
     });
-    this.setVerification({ state: 'CHECKING', resolveAt: inMs(DEMO_VERIFICATION_DELAY_MS) });
+    this.setVerification({ state: 'CHECKING', resolveAt: inMs(isDemoMode ? DEMO_CHECKING_DELAY_MS : DEMO_VERIFICATION_DELAY_MS) });
   }
 
   /** Demo only: stands in for the KYC provider calling back. */

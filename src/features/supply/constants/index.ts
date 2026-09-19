@@ -1,3 +1,4 @@
+export * from './demo.constant';
 export * from './host-copy.constant';
 export * from './host-limits.constant';
 export * from './host-options.constant';
