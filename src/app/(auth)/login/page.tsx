@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { RETURN_TO_PARAM, ROLE_HOME_ROUTE, ROUTES, isMockAuthEnabled, safeReturnPath } from '@/core/constants';
+import {
+  RETURN_TO_PARAM,
+  ROLE_HOME_ROUTE,
+  ROUTES,
+  demoAwareHomeRoute,
+  isDemoBypassEnabled,
+  isMockAuthEnabled,
+  safeReturnPath,
+} from '@/core/constants';
 import { getCurrentUser } from '@/core/services';
 import { DemoSignIn, EmailSignIn, SessionFromUrl } from '@/features/auth/components';
 import { TravellerScreen } from '@/features/demand/components';
@@ -17,7 +26,14 @@ export default async function LoginPage({
 }) {
   const returnTo = safeReturnPath((await searchParams)[RETURN_TO_PARAM]);
   const user = await getCurrentUser();
-  if (user) redirect(returnTo ?? ROLE_HOME_ROUTE[user.role]);
+  if (user) {
+    const refererIsTraveller = ((await headers()).get('referer') ?? '').includes(ROUTES.traveller);
+    redirect(
+      isDemoBypassEnabled()
+        ? demoAwareHomeRoute(user.role, returnTo, refererIsTraveller)
+        : (returnTo ?? ROLE_HOME_ROUTE[user.role]),
+    );
+  }
   const demoTravellers = isMockAuthEnabled() ? await listDemoTravellers() : [];
 
   return (

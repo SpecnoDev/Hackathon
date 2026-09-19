@@ -83,3 +83,16 @@ export const ROLE_FORBIDDEN_ROUTES = {
   [USER_ROLES.host]: [...TRAVELLER_ROUTES, ...ADMIN_ROUTES],
   [USER_ROLES.traveller]: [...HOST_ROUTES, ...ADMIN_ROUTES],
 } as const satisfies Record<UserRole, readonly string[]>;
+
+/**
+ * Hackathon-only: under the demo bypass the host cookie can be the only session a browser holds,
+ * so a traveller sign-in landing here (`/login`, `/login/complete`) must not bounce back to
+ * `/host` — that is the pitch flipping sides on the one cookie it has. Callers gate this on
+ * `isDemoBypassEnabled()`; kept pure here so it takes a plain boolean rather than importing the
+ * env check into route constants. Removal target: 2026-09-19.
+ */
+export const demoAwareHomeRoute = (role: UserRole, returnTo: string | null, refererIsTraveller: boolean): string => {
+  if (role !== USER_ROLES.host) return returnTo ?? ROLE_HOME_ROUTE[role];
+  if (returnTo?.startsWith(ROUTES.traveller)) return returnTo;
+  return !returnTo && refererIsTraveller ? ROUTES.explore : (returnTo ?? ROLE_HOME_ROUTE[role]);
+};
