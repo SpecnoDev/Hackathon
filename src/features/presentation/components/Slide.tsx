@@ -6,7 +6,7 @@ export type SlideTone = 'dark' | 'green' | 'light' | 'brand';
 
 /** The drawn pattern bleeds in from the right edge, behind a mockup, and fades out before it reaches the words. */
 const EDGE_WIDTH_PX = 300;
-const EDGE_OPACITY = 0.09;
+const EDGE_OPACITY = 0.06;
 const EDGE_FADE = 'linear-gradient(to left, #000 0%, #000 45%, transparent 100%)';
 
 const EdgePattern = () => (
