@@ -22,5 +22,5 @@ export const GET = async (
 
   await issueHostSession(hostId, { onboarded: true });
 
-  return NextResponse.redirect(new URL(ROUTES.host, request.url));
+  return NextResponse.redirect(new URL(ROUTES.hostProfile, request.url));
 };

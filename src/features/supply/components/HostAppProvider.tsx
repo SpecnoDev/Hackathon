@@ -29,9 +29,18 @@ const useRedirectSignedOut = (): void => {
 
   useEffect(() => {
     // Demo mode has no signed-in host by design; this is UI navigation, not authz, so it no-ops here.
-    if (!ready || signedIn || isDemoMode()) return;
-    if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return;
-    router.replace(HOST_ROUTES.welcome);
+    if (!ready || signedIn || isDemoMode()) return undefined;
+    if (SIGNED_OUT_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return undefined;
+    // The host_session cookie can be ahead of this device: a WhatsApp sign-in link sets it before the
+    // store has ever synced, so the first pull from /hosts/me decides, not an empty IndexedDB.
+    let stale = false;
+    const decide = (): void => {
+      if (!stale && !selectIsSignedIn(hostAppStore.getState())) router.replace(HOST_ROUTES.welcome);
+    };
+    hostAppStore.syncFromServer().then(decide, decide);
+    return () => {
+      stale = true;
+    };
   }, [ready, signedIn, pathname, router]);
 };
 
