@@ -1,5 +1,8 @@
 import { Icon } from './Icon';
 
+const STEP_BUTTON =
+  'flex size-12 items-center justify-center rounded-md border-[1.5px] border-ink text-ink disabled:border-border-strong disabled:text-muted-soft';
+
 interface StepperProps {
   label: string;
   value: number;
@@ -20,7 +23,7 @@ export const Stepper = ({ label, value, min, max, decreaseLabel, increaseLabel, 
         aria-label={decreaseLabel}
         disabled={value <= min}
         onClick={() => onChange(value - 1)}
-        className="flex size-12 items-center justify-center rounded-full border border-ink text-ink disabled:border-border-strong disabled:text-muted-soft"
+        className={STEP_BUTTON}
       >
         <Icon name="minus" />
       </button>
@@ -32,7 +35,7 @@ export const Stepper = ({ label, value, min, max, decreaseLabel, increaseLabel, 
         aria-label={increaseLabel}
         disabled={value >= max}
         onClick={() => onChange(value + 1)}
-        className="flex size-12 items-center justify-center rounded-full border border-ink text-ink disabled:border-border-strong disabled:text-muted-soft"
+        className={STEP_BUTTON}
       >
         <Icon name="plus" />
       </button>

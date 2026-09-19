@@ -238,11 +238,15 @@ model Trip {
   name        String
   startDate   DateTime     @db.Date
   endDate     DateTime     @db.Date
-  shareCode   String       @unique
-  locked      Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  members     TripMember[]
-  blocks      TripBlock[]
+  shareCode      String       @unique
+  locked         Boolean      @default(false)
+  destination    String?
+  departureFrom  String?
+  travellerCount Int?
+  theme          String?
+  createdAt      DateTime     @default(now())
+  members        TripMember[]
+  blocks         TripBlock[]
 }
 
 model TripMember {

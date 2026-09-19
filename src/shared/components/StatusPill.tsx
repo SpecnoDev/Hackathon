@@ -28,7 +28,7 @@ interface StatusPillProps {
 }
 
 export const StatusPill = ({ tone, label, icon, density = 'host' }: StatusPillProps) => (
-  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 ${TEXT[density]} ${TONE[tone].shell}`}>
+  <span className={`inline-flex items-center gap-1.5 rounded-xs px-2.5 py-1 ${TEXT[density]} ${TONE[tone].shell}`}>
     <Icon name={icon ?? TONE[tone].icon} size={PILL_ICON_PX} />
     {label}
   </span>

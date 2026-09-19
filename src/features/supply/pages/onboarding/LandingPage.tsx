@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { APP_NAME, ROUTES } from '@/core/constants';
-import { Button, Icon, type IconName } from '@/shared/components';
+import { Button, HostedLogo, Icon, type IconName } from '@/shared/components';
 import { platformFeePercent } from '@/shared/utils';
 import { HostScreen } from '../../components';
 import { HOST_COPY, HOST_ROUTES } from '../../constants';
@@ -59,22 +59,22 @@ export const LandingPage = () => {
       }
     >
       <div className="flex flex-col gap-8">
-        <header className="flex flex-col gap-4">
-          <Link
-            href={ROUTES.home}
-            className="inline-flex w-fit items-center gap-1 text-link text-primary-text underline"
-          >
-            <Icon name="chevron-left" />
-            {HOST_COPY.common.back}
-          </Link>
-          <div className="flex items-center justify-between">
-            <Link href={ROUTES.home} className="font-display text-display-md text-primary">
-              {APP_NAME}
-            </Link>
-            <Button size="md" fullWidth={false} onClick={join}>
-              {copy.joinShort}
-            </Button>
-          </div>
+        <Link
+          href={ROUTES.home}
+          className="inline-flex w-fit items-center gap-1 text-link text-primary-text underline"
+        >
+          <Icon name="chevron-left" />
+          {HOST_COPY.common.back}
+        </Link>
+
+        {/* From tablet up the web-header carries the logo, so the page would show it twice. */}
+        <header className="flex items-center justify-between tablet:justify-end">
+          <span className="tablet:hidden">
+            <HostedLogo name={APP_NAME} />
+          </span>
+          <Button size="md" fullWidth={false} onClick={join}>
+            {copy.joinShort}
+          </Button>
         </header>
 
         <div className="flex flex-col gap-4 py-4">
@@ -102,7 +102,7 @@ export const LandingPage = () => {
           <p className="text-body-host text-body">{copy.who.body}</p>
           <ul className="flex flex-wrap gap-2">
             {copy.who.people.map((person) => (
-              <li key={person} className="rounded-full bg-surface-soft px-4 py-2.5 text-button-sm text-ink">
+              <li key={person} className="rounded-sm bg-surface-soft px-4 py-2.5 text-button-sm text-ink">
                 {person}
               </li>
             ))}

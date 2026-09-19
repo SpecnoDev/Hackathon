@@ -8,7 +8,7 @@ import { COPY_COMMON, COPY_LISTING, TRAVELLER_ROUTES } from '../constants';
 import { useSavedListings } from './SavedListingsProvider';
 import { ShareSheet } from './ShareSheet';
 
-const OVERLAY_BUTTON = 'flex size-12 items-center justify-center rounded-full bg-canvas text-ink shadow-lift';
+const OVERLAY_BUTTON = 'flex size-12 items-center justify-center rounded-sm bg-canvas text-ink shadow-lift';
 
 const OverlayButton = ({ icon, label, pressed, href, onClick }: { icon: IconName; label: string; pressed?: boolean; href?: string; onClick?: () => void }) => {
   const glyph = <Icon name={icon} className={pressed ? 'fill-current' : ''} />;

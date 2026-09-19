@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { ROUTES } from '@/core/constants';
+import { ROUTES, withReturnTo } from '@/core/constants';
 import { createSupabaseBrowserClient } from '@/core/services/client';
 
 const ACCESS_TOKEN = 'access_token';
@@ -13,7 +13,7 @@ const REFRESH_TOKEN = 'refresh_token';
  * sends to the server. The client is built for the PKCE flow and ignores that fragment, so the
  * tokens are read out by hand and set as the session, after which the server resolves the role.
  */
-export function SessionFromUrl() {
+export function SessionFromUrl({ returnTo }: { returnTo: string | null }) {
   const router = useRouter();
 
   useEffect(() => {
@@ -25,9 +25,9 @@ export function SessionFromUrl() {
     createSupabaseBrowserClient()
       .auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
       .then(({ error }) => {
-        if (!error) router.replace(ROUTES.loginComplete);
+        if (!error) router.replace(withReturnTo(ROUTES.loginComplete, returnTo));
       });
-  }, [router]);
+  }, [router, returnTo]);
 
   return null;
 }

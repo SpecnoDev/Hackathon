@@ -33,7 +33,7 @@ export const PhotoCarousel = ({ photos, alt, countLabel, overlay }: PhotoCarouse
       </div>
       {overlay ? <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between p-3 *:pointer-events-auto">{overlay}</div> : null}
       {photos.length > 1 ? (
-        <p aria-live="polite" className="absolute bottom-3 right-3 rounded-full bg-scrim/70 px-3 py-1 text-badge text-on-dark">
+        <p aria-live="polite" className="absolute bottom-3 right-3 rounded-xs bg-scrim/70 px-3 py-1 text-badge text-on-dark">
           {countLabel(position, photos.length)}
         </p>
       ) : null}

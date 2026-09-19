@@ -32,7 +32,7 @@ export const VoiceNotePlayer = ({ src, seconds, playLabel, pauseLabel }: VoiceNo
   };
 
   return (
-    <div className="flex h-14 items-center gap-3 rounded-full border border-hairline bg-canvas px-4">
+    <div className="flex h-14 items-center gap-3 rounded-md border border-hairline bg-canvas px-4">
       <audio
         ref={audio}
         src={src}
@@ -46,7 +46,7 @@ export const VoiceNotePlayer = ({ src, seconds, playLabel, pauseLabel }: VoiceNo
         type="button"
         aria-label={playing ? pauseLabel : playLabel}
         onClick={toggle}
-        className="flex size-12 shrink-0 items-center justify-center rounded-full text-ink"
+        className="flex size-12 shrink-0 items-center justify-center rounded-sm text-ink"
       >
         <Icon name={playing ? 'pause' : 'play'} />
       </button>

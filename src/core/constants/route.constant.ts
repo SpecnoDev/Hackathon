@@ -8,6 +8,9 @@ export const ROUTES = {
   loginComplete: '/login/complete',
   /** Where a WhatsApp sign-in link lands, before it swaps itself for a session cookie. */
   hostLink: '/h',
+  privacy: '/privacy',
+  plan: '/traveller/plan',
+  planJoin: '/traveller/plan/join',
   traveller: '/traveller',
   explore: '/traveller/explore',
   listings: '/traveller/listings',
@@ -21,7 +24,7 @@ export const ROUTES = {
   hostEarnings: '/host/earnings',
   hostProfile: '/host/profile',
   flows: '/flows',
-  /** The hackathon pitch deck; public so a judge's device opens it with no sign-in. */
+  /** The pitch deck. Public so it can be opened from any machine in the room. */
   presentation: '/presentation',
   admin: '/admin',
   adminHosts: '/admin/hosts',
@@ -29,6 +32,16 @@ export const ROUTES = {
   adminOfferings: '/admin/offerings',
   adminAudit: '/admin/audit',
 } as const;
+
+/** Where sign-in should land the visitor once done; the page they were sent to /login from. */
+export const RETURN_TO_PARAM = 'next';
+
+/** Only a same-origin path is honoured: `//evil.com` or an absolute URL here would be an open redirect. */
+export const safeReturnPath = (raw: string | null | undefined): string | null =>
+  raw && raw.startsWith('/') && !raw.startsWith('//') ? raw : null;
+
+export const withReturnTo = (route: string, returnTo: string | null): string =>
+  returnTo ? `${route}?${RETURN_TO_PARAM}=${encodeURIComponent(returnTo)}` : route;
 
 /**
  * Browsing is public: a traveller compares experiences before creating an account, and the
@@ -40,6 +53,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.login,
   ROUTES.signup,
   ROUTES.hostLink,
+  ROUTES.privacy,
   ROUTES.explore,
   ROUTES.listings,
   ROUTES.presentation,

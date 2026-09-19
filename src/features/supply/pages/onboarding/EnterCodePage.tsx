@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Banner, Button, OtpInput, Spinner, useToast } from '@/shared/components';
+import { Banner, Button, HostedMark, OtpInput, useToast } from '@/shared/components';
 import { formatLocalPhone } from '@/shared/utils';
 import { HostScreen } from '../../components';
 import {
@@ -125,7 +125,9 @@ export const EnterCodePage = () => {
         />
         {verifying ? (
           <div className="flex items-center gap-3">
-            <Spinner label={copy.verifying} />
+            <span role="status" aria-label={copy.verifying}>
+              <HostedMark size={20} animated />
+            </span>
             <p aria-hidden className="text-caption text-muted">
               {copy.verifying}
             </p>

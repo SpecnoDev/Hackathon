@@ -27,6 +27,10 @@ export const HOST_ONBOARDED_CLAIM = { complete: '1', pending: '0' } as const;
 export const MAGIC_LINK_TTL_MINUTES = 30;
 export const MAGIC_LINK_TTL_MS = MAGIC_LINK_TTL_MINUTES * SECONDS_PER_MINUTE * MS_PER_SECOND;
 
+/** Written by sign-in completion and read once by the page it redirects to, so the greeting toast survives the hop. */
+export const SIGNED_IN_COOKIE = 'signed_in_as';
+export const SIGNED_IN_COOKIE_MAX_AGE_SECONDS = SECONDS_PER_MINUTE;
+
 export const OTP_CODE_LENGTH = 6;
 // 4, not a rounder number: matches the client's OtpInput (features/supply/constants/host-limits.constant.ts
 // OTP_LENGTH) — the mock host flow has no server-generated code to size against, so this is the contract.

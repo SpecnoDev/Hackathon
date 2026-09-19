@@ -2,14 +2,15 @@
 version: alpha
 name: "Hosted"
 website: ""
-description: "A warm, photography-led two-sided marketplace for local South African tourism services, built on a white canvas with a national green (#009A4E) as the single product voltage and a sunset orange (#F58A34) reserved for money and warmth. Type pairs Cal Sans (display, one weight) with Montserrat (everything else) at generous sizes, because the primary user is a host on an entry-level Android in sunlight. Soft 12px base radius, pill buttons, one shadow tier. Two densities share one token set: a large, calm host app (18px body, 56px buttons, one question per screen) and a denser, more photographic traveller app (16px body, 48px buttons, card grids). Red exists in the brand triad but inside the product it belongs to errors only."
+description: "A warm, photography-led two-sided marketplace for local South African tourism services, built on a warm sand canvas with a natural green (#7FBB53) as the single product voltage, carried on ink labels rather than white, and a sunset orange (#F58A34) reserved for money and warmth. Type pairs Onest SemiBold (display and wordmark) with Montserrat (everything else) at generous sizes, because the primary user is a host on an entry-level Android in sunlight. Soft 12px base radius, square-cornered blocks rather than pills, one shadow tier. Two densities share one token set: a large, calm host app (18px body, 56px buttons, one question per screen) and a denser, more photographic traveller app (16px body, 48px buttons, card grids). Red exists in the brand triad but inside the product it belongs to errors only."
 
 colors:
-  primary: "#009A4E"
-  primary-active: "#00703A"
-  primary-tint: "#E6F4EC"
-  primary-disabled: "#A6DCC0"
-  primary-text: "#00703A"
+  primary: "#7FBB53"
+  primary-active: "#6FAD42"
+  primary-tint: "#EEF6E5"
+  primary-disabled: "#C3DFAA"
+  primary-text: "#446F26"
+  primary-deep: "#3D6522"
   accent: "#F58A34"
   accent-active: "#D9721F"
   accent-tint: "#FDECDD"
@@ -18,42 +19,43 @@ colors:
   error: "#C41E1E"
   error-tint: "#FDE4E4"
   ink: "#050505"
-  body: "#2B2B2B"
-  muted: "#5C5C5C"
-  muted-soft: "#8A8A8A"
-  hairline: "#E0E0E0"
-  hairline-soft: "#EFEFEF"
-  border-strong: "#BDBDBD"
-  canvas: "#FFFFFF"
-  surface-soft: "#F6F6F6"
-  surface-strong: "#EDEDED"
+  body: "#322C24"
+  muted: "#5F574B"
+  muted-soft: "#8D8478"
+  hairline: "#E6DCCB"
+  hairline-soft: "#EFE7D8"
+  border-strong: "#C9BBA4"
+  canvas: "#FFFDF8"
+  sand: "#FAF5EC"
+  surface-soft: "#F3EBDD"
+  surface-strong: "#EADFCD"
   surface-dark: "#121212"
-  on-primary: "#FFFFFF"
+  on-primary: "#050505"
   on-dark: "#FFFFFF"
   star-rating: "#F58A34"
   scrim: "#000000"
 
 typography:
   display-xl:
-    fontFamily: "'Cal Sans', 'Montserrat', -apple-system, system-ui, Roboto, sans-serif"
+    fontFamily: "'Onest', 'Montserrat', -apple-system, system-ui, Roboto, sans-serif"
     fontSize: 36px
     fontWeight: 600
     lineHeight: 1.15
     letterSpacing: -0.5px
   display-lg:
-    fontFamily: "'Cal Sans', 'Montserrat', sans-serif"
+    fontFamily: "'Onest', 'Montserrat', sans-serif"
     fontSize: 28px
     fontWeight: 600
     lineHeight: 1.2
     letterSpacing: -0.3px
   display-md:
-    fontFamily: "'Cal Sans', 'Montserrat', sans-serif"
+    fontFamily: "'Onest', 'Montserrat', sans-serif"
     fontSize: 24px
     fontWeight: 600
     lineHeight: 1.25
     letterSpacing: -0.2px
   earnings-display:
-    fontFamily: "'Cal Sans', 'Montserrat', sans-serif"
+    fontFamily: "'Onest', 'Montserrat', sans-serif"
     fontSize: 48px
     fontWeight: 600
     lineHeight: 1.1
@@ -484,7 +486,7 @@ The primary user of the system is the **host**, not the traveller. A host may be
 - One product accent: `{colors.primary}` (#009A4E) carries primary buttons, active navigation, selected states, the verified badge and the wordmark. Used the way Airbnb uses Rausch: one or two moments per screen, never as decoration.
 - One warm accent with a job: `{colors.accent}` (#F58A34) is for money and warmth. Earnings, "paid", ratings, category tags, the recording state of the voice button, and offline notices. Always with black text on it, never as text on white.
 - Red is brand, not UI: `{colors.brand-red}` (#FF2E2E) lives in the logo, the deck and marketing alongside green and orange. Inside the product, red means error or destructive and nothing else, so the three colours never form a traffic light on a screen.
-- Two typefaces, clear jobs: **Cal Sans** (one weight, display only, never below 24px) for screen titles, big numbers and the wordmark. **Montserrat** for everything else in Regular, Medium and SemiBold only.
+- Two typefaces, clear jobs: **Onest** (SemiBold, display only, never below 24px) for screen titles, big numbers and the wordmark. **Montserrat** for everything else in Regular, Medium and SemiBold only.
 - Two densities, one system: host screens are large and calm; traveller screens are denser and more photographic. Same tokens, different defaults (see Two Densities).
 - Soft shapes: pill buttons, 12px cards, 16px tiles, 24px on the one dark earnings card. No hard corners except the page grid.
 - One shadow tier, used rarely. Depth comes from photography, tinted surfaces and rounded clipping.
@@ -550,19 +552,19 @@ Roughly 60 percent neutrals, 30 percent green, 10 percent orange, red almost nev
 ## Typography
 
 ### Font families
-- **Cal Sans** for display. It ships in a single SemiBold weight, which is a gift for data cost: one file. Use it for screen titles (`{typography.display-md}` and up), the earnings number, the hero, and the wordmark. Never below 24px and never for running text, buttons or labels.
+- **Onest** for display. One SemiBold weight, which is a gift for data cost: one file. It replaced Cal Sans, whose single face was heavier than the logo's line and faked its own bold. Use it for screen titles (`{typography.display-md}` and up), the earnings number, the hero, and the wordmark. Never below 24px and never for running text, buttons or labels.
 - **Montserrat** for everything else. Load Regular (400), Medium (500) and SemiBold (600) only, latin subset, `font-display: swap`. No Bold, no Light, no italics. Montserrat runs wide, so keep line lengths short (the 390px frame does this for you) and line height at 1.5 on body.
 
-Stack: `'Cal Sans', 'Montserrat', -apple-system, system-ui, Roboto, sans-serif` for display; `'Montserrat', -apple-system, system-ui, Roboto, sans-serif` for text. If the webfonts fail to load on a slow connection the system font renders first and swaps; nothing depends on the webfont for layout.
+Stack: `'Onest', 'Montserrat', -apple-system, system-ui, Roboto, sans-serif` for display; `'Montserrat', -apple-system, system-ui, Roboto, sans-serif` for text. If the webfonts fail to load on a slow connection the system font renders first and swaps; nothing depends on the webfont for layout.
 
 ### Hierarchy
 
 | Token | Family | Size | Weight | Line height | Use |
 |---|---|---|---|---|---|
-| `{typography.earnings-display}` | Cal Sans | 48px | 600 | 1.1 | "R1 250" on the earnings card. The system's one loud moment. |
-| `{typography.display-xl}` | Cal Sans | 36px | 600 | 1.15 | Traveller home hero, welcome screen |
-| `{typography.display-lg}` | Cal Sans | 28px | 600 | 1.2 | Host screen questions ("What do you offer?") |
-| `{typography.display-md}` | Cal Sans | 24px | 600 | 1.25 | Screen titles, listing title on detail, OTP digits |
+| `{typography.earnings-display}` | Onest | 48px | 600 | 1.1 | "R1 250" on the earnings card. The system's one loud moment. |
+| `{typography.display-xl}` | Onest | 36px | 600 | 1.15 | Traveller home hero, welcome screen |
+| `{typography.display-lg}` | Onest | 28px | 600 | 1.2 | Host screen questions ("What do you offer?") |
+| `{typography.display-md}` | Onest | 24px | 600 | 1.25 | Screen titles, listing title on detail, OTP digits |
 | `{typography.title-lg}` | Montserrat | 20px | 600 | 1.3 | Language tiles, section heads on host side |
 | `{typography.title-md}` | Montserrat | 18px | 600 | 1.3 | Option tiles, card titles, top bar title, sticky bar price |
 | `{typography.title-sm}` | Montserrat | 16px | 600 | 1.3 | Traveller card titles, list headings |
@@ -580,7 +582,7 @@ Stack: `'Cal Sans', 'Montserrat', -apple-system, system-ui, Roboto, sans-serif` 
 ### Principles
 Sizes are larger than Airbnb's across the board because the host is reading on a small, low-resolution screen, often outdoors. Nothing on the host side goes below 14px except the 12px badge, which is always paired with a tint fill and never carries information on its own.
 
-Cal Sans gives the system its personality but is used sparingly: one title per screen, the earnings number, the hero. If two Cal Sans elements appear on one screen, demote one to `{typography.title-lg}`. Cal Sans sets its word spaces very tight, and at display sizes with negative tracking the words run together, so every display style adds `word-spacing: 0.1em` (the `font-display` utility carries it).
+Onest gives the system its personality but is used sparingly: one title per screen, the earnings number, the hero. If two display elements appear on one screen, demote one to `{typography.title-lg}`. Onest sets at a normal width and needs no word-spacing correction, which Cal Sans did.
 
 The loud moment is money. Airbnb's is the 64px rating; ours is the 48px earnings number on a dark card, because "how much did I make" is the peak trust signal for a host and the impact signal for the pitch.
 
@@ -666,7 +668,7 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 
 *Tablet and up variant*: the bar itself disappears; its job moves into the content, left-aligned at the top of the `{containers.page}` container described under Host app on tablet and desktop. The back chevron becomes an inline back link — chevron plus label in `{typography.link}` (underlined, `{colors.primary-text}`). The screen title becomes the page heading in `{typography.display-md}` ink, left-aligned, `{spacing.sm}` below the back link. The optional text action moves from the bar's right edge to sit beside this heading, same baseline, still `{typography.link}`. A `step-indicator`, where the screen has one, keeps sitting directly under the heading, unchanged from its phone position directly under the bar.
 
-**`page-title`**: The four host tab roots (Offerings, Bookings, Earnings, Profile) have no top bar. The tab's name sits top-left in `{typography.display-xl}` ink with 16px above and 32px below, the way Airbnb titles its tabs. It is the screen's one Cal Sans element, so section headings beneath it use `{typography.title-lg}`. A top bar never repeats the heading under it: when a screen has both, the bar names the flow ("New offering", "Offering") and the heading asks the question.
+**`page-title`**: The four host tab roots (Offerings, Bookings, Earnings, Profile) have no top bar. The tab's name sits top-left in `{typography.display-xl}` ink with 16px above and 32px below, the way Airbnb titles its tabs. It is the screen's one display element, so section headings beneath it use `{typography.title-lg}`. A top bar never repeats the heading under it: when a screen has both, the bar names the flow ("New offering", "Offering") and the heading asks the question.
 
 **`bottom-nav`**: 64px white bar with a top hairline. Phone only (< 744px) on the host side, where `{component.web-header}` takes over from 744px up; pinned at every width on the traveller side, which has no web-header equivalent and is out of scope for this amendment. Host tabs: Offerings, Bookings, Earnings, Profile. Traveller tabs: Explore, Trips, Bookings, Profile, matching the traveller routes in `docs/TECH_STACK.md`. A Saved tab returns when favourites exist. Icon above a 14px label; muted at rest.
 
@@ -739,6 +741,20 @@ No shadow on buttons, no shadow on option tiles, no hover elevation on the host 
 ### Brand moments
 **`dark-hero`**: The traveller home hero on `{colors.surface-dark}`: a `{typography.display-xl}` white headline, a one-line sub in `{colors.on-dark}` at 70 percent, and the search pill below. The wordmark in green. This and the earnings card are the only places the dark surface appears.
 
+**`landing-page`**: the public front door at `/`, and the only place both apps are described at once. A wordmark row with a sign-in link, then the `dark-hero` treatment carrying the headline, the one-line sub and two buttons (primary to Explore, secondary to Become a host), then a strip of live offering photos on the same dark panel at 4:3 with the title and town under each, captioned "On Hosted right now". Below on the canvas: the category tiles, then two `{rounded.xl}` panels side by side from the desktop breakpoint, one per side of the marketplace, the host one on `{colors.primary-tint}` so the two read as a pair rather than a hierarchy. Each panel is a title, one sentence, three icon rows and one button. The photos are whatever is live in the database, de-duplicated by image, so the page is never a mock-up of the product. This is the third dark surface, with the traveller hero and the earnings card.
+
+**`green-hero`**: the landing page and the traveller home both open on a `{colors.primary-deep}` panel that runs to the screen edges and ends in a `{rounded.lg}` curve at the bottom, one step outside the `{rounded.md}` of the controls it holds. It carries the brand pattern as a `pattern-field`, the logo reversed out (white line, orange dot), a `{typography.display-xl}` white headline, a one-line sub at 70 percent, and either the search block or the two entry buttons. White type on it measures 6.8:1.
+
+**`pattern-field`**: the brand pattern behind one coloured surface, never a strip and never beside text. It is a 556px hand-drawn tile carried as an alpha mask, tiled at 420px, so its colour comes from a token: white at 3 percent on the green, `{colors.accent}` at 10 percent on the canvas with a downward gradient that fades it out before the text below. It is the only pattern allowed behind type, which is why it is drawn in one tone of its own ground and nothing else.
+
+**`deck`**: the pitch at `/presentation`, public so it opens from any machine in the room. A fixed 960 by 540 stage scaled to the window, one slide mounted at a time so every entrance replays, and four grounds only: the `green-hero` with its `pattern-field` for the title, `{colors.surface-dark}` for the chapters between, `{colors.canvas}` for data, and `{colors.primary}` for the one-liner. It draws the same components and tokens as the product, and its phone frames are live iframes of the real app, so a change to the design language reaches the deck without anyone editing a slide. On the deep green, the bright green measures 2.96:1 and the orange 2.78:1, so a highlighted line there is sand and the logo reverses to white.
+
+**`place-tile`**: browse by place is a poster, not a thumbnail. A 4:3 photo sits directly on a `{colors.primary-deep}` panel carrying the `pattern-field`, with the place name in `{typography.title-sm}` white and its region and host count under it at 70 percent. The two halves share one `{rounded.lg}` clip, so the photo squares off where the green begins. It is the same tile the traveller home, the landing page's showcase and the place page all use, which is why a place never reads as another listing card.
+
+**`splash`**: the first thing the app shows while a screen is on its way, and a `loading.tsx` in the root, traveller and host trees so a slow connection gets the brand rather than a blank page. The `green-hero` ground and its `pattern-field`, with the mark drawing itself on in one 1400ms stroke, the dot landing at 1300ms, the wordmark fading up at 1500ms and the line under it at 1800ms. It respects `prefers-reduced-motion`, where everything simply appears. The same drawing the pitch deck opens on.
+
+**Shape, and what stays round.** Everything a finger presses is a block: `{rounded.md}` for buttons, inputs, the search block and the month step; `{rounded.sm}` for chips, toolbar buttons, date cells and the controls that float over a photo; `{rounded.xs}` for badges, status pills and the photo counter. Round is reserved for what is actually round: a portrait, a switch track, the record ring, a progress bar's cap, a dot. A white surface is the warm paper with a hairline, never a floating shadow; a shadow means the thing is over content, which is why it survives on a sheet, a toast and the sticky book bar.
+
 ## Two Densities
 
 | Setting | Host app | Traveller app |
@@ -784,7 +800,7 @@ Both densities pull from the same colour, radius and spacing tokens, so componen
 - Nothing is carried by colour alone: every state has a glyph or a word.
 - Touch targets: 56px buttons and 64px tiles on the host side; 48px minimum everywhere; 44px date cells.
 - Focus is a 2px ink border, no glow.
-- Fonts: Cal Sans (one file) plus three Montserrat weights, latin subset, swap. Target under 120 KB of font total.
+- Fonts: Onest (one weight) plus three Montserrat weights, latin subset, swap. Target under 120 KB of font total.
 - Images lazy-load, are served at display size, and are never autoplaying video.
 - Host-side first load target under 500 KB. No map tiles on the host side; a text town name and a "share location" action instead.
 - The host app renders correctly with fonts blocked, images blocked and JavaScript delayed.
@@ -809,7 +825,7 @@ Tailwind v4 reads its theme from CSS variables in an `@theme` block in `src/app/
 | `colors.<name>` | `--color-<name>` | `bg-primary`, `text-primary-text`, `border-hairline` |
 | `rounded.<name>` | `--radius-<name>` | `rounded-md` is 12px, `rounded-lg` is 16px. These replace Tailwind's default radius values |
 | `typography.<name>` | `--text-<name>` with its `--line-height`, `--letter-spacing` and `--font-weight` | `text-body-host`, `text-display-lg` |
-| Font stacks | `--font-display` (Cal Sans), `--font-sans` (Montserrat) | `font-display`, `font-sans` |
+| Font stacks | `--font-display` (Onest), `--font-sans` (Montserrat) | `font-display`, `font-sans` |
 | Lift shadow | `--shadow-lift` | `shadow-lift` |
 | Breakpoints | `--breakpoint-tablet` 744px, `--breakpoint-desktop` 1128px | `tablet:grid-cols-2`, `desktop:grid-cols-3` |
 | `containers.<name>` | `--container-<name>` | `max-w-host` (480px), `max-w-form` (560px), `max-w-page` (1200px) |
@@ -834,7 +850,7 @@ Spacing uses Tailwind's built-in 4px scale rather than named utilities: xxs is `
 Density belongs to the shell, not to each component. Inside `HostShell` a `Button` defaults to 56px and body text to 18px. Inside `TravellerShell` they default to 48px and 16px. See Two Densities.
 
 ### Fonts
-Load both families with `next/font` so they are self-hosted and the app makes no runtime request to a font CDN: Montserrat at 400, 500 and 600, latin subset, and Cal Sans as one file. Cal Sans has a single face, and depending on where the file comes from that face is registered as weight 400 or 600. Declare it at 600 to match the tokens, or set `font-synthesis: none` on display styles, so the browser never fakes a bold on top of it. Both families are OFL licensed, so if build-time downloads are unreliable, commit the files and use `next/font/local`.
+Load both families with `next/font` so they are self-hosted and the app makes no runtime request to a font CDN: Montserrat at 400, 500 and 600 and Onest at 600, latin subset. `font-synthesis: none` stays on the display utility so no weight is ever faked. Under 120 KB of font total. Onest is under test in place of Cal Sans, whose single face was registered at 400 and needed a 600 declared to match the tokens; if it goes back, restore the word-spacing note with it. The rest of this paragraph described that styles, so the browser never fakes a bold on top of it. Both families are OFL licensed, so if build-time downloads are unreliable, commit the files and use `next/font/local`.
 
 ### Budgets and the manifest
 - Host routes stay under 500 KB first load, with fonts under 120 KB of that. No map, chart or drag-and-drop library under `app/(host)`. `CLAUDE.md` carries the same rule.
@@ -846,7 +862,7 @@ Load both families with `next/font` so they are self-hosted and the app makes no
 - Map styling on the traveller side (marker colour, tile tint) is not specified; the intent is green markers on a desaturated tile.
 - Illustration style for empty states: set by the first four (offerings, bookings, earnings, missing record); see `empty-state`. They are plain objects, not yet the chevron-derived motif described under Imagery, which still waits on the logomark.
 - Category icons for the chip strip are not chosen; keep them from the same 24px outline set.
-- The logomark and wordmark are not yet designed. The brand triad (green, orange, red on black or white) is the palette for that work.
+- ~~The logomark and wordmark are not yet designed.~~ Done: `HostedMark` is a home drawn in one continuous `{colors.primary}` line, reversed to white on a coloured panel,, 5px round-capped in a 64px box, curling inside to a single `{colors.accent}` dot, the person at the heart of it. `HostedLogo` pairs it with the wordmark in the display face at `{typography.display-md}` (`sm` drops both to `{typography.title-lg}` for a 64px bar) with a 10px gap, the same SemiBold as the headings it leads. It leads the landing page, the traveller `dark-hero` and the host welcome screen, and it is the tab icon at `src/app/icon.svg`. The PWA icons in `public/icons` are still the placeholder pin and need regenerating from the mark.
 - Right-to-left and non-latin scripts are out of scope for now; the four launch languages are all latin-script.
 
 Gaps against the PRD and the tech stack:
@@ -862,5 +878,5 @@ Gaps against the PRD and the tech stack:
 
 Open accessibility decisions:
 
-- White labels on the green fill: `{colors.on-primary}` on `{colors.primary}` measures 3.66:1. That clears the 3:1 bar for icons and control fills, so the record button's microphone glyph is fine. Button labels at 18px and 16px SemiBold and the selected date numeral are text below 24px, so WCAG AA asks for 4.5:1. Two ways to close it without changing the brand green: use `{colors.ink}` labels on the green fill (5.56:1), or fill text-bearing buttons with a darker green of the same hue (#008945 reaches 4.5:1 with white) and keep #009A4E for icons, borders and indicators. Not decided.
+- ~~White labels on the green fill.~~ Closed by the new green: the fill is `{colors.primary}` #7FBB53 and its label is `{colors.on-primary}`, now ink, at 8.87:1. What the lighter green costs instead is the edge of a filled control against the page: green on sand measures 2.12:1, below the 3:1 WCAG 1.4.11 asks of a control boundary. A filled button is identified by its fill and its label rather than by an outline, so this is accepted deliberately; an input or an option tile, which has no fill of its own, keeps a hairline and its own border. The old note read: white on the old green measured 3.66:1. That clears the 3:1 bar for icons and control fills, so the record button's microphone glyph is fine. Button labels at 18px and 16px SemiBold and the selected date numeral are text below 24px, so WCAG AA asks for 4.5:1. Two ways to close it without changing the brand green: use `{colors.ink}` labels on the green fill (5.56:1), or fill text-bearing buttons with a darker green of the same hue (#008945 reaches 4.5:1 with white) and keep #009A4E for icons, borders and indicators. Not decided.
 - Control borders in sunlight: `{colors.hairline}` on white is 1.32:1 and `{colors.border-strong}` is 1.88:1. Inputs and option tiles are white on a white canvas, so that 1px line is the only thing marking their edge, and WCAG 1.4.11 asks for 3:1 there. On a cheap panel outdoors the edge may disappear. `{colors.muted-soft}` (#8A8A8A, 3.45:1) at 1.5px on host-side controls would close it. Not decided.

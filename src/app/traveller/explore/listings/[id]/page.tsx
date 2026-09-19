@@ -202,7 +202,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </article>
 
         <aside className="hidden desktop:block">
-          <div className="sticky top-8 flex flex-col gap-4 rounded-lg border border-hairline p-6 shadow-lift">
+          <div className="sticky top-8 flex flex-col gap-4 rounded-lg border border-hairline p-6">
             <Price offering={offering} />
             <Button size="md" href={TRAVELLER_ROUTES.book.date(offering.id)}>
               {bookLabel(offering)}
@@ -213,7 +213,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       </div>
 
       {/* DESIGN.md sticky-book-bar. Fixed rather than in the shell's footer so it can step aside for the booking card on a desktop. */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-hairline bg-canvas shadow-lift desktop:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-hairline bg-sand shadow-lift desktop:hidden">
         <div className="mx-auto flex min-h-20 max-w-page items-center justify-between gap-4 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] tablet:px-6">
           <Price offering={offering} />
           <span className="shrink-0 whitespace-nowrap">

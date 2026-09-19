@@ -7,11 +7,12 @@
  */
 @theme {
   --color-*: initial;
-  --color-primary: #009a4e;
-  --color-primary-active: #00703a;
-  --color-primary-tint: #e6f4ec;
-  --color-primary-disabled: #a6dcc0;
-  --color-primary-text: #00703a;
+  --color-primary: #7fbb53;
+  --color-primary-active: #6fad42;
+  --color-primary-tint: #eef6e5;
+  --color-primary-disabled: #c3dfaa;
+  --color-primary-text: #446f26;
+  --color-primary-deep: #3d6522;
   --color-accent: #f58a34;
   --color-accent-active: #d9721f;
   --color-accent-tint: #fdecdd;
@@ -20,17 +21,19 @@
   --color-error: #c41e1e;
   --color-error-tint: #fde4e4;
   --color-ink: #050505;
-  --color-body: #2b2b2b;
-  --color-muted: #5c5c5c;
-  --color-muted-soft: #8a8a8a;
-  --color-hairline: #e0e0e0;
-  --color-hairline-soft: #efefef;
-  --color-border-strong: #bdbdbd;
-  --color-canvas: #ffffff;
-  --color-surface-soft: #f6f6f6;
-  --color-surface-strong: #ededed;
+  --color-body: #322c24;
+  --color-muted: #5f574b;
+  --color-muted-soft: #8d8478;
+  --color-hairline: #e6dccb;
+  --color-hairline-soft: #efe7d8;
+  --color-border-strong: #c9bba4;
+  --color-canvas: #fffdf8;
+  --color-sand: #faf5ec;
+  --color-surface-soft: #f3ebdd;
+  --color-surface-strong: #eadfcd;
   --color-surface-dark: #121212;
-  --color-on-primary: #ffffff;
+  /* The green is light enough that a white label on it fails; ink on it measures 8.87:1. */
+  --color-on-primary: #050505;
   --color-on-dark: #ffffff;
   --color-star-rating: #f58a34;
   --color-scrim: #000000;
@@ -112,6 +115,17 @@
   --text-nav-label--font-weight: 600;
 
   --animate-record-ring: record-ring 1.6s ease-out infinite;
+  /* The wordmark's line draws itself, then the dot lands in the doorway. Shared with the pitch deck's title slide. */
+  /* The pitch deck at /presentation: one entrance per element, replayed each time a slide mounts. */
+  --animate-deck-rise: deck-rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-deck-fade: deck-fade 600ms ease-out both;
+  --animate-deck-pop: deck-pop 520ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  --animate-deck-grow-x: deck-grow-x 1000ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-deck-grow-y: deck-grow-y 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-deck-ring: deck-ring 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-mark-draw: mark-draw 1400ms ease-out both;
+  --animate-mark-pop: mark-pop 520ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  --animate-mark-fade: mark-fade 600ms ease-out both;
   --animate-toast-in: toast-in 150ms ease-out;
 
   @keyframes record-ring {
@@ -122,6 +136,93 @@
     to {
       transform: scale(1.45);
       opacity: 0;
+    }
+  }
+
+  @keyframes mark-draw {
+    from {
+      stroke-dashoffset: var(--mark-dash);
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes mark-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes mark-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes deck-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes deck-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes deck-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes deck-grow-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes deck-grow-y {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes deck-ring {
+    from {
+      stroke-dashoffset: var(--deck-dash);
+    }
+    to {
+      stroke-dashoffset: var(--deck-dash-to, 0);
     }
   }
 
@@ -140,18 +241,13 @@
 }
 
 :root {
-  --font-display: var(--font-cal-sans), var(--font-montserrat), -apple-system, system-ui, Roboto, sans-serif;
+  --font-display: var(--font-onest), var(--font-montserrat), -apple-system, system-ui, Roboto, sans-serif;
 }
 
-/*
- * Cal Sans ships one face, registered at weight 400, while the display tokens ask for 600.
- * Without this the browser fakes a bold on top of it.
- */
+/* Onest ships the weight the display tokens ask for, so nothing is ever faked. */
 @utility font-display {
   font-family: var(--font-display);
   font-synthesis: none;
-  /* Cal Sans sets tight, and the negative tracking tokens close its word gaps further. This opens them again. */
-  word-spacing: 0.1em;
 }
 
 @layer base {
@@ -160,9 +256,21 @@
   }
 
   body {
-    background-color: var(--color-canvas);
+    background-color: var(--color-sand);
     color: var(--color-ink);
     font-family: var(--font-sans);
+  }
+
+  /* No headline ends on a word of its own, and no paragraph drops a single word onto its last line. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
   }
 
   :focus-visible {

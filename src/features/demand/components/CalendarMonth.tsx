@@ -8,13 +8,13 @@ import { formatDayFull, formatMonthYear, isBookableDay, toIsoDate } from '../uti
 const copy = COPY_BOOK.date;
 
 /** 48px circles that give way a little on a 360px phone, where seven of them do not fit. DESIGN.md allows 44px for a date cell. */
-const DAY = 'flex aspect-square w-full max-w-12 items-center justify-center rounded-full';
+const DAY = 'flex aspect-square w-full max-w-12 items-center justify-center rounded-sm';
 const DAY_OPEN = 'text-body-md text-ink active:bg-surface-soft';
 const DAY_PICKED = 'bg-primary text-title-sm text-on-primary';
 const DAY_CLOSED = 'text-body-md text-muted-soft line-through';
 /** DESIGN.md: today gets a ring, not a colour, so it never competes with the chosen day. */
 const DAY_TODAY = 'ring-1 ring-inset ring-ink';
-const MONTH_STEP = 'flex size-12 items-center justify-center rounded-full text-ink active:bg-surface-soft disabled:text-muted-soft';
+const MONTH_STEP = 'flex size-12 items-center justify-center rounded-sm text-ink active:bg-surface-soft disabled:text-muted-soft';
 
 const midnight = (isoDate: string): Date => new Date(`${isoDate}T00:00:00`);
 const addDays = (date: Date, days: number): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);

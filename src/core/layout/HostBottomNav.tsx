@@ -16,7 +16,7 @@ export function HostBottomNav() {
   if (pathname.startsWith(ROUTES.hostOnboarding)) return null;
 
   return (
-    <nav className="sticky bottom-0 flex h-16 shrink-0 items-stretch border-t border-hairline bg-canvas">
+    <nav className="sticky bottom-0 flex h-16 shrink-0 items-stretch border-t border-hairline bg-sand">
       {NAV_ITEMS.map(({ href, label, icon }) => {
         const isActive = href === ROUTES.host ? pathname === href : pathname.startsWith(href);
 

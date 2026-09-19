@@ -15,7 +15,7 @@ export const TopBar = ({ title, titleIsHeading = false, backHref, backLabel, act
   const Title = titleIsHeading ? 'h1' : 'p';
   return (
     <>
-      <header className="flex h-14 items-center border-b border-hairline bg-canvas px-2 tablet:hidden">
+      <header className="flex h-14 items-center border-b border-hairline bg-sand px-2 tablet:hidden">
         <div className="flex w-14 justify-start">
           {backHref ? (
             <Link href={backHref} aria-label={backLabel} className="flex size-12 items-center justify-center rounded-full">

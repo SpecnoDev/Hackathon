@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { OTP_CODE_LENGTH, ROUTES } from '@/core/constants';
+import { OTP_CODE_LENGTH, ROUTES, withReturnTo } from '@/core/constants';
 import { createSupabaseBrowserClient } from '@/core/services/client';
+import { useToast } from '@/shared/components';
 
 type Stage = 'email' | 'code';
 
@@ -19,10 +20,12 @@ const COPY = {
   verifying: 'Checking…',
   change: 'Use a different email',
   failed: 'That did not work. Check it and try again.',
+  codeSent: (email: string) => `Code sent to ${email}`,
 };
 
-export function EmailSignIn() {
+export function EmailSignIn({ returnTo }: { returnTo: string | null }) {
   const router = useRouter();
+  const toast = useToast();
   const [stage, setStage] = useState<Stage>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -38,16 +41,25 @@ export function EmailSignIn() {
     setBusy(false);
     if (failure) return setError(failure.message || COPY.failed);
 
-    if (stage === 'email') return setStage('code');
-    router.replace(ROUTES.loginComplete);
+    if (stage === 'email') {
+      toast(COPY.codeSent(email));
+      return setStage('code');
+    }
+    router.replace(withReturnTo(ROUTES.loginComplete, returnTo));
   };
 
   return stage === 'email' ? (
     <form
-      onSubmit={(event) => run(event, () => createSupabaseBrowserClient().auth.signInWithOtp({
+      onSubmit={(event) =>
+        run(event, () =>
+          createSupabaseBrowserClient().auth.signInWithOtp({
             email,
-            options: { emailRedirectTo: `${window.location.origin}${ROUTES.loginComplete}` },
-          }))}
+            options: {
+              emailRedirectTo: `${window.location.origin}${ROUTES.loginComplete}`,
+            },
+          }),
+        )
+      }
       className="mt-8"
     >
       <label htmlFor="email" className="block text-caption text-ink">
@@ -67,7 +79,7 @@ export function EmailSignIn() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-6 h-12 w-full rounded-full bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
+        className="mt-6 h-12 w-full rounded-md bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
       >
         {busy ? COPY.sending : COPY.send}
       </button>
@@ -75,7 +87,13 @@ export function EmailSignIn() {
   ) : (
     <form
       onSubmit={(event) =>
-        run(event, () => createSupabaseBrowserClient().auth.verifyOtp({ email, token: code, type: 'email' }))
+        run(event, () =>
+          createSupabaseBrowserClient().auth.verifyOtp({
+            email,
+            token: code,
+            type: 'email',
+          }),
+        )
       }
       className="mt-8"
     >
@@ -98,7 +116,7 @@ export function EmailSignIn() {
       <button
         type="submit"
         disabled={busy}
-        className="mt-6 h-12 w-full rounded-full bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
+        className="mt-6 h-12 w-full rounded-md bg-primary text-button-md text-on-primary disabled:bg-primary-disabled"
       >
         {busy ? COPY.verifying : COPY.verify}
       </button>

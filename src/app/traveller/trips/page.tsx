@@ -1,9 +1,11 @@
+import { ROUTES } from '@/core/constants';
 import { requireTravellerPage } from '@/core/guards';
 import { BookingCard, OpenTripCard, TravellerScreen } from '@/features/demand/components';
 import { listOpenTrips, listTravellerBookings } from '@/features/demand/services';
-import { EmptyState } from '@/shared/components';
+import { Button, EmptyState } from '@/shared/components';
 
 const PAST_STATUSES = ['COMPLETED', 'CANCELLED', 'DECLINED'] as const;
+const CREATE_TRIP_LABEL = 'Create a trip';
 
 export const metadata = { title: 'Trips' };
 
@@ -25,10 +27,19 @@ export default async function TripsPage() {
           illustration="bookings"
           title="No trips yet"
           message="Add a listing to a trip to start planning, or book one to see it here."
-          action={null}
+          action={
+            <Button href={ROUTES.plan} size="md" icon="plus">
+              {CREATE_TRIP_LABEL}
+            </Button>
+          }
         />
       ) : (
         <div className="flex flex-col gap-10">
+          <div className="flex">
+            <Button href={ROUTES.plan} size="md" icon="plus" fullWidth={false}>
+              {CREATE_TRIP_LABEL}
+            </Button>
+          </div>
           {openTrips.length > 0 ? (
             <section className="flex flex-col gap-4">
               <h2 className="text-title-lg text-ink">Planning</h2>

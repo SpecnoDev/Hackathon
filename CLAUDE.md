@@ -56,6 +56,7 @@ Write less code. One expressive line beats four, never at the cost of readabilit
 ## Git
 
 - `main` is the trunk and always runs. `feature/supply` and `feature/demand` are long-lived; branch sub-features off them and merge back.
+- **Teammates' changes are never overwritten.** Before you start work, and again before you commit and push, fetch and integrate `origin/main` (`git pull --rebase origin main`, or a merge when the rebase would rewrite commits already shared), then add your work on top of theirs. Never force-push. Never resolve a conflict by taking only your side, and never rewrite or revert a file in someone else's area to make your change fit: keep their change, add yours, and if the two cannot coexist, ask them. A push rejected as non-fast-forward means pull first, never `--force`.
 - Never stage, commit, branch or push unless you were explicitly asked to in that message.
 - Never credit AI in a commit message, PR or ticket.
 - Commit frequently — one large late commit reads as pre-built work.
@@ -64,7 +65,7 @@ Write less code. One expressive line beats four, never at the cost of readabilit
 
 | Area | Owner |
 |---|---|
-| Platform: schema, `shared/dto`, guards, `api/v1`, auth, AI, bot | Henry |
+| Platform: schema, `shared/dto`, guards, `api/v1`, auth, AI, bot, admin back office, trip planner (`features/planner`, `app/traveller/plan`) | Henry |
 | `app/(host)`, `features/supply` | Marlon |
 | `app/(traveller)`, `features/demand` | Francois |
 
