@@ -27,7 +27,7 @@ export const PotMeter = ({ totalCents, shareCents, friends, paidAtStart }: PotMe
         <p className="text-title-sm text-ink">{copy.potTitle}</p>
         <p className="font-display text-display-md text-ink">{copy.potOf(formatRand(paidCents), formatRand(totalCents))}</p>
       </div>
-      <div className="h-4 overflow-hidden rounded-full bg-surface-strong">
+      <div className="h-3 overflow-hidden rounded-full bg-surface-strong">
         <div
           className="h-full origin-left animate-deck-grow-x rounded-full bg-primary transition-[width] duration-500 motion-reduce:animate-none"
           style={{ width: `${(paidCents / totalCents) * FULL_PERCENT}%`, animationDelay: '500ms' }}
@@ -56,7 +56,7 @@ export const PotMeter = ({ totalCents, shareCents, friends, paidAtStart }: PotMe
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => setPaid((count) => count + 1)} className="flex h-12 items-center justify-center gap-2 rounded-full bg-primary text-button-md text-on-primary active:bg-primary-active">
+        <button type="button" onClick={() => setPaid((count) => count + 1)} className="flex h-12 items-center justify-center gap-2 rounded-md bg-primary text-button-md text-on-primary active:bg-primary-active">
           <Icon name="banknote" size={20} />
           {copy.pay(friends[paid])} {formatRand(shareCents)}
         </button>

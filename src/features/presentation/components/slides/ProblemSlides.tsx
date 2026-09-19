@@ -58,15 +58,22 @@ export const ProblemSlide = () => (
       <Reveal order={3}>
         <p className="max-w-2xl text-body-host text-on-dark/70">{copy.problem.body}</p>
       </Reveal>
-      <ul className="flex flex-wrap gap-2">
-        {copy.problem.people.map((person, index) => (
-          <li key={person}>
-            <Reveal order={5 + index}>
-              <span className="flex h-10 items-center rounded-sm border border-on-dark/20 px-4 text-button-sm text-on-dark">{person}</span>
-            </Reveal>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col gap-3">
+        <Reveal order={5}>
+          <p className="text-badge uppercase tracking-[0.22em] text-on-dark/50">{copy.problem.peopleLabel}</p>
+        </Reveal>
+        <ul className="flex flex-wrap gap-6">
+          {copy.problem.people.map((person, index) => (
+            <li key={person.role}>
+              <Reveal order={6 + index} className="flex items-center gap-3">
+                {/* Plain files on Unsplash, the same faces the app seeds; next/image would only add a loader here. */}
+                <img src={person.portrait} alt="" className="size-14 rounded-full object-cover ring-1 ring-on-dark/20" />
+                <span className="text-button-sm text-on-dark">{person.role}</span>
+              </Reveal>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   </Slide>
 );
